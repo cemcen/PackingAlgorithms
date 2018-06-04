@@ -32,6 +32,8 @@
   },
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.6",
-    "vue": "^2.3.2"
+    "two.js": "^0.7.0-alpha.1",
+    "vue": "^2.3.2",
+    "vue-material": "1.0.0-beta-7"
   }
 }
