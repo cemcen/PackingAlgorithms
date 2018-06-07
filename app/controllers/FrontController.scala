@@ -11,7 +11,7 @@ import play.api.mvc._
 class FrontController @Inject() (cc: ControllerComponents, env: Environment) extends AbstractController(cc){
   val config: Config = ConfigFactory.parseFile(new File("conf/frontend.conf")).resolve()
 
-  def index = Action {
+  def index(any : String) = Action {
     Ok(views.html.index.render(env, config.getInt("webpack.port"), WebpackBuildFile.jsBundle, WebpackBuildFile.cssBundle))
   }
 }

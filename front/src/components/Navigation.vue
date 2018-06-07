@@ -15,9 +15,9 @@
                 </md-content>
                 <div class="options">
                     <md-tabs md-alignment="fixed">
+                        <md-tab id="tab-polygon" @click="selectTab(1)" md-icon="/assets/images/square.svg"></md-tab>
                         <md-tab id="tab-distribution" @click="selectTab(0)"
                                 md-icon="/assets/images/line-chart.svg"></md-tab>
-                        <md-tab id="tab-polygon" @click="selectTab(1)" md-icon="/assets/images/square.svg"></md-tab>
                     </md-tabs>
                     <router-view/>
                 </div>
@@ -55,18 +55,19 @@
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    p.background(255);
-                    if (p.mouseIsPressed) {
+                    //p.background(255);
+                    /*if (p.mouseIsPressed) {
                         p.fill(0);
                     } else {
                         p.fill(255);
-                    }
-                    p.rect(100, 100, 50, 50)
+                    }*/
+                    //p.rect(100, 100, 50, 50)
                 };
             };
             const P5 = require('p5');
             this.ps = new P5(this.script);
             console.log(this.ps);
+            this.selectTab(1);
         },
         methods: {
             selectTab(i){
@@ -87,7 +88,7 @@
     }
 
     .options{
-        min-height: 30em;
+        min-height: 35em;
         border: 1px solid rgba(#000, .12);
     }
 
@@ -95,10 +96,10 @@
         justify-content: center;
         align-items: center;
         width: 100%;
-        min-height: 30em;
+        min-height: 35em;
     }
     .md-content {
-        min-height: 30em;
+        min-height: 35em;
         display: inline-flex;
         border: 1px solid rgba(#000, .12);
     }

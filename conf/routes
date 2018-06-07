@@ -1,17 +1,18 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
-# ~~~~
+# ~~~
 
 # Polygons events
-GET     /polygons                   controllers.PolygonController.configure
+GET     /api/polygons                   controllers.PolygonController.configure
 
 # Decision function events
-GET     /probability                controllers.ProbabilityController.configure
+GET     /api/probability                controllers.ProbabilityController.configure
 
 # Home page
-GET     /                           controllers.FrontController.index()
+GET     /                           controllers.FrontController.index(any = "")
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
-    
+# Vue Router
+GET     /*any                        controllers.FrontController.index(any)
