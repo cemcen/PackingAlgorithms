@@ -2,6 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# Polygons events
+GET     /polygons                   controllers.PolygonController.configure
+
+# Decision function events
+GET     /probability                controllers.ProbabilityController.configure
+
 # Home page
 GET     /                           controllers.FrontController.index()
 
