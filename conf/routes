@@ -2,11 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~
 
-# Polygons events
-GET     /api/polygons                   controllers.PolygonController.configure
+# Mesh events
 
-# Decision function events
-GET     /api/probability                controllers.ProbabilityController.configure
+POST    /api/2d/mesh/create            controllers.MeshController.createMesh2D
 
 # Home page
 GET     /                           controllers.FrontController.index(any = "")

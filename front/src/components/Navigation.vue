@@ -5,7 +5,6 @@
                 <img class="logo-image" src="assets/images/tetris.png"/>
                 <md-tabs class="md-primary md-transparent">
                     <md-tab id="tab-home" md-label="Packing"></md-tab>
-                    <md-tab id="tab-pages" md-label="Analisis"></md-tab>
                 </md-tabs>
             </md-app-toolbar>
 
@@ -66,7 +65,7 @@
             };
             const P5 = require('p5');
             this.ps = new P5(this.script);
-            console.log(this.ps);
+            //console.log(this.ps);
             this.selectTab(1);
         },
         methods: {

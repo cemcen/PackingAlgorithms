@@ -54,7 +54,7 @@
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
                     p.frameRate(60);
-                    console.log(canvas);
+                    //console.log(canvas);
                 };
 
                 // What's been drawn on the canvas
