@@ -1,4 +1,4 @@
-package util.geometric
+package geometry
 
 /**
   * Contains all definitions needed for points (Addition, multiplication, etc).

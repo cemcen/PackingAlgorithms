@@ -1,4 +1,4 @@
-package util.geometric
+package geometry
 
 /**
   * This is a class for polygon representation. This polygon will be represented inside a circle of center '_center' and radius
@@ -12,7 +12,7 @@ class Polygon(points: List[Point], radius: Double) {
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
     *
     */
-  def intersectPolygon(polygon: Polygon) = ???
+  def intersectPolygon(polygon: Polygon): Boolean = ???
 
 
   /**

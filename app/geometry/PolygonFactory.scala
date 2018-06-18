@@ -1,4 +1,4 @@
-package util.geometric
+package geometry
 
 import dto.dim2D.input.InputPolygon
 
