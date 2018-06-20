@@ -5,16 +5,77 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * This is a class for polygon representation. This polygon will be represented inside a circle of center '_center' and radius
   * 'radius', each point of this polygon will have the center as coordinate system.
+  *
   */
 class Polygon(points: List[Point], radius: Double) {
+
+  def Polygon(points: List[Point]): Polygon = this(points, -1)
 
   private var _center = new Point(0,0)
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
+    * The returned polygon has no radius defined because we assume that the two given polygon are already placed on the mesh.
+    * The boolean returned is used to know if it not intersects (optimization)
     *
+    * In this implementation we assume that the polygon given have three or more vertices, that is to say, this polygons
+    * are well defined.
     */
-  def intersectPolygon(polygon: Polygon): Boolean = ???
+  def intersectPolygon(polygon: Polygon): Polygon = {
+    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+
+    // Used for reference on the polygon.
+    var indexPolygonA: Int = 0
+    var indexPolygonB: Int = 0
+
+    // We will use an algorithm in time O(n + m). This uses two vectors and cross product to determine the intersection.
+    // Second point -> first point. Using ccw vectors over the polygon.
+    var vectorPolygonA: Vector = Vector(this.points.tail.head, this.points.head)
+    var vectorPolygonB: Vector = Vector(polygon.points.tail.head, polygon.points.head)
+
+    // Methods that will be used on the algorithm of intersection, these are used to advance the vector on each iteration.
+    // This will advance the vector used in polygon A.
+    def advanceVectorA(): Unit = {
+      indexPolygonA += 1
+      vectorPolygonA = Vector(points(Math.floorMod(indexPolygonA + 1, points.size)), points(Math.floorMod(indexPolygonA, points.size)))
+    }
+
+    // This will advance the vector used in polygon B.
+    def advanceVectorB(): Unit = {
+      indexPolygonB += 1
+      vectorPolygonB = Vector(points(Math.floorMod(indexPolygonB + 1, points.size)), points(Math.floorMod(indexPolygonB, points.size)))
+    }
+
+    // We should continue to check an intersection until one of the two polygon had been check entirely.
+    while (indexPolygonA < this.points.size && indexPolygonB < polygon.points.size) {
+      // Here we have two options, advance vector A or B.
+      // We will advance vector A if cross product is positive, advance vector B otherwise.
+      // But first we need to check if these two vectors intersects.
+      val vIntersectionPoints: List[Point] = vectorPolygonA.intersectVector(vectorPolygonB)
+      intersectionPoints.++(vIntersectionPoints)
+
+      // We need to advance one of the vector.
+      // Depends on where are one vector to each other.
+      val crossProduct: Double = vectorPolygonA x vectorPolygonB
+
+      if(crossProduct > 0 ){
+        if(vectorPolygonA.leftOn(vectorPolygonB.pointA)) {
+          advanceVectorA()
+        } else {
+          advanceVectorB()
+        }
+      } else {
+        if (vectorPolygonB.leftOn(vectorPolygonA.pointA)) {
+          advanceVectorB()
+        } else {
+          advanceVectorA()
+        }
+      }
+    }
+
+    // Finally we return
+    Polygon(intersectionPoints.toList.distinct)
+  }
 
   /**
     * Function that makes the minkowski sum between this polygon and the one as parameter.
@@ -52,7 +113,7 @@ object Polygon {
     val vectorCenterPoint: Vector = Vector(center, points.head)
 
     // This vector will be used to calculate the angle of each point in the polygon.
-    val vectorAuxiliar: Vector = Vector(center, points.head)
+    val vectorAuxiliary: Vector = Vector(center, points.head)
 
     // Then we will order by the size of the angle and sign of the cross product between the vectors.
     case class OrderPolygon(index: Int, angle: Double, crossProduct: Double)
@@ -62,8 +123,8 @@ object Polygon {
     // And calculate the cross product between them so we can know the sign of the angle.
     points.zipWithIndex.foreach{
       case (point, i) =>
-        vectorAuxiliar.setPoints(center, point)
-        orderPolygonList += OrderPolygon(i, vectorCenterPoint.angleBetween(vectorAuxiliar), vectorCenterPoint x vectorAuxiliar)
+        vectorAuxiliary.setPoints(center, point)
+        orderPolygonList += OrderPolygon(i, vectorCenterPoint.angleBetween(vectorAuxiliary), vectorCenterPoint x vectorAuxiliary)
     }
 
     // Now we need to order it by size.
