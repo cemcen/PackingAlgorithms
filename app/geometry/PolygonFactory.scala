@@ -46,7 +46,7 @@ object PolygonFactory {
     /**
       * Finally we return the polygon result.
       */
-    new Polygon(vertexList.toList, radius)
+    Polygon(vertexList.toList, radius)
   }
 
   /**
