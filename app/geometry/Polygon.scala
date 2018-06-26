@@ -7,11 +7,11 @@ import scala.collection.mutable.ArrayBuffer
   * 'radius', each point of this polygon will have the center as coordinate system.
   *
   */
-class Polygon(points: List[Point], radius: Double) {
+class Polygon(val points: List[Point], val radius: Double) {
 
-  def Polygon(points: List[Point]): Polygon = this(points, -1)
+  def this(points: List[Point]) = this(points, -1.0)
 
-  private var _center = new Point(0,0)
+  private var _center = new Point(0, 0)
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
@@ -58,8 +58,8 @@ class Polygon(points: List[Point], radius: Double) {
       // Depends on where are one vector to each other.
       val crossProduct: Double = vectorPolygonA x vectorPolygonB
 
-      if(crossProduct > 0 ){
-        if(vectorPolygonA.leftOn(vectorPolygonB.pointA)) {
+      if (crossProduct > 0) {
+        if (vectorPolygonA.leftOn(vectorPolygonB.pointA)) {
           advanceVectorA()
         } else {
           advanceVectorB()
@@ -74,7 +74,7 @@ class Polygon(points: List[Point], radius: Double) {
     }
 
     // Finally we return
-    Polygon(intersectionPoints.toList.distinct)
+    Polygon(intersectionPoints.toList.distinct, -1.0)
   }
 
   /**
@@ -89,13 +89,28 @@ class Polygon(points: List[Point], radius: Double) {
     */
   def minkowskiSum(polygon: Polygon): Polygon = ???
 
+  /**
+    * Returns true if the points are oriented ccw.
+    */
+  def ccw(): Boolean = {
+    var sum: Double = 0
+
+    for(i <- 1 to points.size) {
+      val pointA = points(Math.floorMod(i, points.size))
+      val pointB = points(Math.floorMod(i + 1, points.size))
+      sum = (pointB.x - pointA.x)*(pointB.y + pointA.y)
+    }
+
+    sum < 0
+  }
 
   /**
     * Getter and setter of attribute center.
     */
   def center: Point = _center
-  def center_= (x: Int, y: Int): Unit = {
-    _center = new Point(x,y)
+
+  def center_=(x: Int, y: Int): Unit = {
+    _center = new Point(x, y)
   }
 
 }
@@ -107,7 +122,7 @@ object Polygon {
     // Before initializing the polygon we need to order the point ccw.
     // We know that the center of those points is (0,0).
     // We are going to use that reference to order those points.
-    val center = new Point(0,0)
+    val center = new Point(0, 0)
 
     // The first vector will use the first point as reference and then we will order them from that point.
     val vectorCenterPoint: Vector = Vector(center, points.head)
@@ -116,27 +131,30 @@ object Polygon {
     val vectorAuxiliary: Vector = Vector(center, points.head)
 
     // Then we will order by the size of the angle and sign of the cross product between the vectors.
-    case class OrderPolygon(index: Int, angle: Double, crossProduct: Double)
-    val orderPolygonList: ArrayBuffer[OrderPolygon] = new ArrayBuffer[OrderPolygon]()
+    case class OrderPolygon(index: Int, angle: Double, crossProduct: Double) extends Ordered[OrderPolygon] {
+      def compare(that: OrderPolygon): Int = this.angle compare that.angle
+    }
 
+    val orderPolygonList: ArrayBuffer[OrderPolygon] = new ArrayBuffer[OrderPolygon]()
     // Retrieve angle between the point previously selected and the point in the iteration.
     // And calculate the cross product between them so we can know the sign of the angle.
-    points.zipWithIndex.foreach{
+    points.zipWithIndex.foreach {
       case (point, i) =>
         vectorAuxiliary.setPoints(center, point)
         orderPolygonList += OrderPolygon(i, vectorCenterPoint.angleBetween(vectorAuxiliary), vectorCenterPoint x vectorAuxiliary)
     }
 
     // Now we need to order it by size.
-    orderPolygonList.sortBy(order => order.angle)
+    val sortedList: Seq[OrderPolygon] = orderPolygonList.sortBy(order => order.angle)
 
     // We need a new list of points so we can order it ccw.
     val pointsOrderedCCW: ArrayBuffer[Point] = new ArrayBuffer[Point]()
 
     // Then use the angle order to push or queue an element depending on the cross product sign.
-    orderPolygonList.foreach(orderPolygon => {
-      if (orderPolygon.index > 0) {
-        if (orderPolygon.crossProduct > 0){
+    pointsOrderedCCW append points.head
+    sortedList.foreach(orderPolygon => {
+      if (orderPolygon.index != 0) {
+        if (orderPolygon.crossProduct >= 0) {
           pointsOrderedCCW append points(orderPolygon.index)
         } else {
           pointsOrderedCCW prepend points(orderPolygon.index)

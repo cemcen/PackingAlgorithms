@@ -28,15 +28,16 @@ object PolygonFactory {
 
     // We iterate on the number of vertex, then create the vertex randomly on a circle with radius R
     // and finally checks if this vertex is repeated on the list of previous generated vertex.
-    for(_ <- 1 to numberOfVertex) {
+    for(i <- 1 to numberOfVertex) {
 
       condition = true
 
       // It probable to finish on the first iteration.
       while(condition) {
         condition = false
-        x = radius*math.cos(r.nextFloat())
-        y= radius*math.sin(r.nextFloat())
+        val randomValue = 2*math.Pi*r.nextFloat()
+        x = radius*math.cos(randomValue)
+        y= radius*math.sin(randomValue)
         vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y) condition = true)
       }
 

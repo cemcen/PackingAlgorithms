@@ -32,6 +32,16 @@ class Vector(var pointA: Point, var pointB: Point) {
   }
 
   /**
+    * Method that calculates the subtraction between two vectors and returns the vector resultant.
+    */
+  def -(vector: Vector): Vector = Vector(this.pointA - vector.pointA, this.pointB - vector.pointB)
+
+  /**
+    * Method that calculates the addition between two vectors and returns the vector resultant.
+    */
+  def +(vector: Vector): Vector = Vector(this.pointA + vector.pointA, this.pointB +  vector.pointB)
+
+  /**
     * Method that calculates the cross product between two vectors and returns the magnitude of that vector.
     */
   def x(vector: Vector): Double = i*vector.j - j*vector.i
@@ -40,6 +50,11 @@ class Vector(var pointA: Point, var pointB: Point) {
     * Calculates the dot product between two vectors.
     */
   def *(vector: Vector): Double = i*vector.i + j*vector.j + k*vector.k
+
+  /**
+    * Multiplies the vector.
+    */
+  def *(mult: Double): Vector = Vector(pointA*mult, pointB*mult)
 
   /**
     * Returns magnitude of the vector.
@@ -81,82 +96,58 @@ class Vector(var pointA: Point, var pointB: Point) {
     val vectorCB: Vector = Vector(vector.pointA, this.pointB)
 
     if ((this x vectorAC) * (this x vectorAD) <= 0 && (vector x vectorCA) * (vector x vectorCB) <= 0) {
-      // There is a chance that the points are collinear and don't intersect.
-      if(this.pointA.x == this.pointB.x && vector.pointA.x == this.pointA.x && vector.pointB.x == this.pointA.x) {
-        // This means that the vectors are collinear in X.
+      // https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 
-        // We need to get the intersection points. And there are 6 possibilities.
-        if (Math.abs(vector.pointA.y - this.pointA.y) + Math.abs(vector.pointA.y - this.pointB.y) == Math.abs(this.pointA.y - this.pointB.y)
-          && Math.abs(vector.pointB.y - this.pointA.y) + Math.abs(vector.pointB.y - this.pointB.y) == Math.abs(this.pointA.y - this.pointB.y)) {
-          intersectionPoints += vector.pointA
-          intersectionPoints += vector.pointB
-        } else if (Math.abs(vector.pointA.y - this.pointA.y) + Math.abs(vector.pointA.y - this.pointB.y) == Math.abs(this.pointA.y - this.pointB.y)
-          && Math.abs(vector.pointB.y - this.pointA.y) + Math.abs(vector.pointB.y - this.pointB.y) != Math.abs(this.pointA.y - this.pointB.y)) {
+      val vectorR: Vector = Vector(this.pointB, this.pointA)
+      val vectorS: Vector = Vector(vector.pointB, vector.pointA)
+      val vectorP: Vector = Vector(new Point(0,0), this.pointB)
+      val vectorQ: Vector = Vector(new Point(0,0), vector.pointB)
 
-          intersectionPoints += vector.pointA
-          if (Math.abs(this.pointA.y - vector.pointA.y) + Math.abs(this.pointA.y - vector.pointB.y) == Math.abs(vector.pointA.y - vector.pointB.y)) {
-            intersectionPoints += this.pointA
-          } else {
-            intersectionPoints += this.pointB
+      // r x s
+      val valueD: Double = vectorR x vectorS
+
+      // (q - p) x r
+      val valueN: Double = (vectorQ - vectorP) x vectorR
+
+      // This means that we have collinear intersection
+      if(valueD == 0 && valueN == 0) {
+        // Then we need to know if they are disjoint.
+        // If not calculate the intersection
+        if ((0 <= (vectorQ - vectorP)*vectorR && (vectorQ - vectorP)*vectorR <= vectorR*vectorR)
+          || (0 <= (vectorP - vectorQ)*vectorS && (vectorP - vectorQ)*vectorS <= vectorS*vectorS)) {
+
+          val to = ((vectorQ - vectorP) * vectorR) / (vectorR * vectorR)
+          val t1 = ((vectorQ + vectorS - vectorP) * vectorR) / (vectorR * vectorR)
+
+          // Collinear and overlap
+          if ((0 <= to && to <= 1) || (0 <= t1 && t1 <= 1)) {
+
+            if (Math.abs(vectorAC.magnitude() + vectorAD.magnitude() - vector.magnitude()) < 0.001) {
+              intersectionPoints += this.pointA
+            } else {
+              intersectionPoints += this.pointB
+            }
+
+            if (Math.abs(vectorAC.magnitude() + vectorCB.magnitude() - this.magnitude()) < 0.001) {
+              intersectionPoints += vector.pointA
+            } else {
+              intersectionPoints += vector.pointB
+            }
           }
-
-        } else if (Math.abs(vector.pointA.y - this.pointA.y) + Math.abs(vector.pointA.y - this.pointB.y) != Math.abs(this.pointA.y - this.pointB.y)
-          && Math.abs(vector.pointB.y - this.pointA.y) + Math.abs(vector.pointB.y - this.pointB.y) == Math.abs(this.pointA.y - this.pointB.y)) {
-
-          intersectionPoints += vector.pointB
-
-          if (Math.abs(this.pointA.y - vector.pointA.y) + Math.abs(this.pointA.y - vector.pointB.y) == Math.abs(vector.pointA.y - vector.pointB.y)) {
-            intersectionPoints += this.pointA
-          } else {
-            intersectionPoints += this.pointB
-          }
-        } else {
-          intersectionPoints += this.pointA
-          intersectionPoints += this.pointB
         }
-      } else if (this.pointA.y == this.pointB.y && vector.pointA.y == this.pointA.y && vector.pointB.y == this.pointA.y) {
-        // This means that the vectors are collinear in Y.
-        
-        // We need to get the intersection points. And there are 6 possibilities.
-        if (Math.abs(vector.pointA.x - this.pointA.x) + Math.abs(vector.pointA.x - this.pointB.x) == Math.abs(this.pointA.x - this.pointB.x)
-          && Math.abs(vector.pointB.x - this.pointA.x) + Math.abs(vector.pointB.x - this.pointB.x) == Math.abs(this.pointA.x - this.pointB.x)) {
-          intersectionPoints += vector.pointA
-          intersectionPoints += vector.pointB
-        } else if (Math.abs(vector.pointA.x - this.pointA.x) + Math.abs(vector.pointA.x - this.pointB.x) == Math.abs(this.pointA.x - this.pointB.x)
-          && Math.abs(vector.pointB.x - this.pointA.x) + Math.abs(vector.pointB.x - this.pointB.x) != Math.abs(this.pointA.x - this.pointB.x)) {
-
-          intersectionPoints += vector.pointA
-          if (Math.abs(this.pointA.x - vector.pointA.x) + Math.abs(this.pointA.x - vector.pointB.x) == Math.abs(vector.pointA.x - vector.pointB.x)) {
-            intersectionPoints += this.pointA
-          } else {
-            intersectionPoints += this.pointB
-          }
-
-        } else if (Math.abs(vector.pointA.x - this.pointA.x) + Math.abs(vector.pointA.x - this.pointB.x) != Math.abs(this.pointA.x - this.pointB.x)
-          && Math.abs(vector.pointB.x - this.pointA.x) + Math.abs(vector.pointB.x - this.pointB.x) == Math.abs(this.pointA.x - this.pointB.x)) {
-
-          intersectionPoints += vector.pointB
-
-          if (Math.abs(this.pointA.x - vector.pointA.x) + Math.abs(this.pointA.x - vector.pointB.x) == Math.abs(vector.pointA.x - vector.pointB.x)) {
-            intersectionPoints += this.pointA
-          } else {
-            intersectionPoints += this.pointB
-          }
-        } else {
-          intersectionPoints += this.pointA
-          intersectionPoints += this.pointB
-        }
-
       } else {
-        // Get points of intersections for a general case (No collinear).
 
-        // http://www.cs.swan.ac.uk/~cssimon/line_intersection.html
-        val ta: Double = (((vector.pointA.y - vector.pointB.y) * (this.pointA.x - vector.pointA.x)
-          + (vector.pointB.x - vector.pointA.x) * (this.pointA.y - vector.pointA.y))
-        / ((vector.pointB.x - vector.pointA.x) * (this.pointA.y - this.pointB.y)
-          + (this.pointA.x - this.pointB.x) * (vector.pointB.y - vector.pointA.y)))
+        // No parallelism
+        if(valueD != 0) {
 
-        intersectionPoints += new Point(this.pointA.x + ta*(this.pointB.x - this.pointB.x), this.pointA.y + ta*(this.pointB.y - this.pointB.y))
+          val t = ((vectorQ - vectorP) x vectorS) / valueD
+          val u = valueN / valueD
+
+          // This means that the intersection exists.
+          if((0 <= t && t <= 1) && (0 <= u && u <= 1)) {
+            intersectionPoints += new Point(this.pointB.x + t * (this.pointA.x - this.pointB.x), this.pointB.y + t * (this.pointA.y - this.pointB.y))
+          }
+        }
       }
     }
 
