@@ -96,7 +96,7 @@ class Polygon(val points: List[Point], val radius: Double) {
 
     // We are going to check if the point is at the left of each edge.
     var isInside: Boolean = true
-    for(i <- 0 to points.size) {
+    for (i <- 0 to points.size) {
       val vectorA: Vector = Vector(points(Math.floorMod(i + 1, points.size)), points(Math.floorMod(i, points.size)))
       isInside &&= vectorA.leftOn(point)
     }
@@ -136,19 +136,22 @@ class Polygon(val points: List[Point], val radius: Double) {
 
     // First of all we search for a point on which the movable polygon isn't inside the static one.
     var inside: Boolean = true
-    while(inside){
+    while (inside) {
+      inside = false
       xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
       yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
 
       movingPolygonPoints.foreach(point => {
-        inside &&= this.pointInsidePolygon(new Point(point.x + xTranslation, point.y + yTranslation))
+        inside ||= this.pointInsidePolygon(new Point(point.x + xTranslation, point.y + yTranslation))
       })
 
-      if(inside){
+      if (inside) {
         movingIndexPolygonPoint += 1
         movingPolygonPoint = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
       }
     }
+
+    // println("Moving Point: " + movingPolygonPoint)
 
     // If we are here it means that the actual movingPolygonPoint satisfies that they are overlapping.
     // So we save the center as a point of the new polygon.
@@ -157,32 +160,70 @@ class Polygon(val points: List[Point], val radius: Double) {
     // We know move onto the next point of the static one.
     staticIndexPolygonPoint += 1
     staticPolygonPoint = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
+    //var debugSteps = 0
 
     // Now we advance the polygon by the conditions of not being inside.
-    while(staticIndexPolygonPoint < this.points.size + 1) {
+    while (staticIndexPolygonPoint < this.points.size + 1) { //&& debugSteps < 10) {
 
       xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
       yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
 
-      val posteriorVectorStatic: Vector = Vector(this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size)), this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size)))
-      val previousVectorStatic: Vector = Vector(this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size)), this.points(Math.floorMod(staticIndexPolygonPoint - 1, this.points.size)))
-      val posteriorVectorMovable: Vector = Vector(movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size)), movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint + 1, movingPolygonPoints.size)))
-      val previousVectorMovable: Vector = Vector(movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size)), movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint - 1, movingPolygonPoints.size)))
 
-      val firstCondition: Boolean = (posteriorVectorMovable x previousVectorStatic) <= 0
-      val secondCondition: Boolean = (previousVectorMovable x posteriorVectorStatic) >= 0
+      val actualPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
+      val posteriorPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size))
+      val previousPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint - 1, this.points.size))
+      val actualPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
+      val posteriorPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint + 1, movingPolygonPoints.size))
+      val previousPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint - 1, movingPolygonPoints.size))
+
+      actualPointM.x += xTranslation
+      actualPointM.y += yTranslation
+      posteriorPointM.x += xTranslation
+      posteriorPointM.y += yTranslation
+      previousPointM.x += xTranslation
+      previousPointM.y += yTranslation
+
+      // println("Punto A Statico: " + previousPointStatic)
+      // println("Punto B Statico: " + actualPointStatic)
+      // println("Punto C Statico: " + posteriorPointStatic)
+      // println("Punto A Movible: " + previousPointM)
+      // println("Punto B Movible: " + actualPointM)
+      // println("Punto C Movible: " + posteriorPointM)
+
+      val posteriorVectorStatic: Vector = Vector(actualPointStatic, posteriorPointStatic)
+      val previousVectorStatic: Vector = Vector(actualPointStatic, previousPointStatic)
+      val posteriorVectorMovable: Vector = Vector(actualPointM, posteriorPointM)
+      val previousVectorMovable: Vector = Vector(actualPointM, previousPointM)
+
+      val firstCondition: Double = (posteriorVectorMovable x previousVectorStatic)
+      val secondCondition: Double = (previousVectorMovable x posteriorVectorStatic)
+
+      // println("AmBm x AsBs: " + firstCondition)
+      // println("CmBm x CsBs: " + secondCondition)
+      // println("--------------------------------")
+      //debugSteps += 1
 
       inside = false
-      if(!firstCondition) {
-        if(!secondCondition) inside = true
+      if (firstCondition < 0) {
+        if (secondCondition > 0) {
+          if ((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
+        }
       } else {
-        if(!secondCondition) inside = true
+        if (secondCondition < 0) inside = true
         else {
-          if((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
+          if ((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
         }
       }
 
-      if(inside){
+      actualPointM.x -= xTranslation
+      actualPointM.y -= yTranslation
+      posteriorPointM.x -= xTranslation
+      posteriorPointM.y -= yTranslation
+      previousPointM.x -= xTranslation
+      previousPointM.y -= yTranslation
+      //println(inside)
+
+      if (inside) {
         staticIndexPolygonPoint -= 1
         staticPolygonPoint = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
         movingIndexPolygonPoint += 1
@@ -204,10 +245,10 @@ class Polygon(val points: List[Point], val radius: Double) {
   def ccw(): Boolean = {
     var sum: Double = 0
 
-    for(i <- 1 to points.size) {
+    for (i <- 1 to points.size) {
       val pointA = points(Math.floorMod(i, points.size))
       val pointB = points(Math.floorMod(i + 1, points.size))
-      sum = (pointB.x - pointA.x)*(pointB.y + pointA.y)
+      sum = (pointB.x - pointA.x) * (pointB.y + pointA.y)
     }
 
     sum < 0
@@ -226,7 +267,7 @@ class Polygon(val points: List[Point], val radius: Double) {
       val vectorAC: Vector = Vector(pointA, point)
 
       // It is at this vector's left if cross product is negative.
-      if((vectorAB x vectorAC) == 0){
+      if ((vectorAB x vectorAC) == 0) {
         collinear ++= List(pointA, pointB)
       }
     }
@@ -243,7 +284,7 @@ class Polygon(val points: List[Point], val radius: Double) {
     * Getter and setter of attribute center.
     */
   def centroid: Point = {
-    if(_centroid == null) {
+    if (_centroid == null) {
       // Bourke, Paul (July 1997). "Calculating the area and centroid of a polygon".
 
       var xCoordinate: Double = 0
@@ -252,17 +293,17 @@ class Polygon(val points: List[Point], val radius: Double) {
       // Signed area
       var A: Double = 0
 
-      for(i <- points.indices) {
+      for (i <- points.indices) {
         val pointA = points(Math.floorMod(i, points.size))
         val pointB = points(Math.floorMod(i + 1, points.size))
-        val K: Double =  pointA.x * pointB.y - pointB.x * pointA.y
-        xCoordinate += (pointA.x +  pointB.x) * K
-        yCoordinate += (pointA.y +  pointB.y) * K
+        val K: Double = pointA.x * pointB.y - pointB.x * pointA.y
+        xCoordinate += (pointA.x + pointB.x) * K
+        yCoordinate += (pointA.y + pointB.y) * K
         A += K
       }
 
-      xCoordinate /= (3*A)
-      yCoordinate /= (3*A)
+      xCoordinate /= (3 * A)
+      yCoordinate /= (3 * A)
 
       _centroid = new Point(xCoordinate, yCoordinate)
     }

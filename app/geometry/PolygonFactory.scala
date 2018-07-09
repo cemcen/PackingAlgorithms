@@ -38,7 +38,7 @@ object PolygonFactory {
         val randomValue = 2*math.Pi*r.nextFloat()
         x = radius*math.cos(randomValue)
         y= radius*math.sin(randomValue)
-        vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y) condition = true)
+        vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y && ((vertex.x-x)*(vertex.x-x) + (vertex.y-y)*(vertex.y-y)) > radius/2) condition = true)
       }
 
       vertexList.+=(new Point(x,y))

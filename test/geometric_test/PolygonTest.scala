@@ -45,11 +45,23 @@ class PolygonTest extends FlatSpec with Matchers {
 
     var result: Polygon = pentagon.locusPolygon(triangle)
     result.points.size should be (8)
+    //result.points.foreach(println(_))
 
-    val hexagon = PolygonFactory.createNewPolygon(1.0, 6)
-    val square = PolygonFactory.createNewPolygon(2.0, 4)
+    val bigSquare: Polygon = new Polygon(List(new Point(2,2), new Point(4,2), new Point(4, 4), new Point(2, 4)))
+    val smallSquare: Polygon = new Polygon(List(new Point(0,0), new Point(1,0), new Point(1,1), new Point(0,1)))
+    result = bigSquare.locusPolygon(smallSquare)
+    result.points.size should be (8)
+    //result.points.foreach(println(_))
 
+    val hexagon = PolygonFactory.createNewPolygon(10.0, 6)
+    val square = PolygonFactory.createNewPolygon(10.0, 4)
+    println("HEXAGONO PRUEBA")
+    hexagon.points.foreach(println(_))
+    println("CUADRADO PRUEBA")
+    square.points.foreach(println(_))
+    println("RESULTA3")
     result = hexagon.locusPolygon(square)
-    //result.points.size should be (10)
+    result.points.foreach(println(_))
+    result.points.size should be (10)
   }
 }
