@@ -160,21 +160,27 @@ class Polygon(val points: List[Point], val radius: Double) {
 
     // Now we advance the polygon by the conditions of not being inside.
     while(staticIndexPolygonPoint < this.points.size + 1) {
-      inside = false
+
       xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
       yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
 
-      var collinear: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+      val posteriorVectorStatic: Vector = Vector(this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size)), this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size)))
+      val previousVectorStatic: Vector = Vector(this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size)), this.points(Math.floorMod(staticIndexPolygonPoint - 1, this.points.size)))
+      val posteriorVectorMovable: Vector = Vector(movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size)), movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint + 1, movingPolygonPoints.size)))
+      val previousVectorMovable: Vector = Vector(movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size)), movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint - 1, movingPolygonPoints.size)))
 
-      movingPolygonPoints.foreach(point => {
-        inside ||= this.pointInsidePolygon(new Point(point.x + xTranslation, point.y + yTranslation))
-        if(!point.equals(movingPolygonPoint))
-          collinear ++= this.getCollinear(new Point(point.x + xTranslation, point.y + yTranslation))
-      })
+      val firstCondition: Boolean = (posteriorVectorMovable x previousVectorStatic) <= 0
+      val secondCondition: Boolean = (previousVectorMovable x posteriorVectorStatic) >= 0
 
-      // Check if centroid is inside the polygon.
-      inside ||= this.pointInsidePolygon(new Point(polygon.centroid.x + xTranslation, polygon.centroid.y + yTranslation))
-      inside ||= collinear.distinct.size > 4
+      inside = false
+      if(!firstCondition) {
+        if(!secondCondition) inside = true
+      } else {
+        if(!secondCondition) inside = true
+        else {
+          if((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
+        }
+      }
 
       if(inside){
         staticIndexPolygonPoint -= 1
