@@ -26,4 +26,11 @@ class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
   def *(that: Double): Point = {
     new Point(this.x * that, this.y * that, this.z * that)
   }
+
+  override def toString: String = "( " + x + "," + y + ")"
+  def canEqual(a: Any): Boolean = a.isInstanceOf[Point]
+  override def equals(that: Any): Boolean = that match {
+    case that: Point => that.canEqual(this) && this.x == that.x && this.y == that.y
+    case _ => false
+  }
 }

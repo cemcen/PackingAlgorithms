@@ -2,7 +2,7 @@ package dto.dim2D.input
 
 import play.api.libs.json.{Json, Reads}
 
-case class InputPolygon(label: String, numberOfVertex: Int, percentage: Int, radius: Float)
+case class InputPolygon(label: String, numberOfVertex: Int, percentage: Int, radius: Double)
 
 object InputPolygon {
 
