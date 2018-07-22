@@ -11,6 +11,7 @@ lazy val `play-vue-webpack` = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(guice, filters, jdbc , cacheApi ,ws , specs2 % Test)
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 
 // Play framework hooks for development
 PlayKeys.playRunHooks += WebpackServer(file("./front"))

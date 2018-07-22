@@ -120,7 +120,11 @@ class Polygon(val points: List[Point], val radius: Double) {
 
     // First of all we need the points of a new polygon to be created. First things first create a new list of points.
     var pointList: ArrayBuffer[Point] = new ArrayBuffer[Point]()
-    var movingPolygonPoints: List[Point] = polygon.points
+    val movingPolygonPoints: List[Point] = polygon.points
+
+    // When one polygon can be placed in only one vertex.
+    val numberOfVisited: ArrayBuffer[Int] = new ArrayBuffer[Int]()
+    this.points.foreach(_ => numberOfVisited += 0)
 
     // We will be using two points of each polygon and storing a counter for one the polygon we will be moving on its edge.
     var staticPolygonPoint: Point = this.points.head
@@ -141,9 +145,46 @@ class Polygon(val points: List[Point], val radius: Double) {
       xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
       yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
 
-      movingPolygonPoints.foreach(point => {
-        inside ||= this.pointInsidePolygon(new Point(point.x + xTranslation, point.y + yTranslation))
-      })
+      val actualPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
+      val posteriorPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size))
+      val previousPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint - 1, this.points.size))
+      val actualPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
+      val posteriorPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint + 1, movingPolygonPoints.size))
+      val previousPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint - 1, movingPolygonPoints.size))
+
+      actualPointM.x += xTranslation
+      actualPointM.y += yTranslation
+      posteriorPointM.x += xTranslation
+      posteriorPointM.y += yTranslation
+      previousPointM.x += xTranslation
+      previousPointM.y += yTranslation
+
+      val posteriorVectorStatic: Vector = Vector(actualPointStatic, posteriorPointStatic)
+      val previousVectorStatic: Vector = Vector(actualPointStatic, previousPointStatic)
+      val posteriorVectorMovable: Vector = Vector(actualPointM, posteriorPointM)
+      val previousVectorMovable: Vector = Vector(actualPointM, previousPointM)
+
+      val firstCondition: Double = posteriorVectorMovable x previousVectorStatic
+      val secondCondition: Double = previousVectorMovable x posteriorVectorStatic
+
+      inside = false
+      if (firstCondition < 0) {
+        if (secondCondition < 0) {
+          if ((previousVectorMovable x previousVectorStatic) >= 0) inside = true
+        }
+      } else {
+        if (secondCondition < 0) inside = true
+        else {
+          if ((previousVectorMovable x previousVectorStatic) < 0) inside = true
+        }
+      }
+
+      actualPointM.x -= xTranslation
+      actualPointM.y -= yTranslation
+      posteriorPointM.x -= xTranslation
+      posteriorPointM.y -= yTranslation
+      previousPointM.x -= xTranslation
+      previousPointM.y -= yTranslation
 
       if (inside) {
         movingIndexPolygonPoint += 1
@@ -151,23 +192,24 @@ class Polygon(val points: List[Point], val radius: Double) {
       }
     }
 
-    // println("Moving Point: " + movingPolygonPoint)
+//    println("Moving Point: " + movingPolygonPoint)
+//    println("Static Point: " + staticPolygonPoint)
 
     // If we are here it means that the actual movingPolygonPoint satisfies that they are overlapping.
     // So we save the center as a point of the new polygon.
     pointList += new Point(polygon.centroid.x + xTranslation, polygon.centroid.y + yTranslation)
 
     // We know move onto the next point of the static one.
+    numberOfVisited.update(Math.floorMod(staticIndexPolygonPoint, this.points.size), numberOfVisited(Math.floorMod(staticIndexPolygonPoint, this.points.size)) + 1)
     staticIndexPolygonPoint += 1
     staticPolygonPoint = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
     //var debugSteps = 0
 
     // Now we advance the polygon by the conditions of not being inside.
-    while (staticIndexPolygonPoint < this.points.size + 1) { //&& debugSteps < 10) {
+    while (staticIndexPolygonPoint <= this.points.size + 1) { //&& debugSteps < 10) {
 
       xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
       yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
-
 
       val actualPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
       val posteriorPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size))
@@ -183,35 +225,34 @@ class Polygon(val points: List[Point], val radius: Double) {
       previousPointM.x += xTranslation
       previousPointM.y += yTranslation
 
-      // println("Punto A Statico: " + previousPointStatic)
-      // println("Punto B Statico: " + actualPointStatic)
-      // println("Punto C Statico: " + posteriorPointStatic)
-      // println("Punto A Movible: " + previousPointM)
-      // println("Punto B Movible: " + actualPointM)
-      // println("Punto C Movible: " + posteriorPointM)
+//      println("Punto A Statico: " + previousPointStatic)
+//      println("Punto B Statico: " + actualPointStatic)
+//      println("Punto C Statico: " + posteriorPointStatic)
+//      println("Punto A Movible: " + previousPointM)
+//      println("Punto B Movible: " + actualPointM)
+//      println("Punto C Movible: " + posteriorPointM)
 
       val posteriorVectorStatic: Vector = Vector(actualPointStatic, posteriorPointStatic)
       val previousVectorStatic: Vector = Vector(actualPointStatic, previousPointStatic)
       val posteriorVectorMovable: Vector = Vector(actualPointM, posteriorPointM)
       val previousVectorMovable: Vector = Vector(actualPointM, previousPointM)
 
-      val firstCondition: Double = (posteriorVectorMovable x previousVectorStatic)
-      val secondCondition: Double = (previousVectorMovable x posteriorVectorStatic)
+      val firstCondition: Double = posteriorVectorMovable x previousVectorStatic
+      val secondCondition: Double = previousVectorMovable x posteriorVectorStatic
 
-      // println("AmBm x AsBs: " + firstCondition)
-      // println("CmBm x CsBs: " + secondCondition)
-      // println("--------------------------------")
+//      println("AmBm x AsBs: " + firstCondition)
+//      println("CmBm x CsBs: " + secondCondition)
       //debugSteps += 1
 
       inside = false
       if (firstCondition < 0) {
-        if (secondCondition > 0) {
-          if ((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
+        if (secondCondition < 0) {
+          if ((previousVectorMovable x previousVectorStatic) >= 0) inside = true
         }
       } else {
         if (secondCondition < 0) inside = true
         else {
-          if ((posteriorVectorStatic x previousVectorStatic) < 0) inside = true
+          if ((previousVectorMovable x previousVectorStatic) < 0) inside = true
         }
       }
 
@@ -221,7 +262,7 @@ class Polygon(val points: List[Point], val radius: Double) {
       posteriorPointM.y -= yTranslation
       previousPointM.x -= xTranslation
       previousPointM.y -= yTranslation
-      //println(inside)
+
 
       if (inside) {
         staticIndexPolygonPoint -= 1
@@ -230,10 +271,92 @@ class Polygon(val points: List[Point], val radius: Double) {
         movingPolygonPoint = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
       } else {
         pointList += new Point(polygon.centroid.x + xTranslation, polygon.centroid.y + yTranslation)
+        numberOfVisited.update(Math.floorMod(staticIndexPolygonPoint, this.points.size), numberOfVisited(Math.floorMod(staticIndexPolygonPoint, this.points.size)) + 1)
         staticIndexPolygonPoint += 1
         staticPolygonPoint = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
       }
+//
+//      println(inside)
+//      println("LEN STATIC: " + (staticIndexPolygonPoint <= this.points.size + 1))
+//      println("index STATIC: " + staticIndexPolygonPoint )
+//      println("--------------------------------")
     }
+
+    println("Numero de visitas en cada vertice: " + numberOfVisited)
+    // TODO: Guardar vertices correctamente para que queden ccw y convexo.
+    numberOfVisited.indices.foreach(i => {
+      if (numberOfVisited(i) > polygon.points.size) {
+        // Here it means that we could have an special case. (all vertices can be placed on that vertex)
+        // So we need to check if we inserted all the vertex of the previous static vertex.
+        staticPolygonPoint = this.points(Math.floorMod(i + this.points.size - 1, this.points.size))
+        staticIndexPolygonPoint = Math.floorMod(i + this.points.size - 1, this.points.size)
+
+        polygon.points.indices.foreach(i => {
+
+          movingPolygonPoint = polygon.points(i)
+          movingIndexPolygonPoint = i
+          xTranslation = staticPolygonPoint.x - movingPolygonPoint.x
+          yTranslation = staticPolygonPoint.y - movingPolygonPoint.y
+
+          val actualPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint, this.points.size))
+          val posteriorPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint + 1, this.points.size))
+          val previousPointStatic: Point = this.points(Math.floorMod(staticIndexPolygonPoint - 1, this.points.size))
+          val actualPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
+          val posteriorPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint + 1, movingPolygonPoints.size))
+          val previousPointM: Point = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint - 1, movingPolygonPoints.size))
+
+//          println("Punto A Statico: " + previousPointStatic)
+//          println("Punto B Statico: " + actualPointStatic)
+//          println("Punto C Statico: " + posteriorPointStatic)
+//          println("Punto A Movible: " + previousPointM)
+//          println("Punto B Movible: " + actualPointM)
+//          println("Punto C Movible: " + posteriorPointM)
+
+          actualPointM.x += xTranslation
+          actualPointM.y += yTranslation
+          posteriorPointM.x += xTranslation
+          posteriorPointM.y += yTranslation
+          previousPointM.x += xTranslation
+          previousPointM.y += yTranslation
+
+          val posteriorVectorStatic: Vector = Vector(actualPointStatic, posteriorPointStatic)
+          val previousVectorStatic: Vector = Vector(actualPointStatic, previousPointStatic)
+          val posteriorVectorMovable: Vector = Vector(actualPointM, posteriorPointM)
+          val previousVectorMovable: Vector = Vector(actualPointM, previousPointM)
+
+          val firstCondition: Double = posteriorVectorMovable x previousVectorStatic
+          val secondCondition: Double = previousVectorMovable x posteriorVectorStatic
+
+//          println("AmBm x AsBs: " + firstCondition)
+//          println("CmBm x CsBs: " + secondCondition)
+
+          inside = false
+          if (firstCondition < 0) {
+            if (secondCondition < 0) {
+              if ((previousVectorMovable x previousVectorStatic) >= 0) inside = true
+            }
+          } else {
+            if (secondCondition < 0) inside = true
+            else {
+              if ((previousVectorMovable x previousVectorStatic) < 0) inside = true
+            }
+          }
+
+          actualPointM.x -= xTranslation
+          actualPointM.y -= yTranslation
+          posteriorPointM.x -= xTranslation
+          posteriorPointM.y -= yTranslation
+          previousPointM.x -= xTranslation
+          previousPointM.y -= yTranslation
+
+          if (!inside) {
+//            println("ingresa3")
+            pointList += new Point(polygon.centroid.x + xTranslation, polygon.centroid.y + yTranslation)
+          }
+//          println("----------------------------")
+        })
+      }
+    })
 
     //pointList.foreach(println(_))
     new Polygon(pointList.toList.distinct)

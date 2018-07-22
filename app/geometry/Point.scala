@@ -1,4 +1,6 @@
 package geometry
+import org.scalactic._
+import org.scalactic.TripleEquals._
 
 /**
   * Contains all definitions needed for points (Addition, multiplication, etc).
@@ -6,6 +8,7 @@ package geometry
   */
 class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
 
+  implicit val _ = TolerantNumerics.tolerantDoubleEquality(1e-8)
   /**
     * Addition between two points.
     */
@@ -33,11 +36,6 @@ class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
     case that: Point => that.canEqual(this) && this.hashCode == that.hashCode
     case _ => false
   }
-  override def hashCode: Int = {
-    val prime = 31
-    var result = 1
-    result = prime * result + x.hashCode
-    result = prime * result + y.hashCode
-    result
-  }
+
+  override def hashCode: Int =  41 * (41 + (this.x * 1e8).toInt) + (this.y * 1e8).toInt
 }
