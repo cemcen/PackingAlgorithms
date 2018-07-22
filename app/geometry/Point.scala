@@ -30,6 +30,10 @@ class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
     new Point(this.x * that, this.y * that, this.z * that)
   }
 
+  def distance(point: Point): Double = {
+    Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2)
+  }
+
   override def toString: String = "( " + x + "," + y + ")"
   def canEqual(a: Any): Boolean = a.isInstanceOf[Point]
   override def equals(that: Any): Boolean = that match {

@@ -6,7 +6,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class LocusAlgorithm {
 
-  // First of all we need the points of a new polygon to be created. First things first create a new list of points.
+  // Points of the polygon need to be stored.
   var pointList: ArrayBuffer[Point] = new ArrayBuffer[Point]()
   var movingPolygonPoints: List[Point] = _
   var staticPolygonPoints: List[Point] = _
@@ -26,7 +26,7 @@ class LocusAlgorithm {
   var xTranslation: Double = 0
   var yTranslation: Double = 0
 
-  // First of all we search for a point on which the movable polygon isn't inside the static one.
+  // condition in which we will advance or go back.
   var inside: Boolean = true
 
   // Variables to be used as store for points.
@@ -177,6 +177,24 @@ class LocusAlgorithm {
     pointList += new Point(polygonB.centroid.x + xTranslation, polygonB.centroid.y + yTranslation)
   }
 
+  def insertPoint(polygonB: Polygon): Unit = {
+    val point: Point = new Point(polygonB.centroid.x + xTranslation, polygonB.centroid.y + yTranslation)
+
+    if(!pointList.contains(point)) {
+      var index = 0
+      pointList.indices.foreach(i => {
+        val vector: Vector = Vector(pointList(i), pointList(Math.floorMod(i + 1, pointList.size)))
+
+        if(vector.leftOn(point)){
+          index = i
+        }
+      })
+
+      pointList.insert(index, point)
+    }
+  }
+
+
   def moveStaticPolygonVertex(): Unit = {
     numberOfVisited.update(Math.floorMod(staticIndexPolygonPoint, staticPolygonPoints.size), numberOfVisited(Math.floorMod(staticIndexPolygonPoint, staticPolygonPoints.size)) + 1)
     staticIndexPolygonPoint += 1
@@ -194,7 +212,7 @@ class LocusAlgorithm {
         movingIndexPolygonPoint += 1
         movingPolygonPoint = movingPolygonPoints(Math.floorMod(movingIndexPolygonPoint, movingPolygonPoints.size))
       } else {
-        pointList += new Point(polygonB.centroid.x + xTranslation, polygonB.centroid.y + yTranslation)
+        savePoint(polygonB)
         numberOfVisited.update(Math.floorMod(staticIndexPolygonPoint, staticPolygonPoints.size), numberOfVisited(Math.floorMod(staticIndexPolygonPoint, staticPolygonPoints.size)) + 1)
         staticIndexPolygonPoint += 1
         staticPolygonPoint = staticPolygonPoints(Math.floorMod(staticIndexPolygonPoint, staticPolygonPoints.size))
@@ -233,14 +251,13 @@ class LocusAlgorithm {
           doStep()
 
           if (!inside) {
-            pointList += new Point(polygonB.centroid.x + xTranslation, polygonB.centroid.y + yTranslation)
+            insertPoint(polygonB)
           }
 
         })
       }
     })
   }
-
 }
 
 object LocusAlgorithm {
@@ -276,7 +293,7 @@ object LocusAlgorithm {
     // Now we advance the polygon by the conditions of not being inside.
     locusAlgorithm.executeLocusAlgorithm(polygonB)
 
-    // TODO: Guardar vertices correctamente para que queden ccw y convexo.
+    // There exist some rare cases, so we check them if needed.
     locusAlgorithm.checkSpecialCases(polygonB)
 
     //pointList.foreach(println(_))
