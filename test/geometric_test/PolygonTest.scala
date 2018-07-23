@@ -46,7 +46,7 @@ class PolygonTest extends FlatSpec with Matchers {
 
     var result: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(pentagon, triangle)
     result.points.size should be(8)
-    //result.points.foreach(println(_))
+    // result.points.foreach(println(_))
 
     val bigSquare: Polygon = new Polygon(List(new Point(2, 2), new Point(4, 2), new Point(4, 4), new Point(2, 4)))
     val smallSquare: Polygon = new Polygon(List(new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1)))
@@ -85,30 +85,25 @@ class PolygonTest extends FlatSpec with Matchers {
     // Todos los vertices pueden tomar solo un vertice del poligono que se mueve.
     hexagon =  new Polygon(List(new Point(-3.967989870588795,-9.179055310156091), new Point(6.850642976630961,-7.284826065647476), new Point(8.96940091488243,-4.421520917976781), new Point(9.804228198853961,-1.9690376900396895), new Point( 9.944340253077241,-1.0536113757110295), new Point( 9.512026681203626,3.0856682284507437)))
     square =  new Polygon(List(new Point(-6.281474173523742,-7.780943529377026), new Point( 6.079509743646781,-7.939745668275769), new Point(7.043877409936956,-7.098154058188638), new Point( 8.216692186083343,-5.699646438083414)))
-    println("HEXAGONO PRUEBA")
-    hexagon.points.foreach(println(_))
-    println("CUADRADO PRUEBA")
-    square.points.foreach(println(_))
-    println("RESULTA3")
     result = LocusAlgorithm.getLocusOfTwoPolygons(hexagon, square)
-    result.points.foreach(println(_))
+    //result.points.foreach(println(_))
     result.points.size should be (10)
   }
 
-  /*it should "get correct locus of 100 randomize polygons" in {
+  it should "get correct locus of 100 randomize polygons" in {
     var result: Polygon =  PolygonFactory.createNewPolygon(10.0, 6)
 
     for (_ <- 1 to 100) {
       val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6)
       val Rsquare = PolygonFactory.createNewPolygon(10.0, 4)
-      println("HEXAGONO PRUEBA")
-      Rhexagon.points.foreach(println(_))
-      println("CUADRADO PRUEBA")
-      Rsquare.points.foreach(println(_))
-      println("RESULTA3")
-      result = Rhexagon.locusPolygon(Rsquare)
-      result.points.foreach(println(_))
+      //println("HEXAGONO PRUEBA")
+      //Rhexagon.points.foreach(println(_))
+      //println("CUADRADO PRUEBA")
+      //Rsquare.points.foreach(println(_))
+      //println("RESULTA3")
+      result = LocusAlgorithm.getLocusOfTwoPolygons(Rhexagon, Rsquare)
+      //result.points.foreach(println(_))
       result.points.size should be (10)
     }
-  }*/
+  }
 }

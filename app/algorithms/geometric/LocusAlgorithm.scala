@@ -190,7 +190,7 @@ class LocusAlgorithm {
         }
       })
 
-      pointList.insert(index, point)
+      pointList.insert(index + 1, point)
     }
   }
 
@@ -232,6 +232,8 @@ class LocusAlgorithm {
 //      println("--------------------------------")
     }
 
+    pointList = pointList.distinct
+
 //    println("Numero de visitas en cada vertice: " + numberOfVisited)
   }
 
@@ -253,10 +255,27 @@ class LocusAlgorithm {
           if (!inside) {
             insertPoint(polygonB)
           }
-
         })
       }
     })
+
+    // When one vertex can be put on all vertex of the static polygon.
+    if(pointList.distinct.size < staticPolygonPoints.size + movingPolygonPoints.size) {
+
+      staticPolygonPoints.indices.foreach(i => {
+        staticPolygonPoint = staticPolygonPoints(i)
+        staticIndexPolygonPoint = i
+        movingPolygonPoints.indices.foreach(j => {
+          movingPolygonPoint = movingPolygonPoints(j)
+          movingIndexPolygonPoint = j
+          doStep()
+
+          if (!inside) {
+            insertPoint(polygonB)
+          }
+        })
+      })
+    }
   }
 }
 
