@@ -1,26 +1,16 @@
 <template>
     <div class="page-container">
-        <md-content class="md-accent">Elegir nuevo polígono</md-content>
+        <v-content class="md-accent">Elegir nuevo polígono</v-content>
         <div ref="polygonContainer" class="polygon">
             <div ref="polygonDrawer"></div>
         </div>
-        <md-field>
-            <label>Etiqueta polígono</label>
-            <md-input v-model="polygon.label" required></md-input>
-        </md-field>
-        <md-field>
-            <label>Número de vertices</label>
-            <md-input v-model="polygon.numberOfVertex" type="number" v-on:change="this.changedNumberOfVertex" required></md-input>
-        </md-field>
-        <md-field>
-            <label>Diámetro del polígono</label>
-            <md-input v-model="polygon.radius" type="number" required></md-input>
-        </md-field>
-        <md-field>
-            <label>Número de apariciones</label>
-            <md-input v-model="polygon.percentage" type="number" required></md-input>
-        </md-field>
-        <md-button class="md-raised md-primary" @click.native="savePolygon">Agregar polígono</md-button>
+        <v-form v-model="valid">
+            <v-text-field v-model="polygon.label" label="Label" required></v-text-field>
+            <v-text-field v-model="polygon.numberOfVertex" type="number" label="Number of vertex" required></v-text-field>
+            <v-text-field v-model="polygon.radius" type="number" label="Radius" required></v-text-field>
+            <v-text-field v-model="polygon.percentage" type="number" label="Number of appearances" required></v-text-field>
+        </v-form>
+        <v-btn color="primary" @click.native="savePolygon">Add polygon</v-btn>
     </div>
 </template>
 

@@ -1,3 +1,4 @@
+
 <template>
     <div class="page-container">
         <router-view></router-view>
@@ -6,9 +7,12 @@
 
 <script>
     import Navigation from "./Navigation.vue";
+
     export default {
         components: {
             Navigation
+        },
+        created() {
         },
         data(){
             return {
@@ -19,3 +23,4 @@
         }
     }
 </script>
+
