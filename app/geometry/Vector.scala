@@ -76,6 +76,8 @@ class Vector(var pointA: Point, var pointB: Point) {
     (this x vectorPoint) < 0
   }
 
+  override def toString: String = "( " + i + "," + j + "," + k + ")"
+
   /**
     * Returns points of intersection
     */

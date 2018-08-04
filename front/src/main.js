@@ -1,14 +1,15 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router'
-import VueMaterial from 'vue-material'
+import Vuetify from 'vuetify'
 import VueResource from 'vue-resource'
-import 'vue-material/dist/vue-material.min.css'
 
 import router from './router'
-
+import VeeValidate from 'vee-validate'
 import App from './components/App.vue';
 
-Vue.use(VueMaterial);
+
+Vue.use(VeeValidate);
+Vue.use(Vuetify);
 Vue.use(VueResource);
 Vue.use(VueRouter);
 
