@@ -1,7 +1,7 @@
 import com.typesafe.sbt.packager.MappingsHelper._
 mappings in Universal ++= directory(baseDirectory.value / "public")
 
-name := "play-vue-webpack"
+name := "PackVex"
 
 version := "1.1"
 
