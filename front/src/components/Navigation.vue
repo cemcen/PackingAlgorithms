@@ -65,33 +65,6 @@
                 ps: null
             }
         },
-        mounted() {
-            this.script = p => {
-                let canvas = null;
-
-                // Settings of the canvas.
-                p.setup = () => {
-                    // We use the div size as the canvas size.
-                    canvas = p.createCanvas(this.$refs.drawerContainer.$el.clientWidth,this.$refs.drawerContainer.$el.clientHeight);
-                    canvas.parent(this.$refs.myDrawer);
-                    // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(60)
-                };
-
-                // What's been drawn on the canvas
-                p.draw = () => {
-                    //p.background(255);
-                    /*if (p.mouseIsPressed) {
-                        p.fill(0);
-                    } else {
-                        p.fill(255);
-                    }*/
-                    //p.rect(100, 100, 50, 50)
-                };
-            };
-            const P5 = require('p5');
-            this.ps = new P5(this.script);
-        },
         created() {
             this.selectTab(2);
         },
