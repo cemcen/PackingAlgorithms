@@ -9,7 +9,7 @@ import scala.collection.mutable.ArrayBuffer
   *
   * (xPos, yPos) is the point at the left down corner.
   */
-class Container(width: Double, height: Double, xPos: Double = 0, yPos: Double = 0) {
+class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double = 0) {
 
   /**
     * Returns the polygon that makes the centroid of the given polygon
@@ -37,27 +37,36 @@ class Container(width: Double, height: Double, xPos: Double = 0, yPos: Double = 
       locusPoints += new Point(polygon.centroid.x + xTranslation, polygon.centroid.y + yTranslation)
     }
 
-    // Left Top Corner.
-    saveLocusPoint(0 - xMin, height - yMax)
-
     // Left Bottom Corner
     saveLocusPoint( 0 - xMin, 0 - yMin)
-
-    // Right Top Corner
-    saveLocusPoint( width - xMax, height - yMax)
 
     // Right Bottom Corner
     saveLocusPoint( width - xMax,  0 - yMin)
 
+    // Right Top Corner
+    saveLocusPoint( width - xMax, height - yMax)
+
+    // Left Top Corner.
+    saveLocusPoint(0 - xMin, height - yMax)
+
     new Polygon(locusPoints.toList)
   }
 
+  /**
+    * Check if the given point is inside the container.
+    */
+  def isInside(point: Point): Boolean = point.x <= width && point.x >= 0 && point.y <= height && point.y >= 0
+
+  /**
+    * Transform the container in a Polygon.
+    */
+  def getPolygon: Polygon = new Polygon(List(new Point(0,0), new Point(width,0), new Point(width, height), new Point(0, height)))
 }
 
-object Container {
+object Container2D {
 
-  def apply(width: Double, height: Double): Container = {
-    new Container(width, height)
+  def apply(width: Double, height: Double): Container2D = {
+    new Container2D(width, height)
   }
 
 }

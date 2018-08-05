@@ -2,6 +2,7 @@ package controllers
 
 import algorithms.Packing2D
 import dto.dim2D.input.Input2DMesh
+import dto.dim2D.output.{Output2DMesh, OutputPolygon, Point2D}
 import geometry.Polygon
 import javax.inject.Inject
 import play.api.libs.json.{JsError, JsSuccess, JsValue}
@@ -21,6 +22,7 @@ class MeshController @Inject()(components: ControllerComponents)
       case s: JsSuccess[Input2DMesh] =>
         // Get the json with the data.
         val mesh: Input2DMesh = s.get
+        var width, height: Double = 0
 
         // We store the result in this list.
         var polygonMesh: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
@@ -28,12 +30,27 @@ class MeshController @Inject()(components: ControllerComponents)
         // Check if we received the width and length.
         if (mesh.width.isDefined && mesh.height.isDefined) {
           // If defined we only get the dimensions.
-          polygonMesh = Packing2D.createMesh(mesh.polygons, mesh.width.get, mesh.height.get)
+          width = mesh.width.get
+          height = mesh.height.get
+          polygonMesh = Packing2D.createMesh(mesh.polygons, width, height)
+
         } else {
           // TODO: create a box container of the area of all polygons.
         }
 
         // TODO: Create list of output polygons.
+        var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
+        polygonMesh.foreach(pol => {
+          var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
+
+          pol.points.foreach(pnt => {
+            pointList += new Point2D(pnt.x, pnt.y)
+          })
+
+          polygonOutput += new OutputPolygon(pointList.toList)
+        })
+
+        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
 
         Ok("TODO: return mesh")
       case _: JsError =>

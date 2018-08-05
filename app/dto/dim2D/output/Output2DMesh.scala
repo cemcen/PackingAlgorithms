@@ -2,7 +2,7 @@ package dto.dim2D.output
 
 import play.api.libs.json.{JsObject, Json, Reads, Writes}
 
-case class Output2DMesh(polygons: List[OutputPolygon], width: Int, height: Int)
+case class Output2DMesh(polygons: List[OutputPolygon], width: Double, height: Double)
 
 object Output2DMesh {
 

@@ -11,7 +11,6 @@ class Polygon(val points: List[Point], val radius: Double) {
 
   def this(points: List[Point]) = this(points, -1.0)
 
-  private var _center: Point = new Point(0, 0)
   private var _centroid: Point = null
 
   /**
@@ -143,11 +142,6 @@ class Polygon(val points: List[Point], val radius: Double) {
   /**
     * Getter and setter of attribute center.
     */
-  def center: Point = _center
-
-  /**
-    * Getter and setter of attribute center.
-    */
   def centroid: Point = {
     if (_centroid == null) {
       // Bourke, Paul (July 1997). "Calculating the area and centroid of a polygon".
@@ -175,9 +169,24 @@ class Polygon(val points: List[Point], val radius: Double) {
     _centroid
   }
 
-  def center_=(x: Int, y: Int): Unit = {
-    _center = new Point(x, y)
+  /**
+    * Moves center to the given Points. Also translate the other points of the polygon.
+    */
+  def movePolygon(move: Point): Unit = {
+    val xTranslation: Double = move.x - centroid.x
+    val yTranslation: Double = move.y - centroid.y
+
+    // Move the centroid.
+    centroid.x = move.x
+    centroid.y = move.y
+
+    // Move all points of the polygon
+    points.foreach(pnt => {
+      pnt.x += xTranslation
+      pnt.y += yTranslation
+    })
   }
+
 
 }
 

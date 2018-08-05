@@ -1,6 +1,6 @@
 package algorithms.packing
 
-import algorithms.geometric.Container
+import algorithms.geometric.Container2D
 import geometry.Polygon
 
 import scala.collection.mutable.ArrayBuffer
@@ -9,12 +9,12 @@ abstract class PackingAlgorithm {
 
   protected var nextPolygon: List[Polygon]
   protected var finalPolygonPosition: ArrayBuffer[Polygon]
-  protected var container: Container
+  protected var container: Container2D
 
   /**
     * Sets the order of the insertion of the polygon.
     */
-  private def setNextPolygonList(nextPolygon: List[Polygon]): Unit = this.nextPolygon = nextPolygon
+  def setNextPolygonList(nextPolygon: List[Polygon]): Unit = this.nextPolygon = nextPolygon
 
   /**
     * Getter for packing result.
@@ -22,12 +22,10 @@ abstract class PackingAlgorithm {
   def getPolygonPositions: ArrayBuffer[Polygon] = finalPolygonPosition
 
   /**
-    * Executes the packing algorithm.
+    * Creates a new container.
     */
-  def executePackingAlgorithm(nextPolygon: List[Polygon], width: Int, height: Int): Unit = {
-    container = new Container(width, height)
-    setNextPolygonList(nextPolygon)
-    executeAlgorithm()
+  def createContainer(width: Double, height: Double): Unit = {
+    container = new Container2D(width, height)
   }
 
   /**
