@@ -50,6 +50,13 @@ object Packing2D {
   private val packing2d: Packing2D = new Packing2D
 
   /**
+    * Set packing algorithm.
+    */
+  def setPackingAlgorithm(packingAlgorithm: PackingAlgorithm): Unit = {
+    packing2d.setPackingAlgorithm(packingAlgorithm)
+  }
+
+  /**
     * Interface to create a polygon mesh with geometric packing algorithm.
     * @param data Properties of the input polygons.
     * @param width width of the container.

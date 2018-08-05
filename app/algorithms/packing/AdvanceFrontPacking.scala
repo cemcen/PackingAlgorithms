@@ -71,7 +71,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
           })
 
           // TODO: Packing condition.
-          if(!intersects) bestCenterPos = pnt
+          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
           insertingPolygon.movePolygon(centroid)
         })
       })

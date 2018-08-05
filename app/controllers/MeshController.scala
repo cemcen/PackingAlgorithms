@@ -1,11 +1,12 @@
 package controllers
 
 import algorithms.Packing2D
+import algorithms.packing.AdvanceFrontPacking
 import dto.dim2D.input.Input2DMesh
 import dto.dim2D.output.{Output2DMesh, OutputPolygon, Point2D}
 import geometry.Polygon
 import javax.inject.Inject
-import play.api.libs.json.{JsError, JsSuccess, JsValue}
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{AbstractController, Action, ControllerComponents}
 
 import scala.collection.mutable.ArrayBuffer
@@ -32,6 +33,7 @@ class MeshController @Inject()(components: ControllerComponents)
           // If defined we only get the dimensions.
           width = mesh.width.get
           height = mesh.height.get
+          Packing2D.setPackingAlgorithm(new AdvanceFrontPacking)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height)
 
         } else {
@@ -52,7 +54,7 @@ class MeshController @Inject()(components: ControllerComponents)
 
         val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
 
-        Ok("TODO: return mesh")
+        Ok(Json.obj("mesh" -> output))
       case _: JsError =>
         BadRequest("Json received in wrong format.")
     }

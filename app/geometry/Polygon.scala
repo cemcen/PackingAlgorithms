@@ -8,7 +8,6 @@ import scala.collection.mutable.ArrayBuffer
   *
   */
 class Polygon(val points: List[Point], val radius: Double) {
-
   def this(points: List[Point]) = this(points, -1.0)
 
   private var _centroid: Point = null
@@ -187,6 +186,11 @@ class Polygon(val points: List[Point], val radius: Double) {
     })
   }
 
+  def hasAllPointsPositive: Boolean = {
+    points.foldRight(true)( (a,b) => {
+      b && (a.x > 0 && a.y > 0)
+    })
+  }
 
 }
 
