@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-toolbar dark>
-            <v-toolbar-title>Polígonos Agregados</v-toolbar-title>
+            <v-toolbar-title>List of Polygons</v-toolbar-title>
             <v-divider
                     class="mx-2"
                     inset
@@ -26,7 +26,7 @@
                                               clearable
                                               required>
                                 </v-text-field>
-                                <v-text-field v-validate="'required'"
+                                <v-text-field v-validate="'required|min_value:3'"
                                               :error-messages="errors.collect('vertex')"
                                               v-model="editedItem.numberOfVertex"
                                               type="number"
@@ -35,7 +35,7 @@
                                               clearable
                                               required>
                                 </v-text-field>
-                                <v-text-field v-validate="'required'"
+                                <v-text-field v-validate="'required|isBiggerThanZero'"
                                               :error-messages="errors.collect('radius')"
                                               v-model="editedItem.radius"
                                               type="number"
@@ -44,11 +44,11 @@
                                               clearable
                                               required>
                                 </v-text-field>
-                                <v-text-field v-validate="'required'"
+                                <v-text-field v-validate="'required|isBiggerThanZero'"
                                               :error-messages="errors.collect('percentage')"
                                               v-model="editedItem.percentage"
                                               type="number"
-                                              label="Number of appearances"
+                                              label="Probability of appearance"
                                               data-vv-name="percentage"
                                               clearable
                                               required>
@@ -87,7 +87,7 @@
             </template>
             <template slot="no-data">
                 <v-alert :value="true" color="teal darken-1" icon="warning">
-                    No hay polígonos.
+                    No polygons for packing algorithm.
                 </v-alert>
             </template>
         </v-data-table>
@@ -95,6 +95,12 @@
 </template>
 
 <script>
+    import { Validator } from 'vee-validate';
+    Validator.extend('isBiggerThanZero', {
+        getMessage: field => 'The ' + field + ' is not greater than 0.',
+        validate: value => value > 0
+    });
+
     export default {
         $_veeValidate: {
             validator: 'new'
@@ -128,10 +134,10 @@
                     percentage: null
                 },
                 headers: [
-                    {text: 'Nombre', value: 'label'},
-                    {text: 'Vértices', value: 'numberOfVertex'},
-                    {text: 'Radio', value: 'radius'},
-                    {text: 'Probabilidad', value: 'percentage'},
+                    {text: 'Label', value: 'label'},
+                    {text: 'Number of Vertex', value: 'numberOfVertex'},
+                    {text: 'Radius', value: 'radius'},
+                    {text: 'Probability', value: 'percentage'},
                     {text: 'Actions', value: 'name', sortable: false}
                 ],
             }
@@ -139,22 +145,23 @@
         dictionary: {
             custom: {
                 label: {
-                    required: () => 'Debe ingresar nombre identificador',
+                    required: () => 'Must enter a label.',
                 },
                 vertex: {
-                    required: 'Debe ingresar número de vertices'
+                    required: 'Must enter the number of vertex.',
+                    min: 'The polygon must have at least 3 vertex'
                 },
                 percentage: {
-                    required: 'Debe ingresar la probabilidad del polygono'
+                    required: 'Must enter the probability of appearance.'
                 },
                 radius: {
-                    required: 'Debe ingresar radio del polygono'
+                    required: 'Must enter the radius.'
                 }
             }
         },
         computed: {
             formTitle() {
-                return this.editedIndex === -1 ? 'Agregar Polígono' : 'Editar Polígono'
+                return this.editedIndex === -1 ? 'Add Polygon' : 'Edit Polygon'
             }
         },
         mounted() {
@@ -172,20 +179,6 @@
             }
         },
         methods: {
-            savePolygon() {
-
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        // If input is valid.
-                        this.polygons.push({
-                            "label": this.polygon.label,
-                            "numberOfVertex": parseInt(this.polygon.numberOfVertex),
-                            "percentage": parseInt(this.polygon.percentage),
-                            "radius": parseInt(this.polygon.radius)
-                        });
-                    }
-                });
-            },
             editItem(item) {
                 this.editedIndex = this.polygons.indexOf(item);
                 this.editedItem = Object.assign({}, item);
@@ -203,12 +196,16 @@
                 }, 300)
             },
             save() {
-                if (this.editedIndex > -1) {
-                    Object.assign(this.polygons[this.editedIndex], this.editedItem);
-                } else {
-                    this.polygons.push(this.editedItem);
-                }
-                this.close();
+                this.$validator.validateAll().then(result =>{
+                    if(result) {
+                        if (this.editedIndex > -1) {
+                            Object.assign(this.polygons[this.editedIndex], this.editedItem);
+                        } else {
+                            this.polygons.push(this.editedItem);
+                        }
+                        this.close();
+                    }
+                });
             }
         }
     }

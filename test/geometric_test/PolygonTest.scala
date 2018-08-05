@@ -27,6 +27,32 @@ class PolygonTest extends FlatSpec with Matchers {
     intersection.find(p => p.x == -0.5 && p.y == 0.5).size should be (1)
   }
 
+  it should "intersect correctly (test 1)" in {
+    val triangle = new Polygon(List(new Point(7.234114647519318,-0.6469587336116933),
+      new Point(8.889254465318055,-0.6285459181902726),
+      new Point(9.787869771170618, 9.787869771170618)))
+    val square = new Polygon(List(new Point(0,0), new Point(30,0), new Point(30, 30), new Point(0,30)))
+
+    val intersection = square.intersectPolygon(triangle)
+    intersection.foreach(println(_))
+
+    intersection.size should be (2)
+  }
+
+  it should "intersect correctly (test 2)" in {
+    val triangle = new Polygon(List(new Point(2.6703410548225106,12.83798257181801),
+      new Point(-1.9909499790451486, 7.288346368773712),
+      new Point(-1.7092590588878531, 6.7817650363374),
+      new Point(5.556696586214047, 8.178438253141778)
+    ))
+    val square = new Polygon(List(new Point(0,0), new Point(30,0), new Point(30, 30), new Point(0,30)))
+
+    val intersection = square.intersectPolygon(triangle)
+    intersection.foreach(println(_))
+
+    intersection.size should be (2)
+  }
+
   it should "know if a point is inside or outside" in {
     val triangle = new Polygon(List(new Point(0,0), new Point(2,2), new Point(-2, 2)))
 

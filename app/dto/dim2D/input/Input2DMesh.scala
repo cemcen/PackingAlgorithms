@@ -2,7 +2,7 @@ package dto.dim2D.input
 
 import play.api.libs.json.{Json, Reads}
 
-case class Input2DMesh(polygons: List[InputPolygon], width: Option[Int], height: Option[Int])
+case class Input2DMesh(polygons: List[InputPolygon], width: Option[Double], height: Option[Double])
 
 object Input2DMesh {
 

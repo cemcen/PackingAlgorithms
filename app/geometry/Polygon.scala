@@ -8,10 +8,8 @@ import scala.collection.mutable.ArrayBuffer
   *
   */
 class Polygon(val points: List[Point], val radius: Double) {
-
   def this(points: List[Point]) = this(points, -1.0)
 
-  private var _center: Point = new Point(0, 0)
   private var _centroid: Point = null
 
   /**
@@ -51,7 +49,7 @@ class Polygon(val points: List[Point], val radius: Double) {
     }
 
     // We should continue to check an intersection until one of the two polygon had been check entirely.
-    while (indexPolygonA < this.points.size && indexPolygonB < polygon.points.size) {
+    while (indexPolygonA < this.points.size * 2 && indexPolygonB < polygon.points.size * 2) {
       // Here we have two options, advance vector A or B.
       // We will advance vector A if cross product is positive, advance vector B otherwise.
       // But first we need to check if these two vectors intersects.
@@ -59,11 +57,11 @@ class Polygon(val points: List[Point], val radius: Double) {
       intersectionPoints ++= vIntersectionPoints
 
       // For debugging
-      // println("Intersection: " + vIntersectionPoints)
-      // println("-----------------------------------")
-      // println("-----------------------------------")
-      // println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
-      // println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
+//       println("Intersection: " + vIntersectionPoints)
+//       println("-----------------------------------")
+//       println("-----------------------------------")
+//       println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
+//       println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
 
       // We need to advance one of the vector.
       // Depends on where are one vector to each other.
@@ -143,11 +141,6 @@ class Polygon(val points: List[Point], val radius: Double) {
   /**
     * Getter and setter of attribute center.
     */
-  def center: Point = _center
-
-  /**
-    * Getter and setter of attribute center.
-    */
   def centroid: Point = {
     if (_centroid == null) {
       // Bourke, Paul (July 1997). "Calculating the area and centroid of a polygon".
@@ -175,8 +168,28 @@ class Polygon(val points: List[Point], val radius: Double) {
     _centroid
   }
 
-  def center_=(x: Int, y: Int): Unit = {
-    _center = new Point(x, y)
+  /**
+    * Moves center to the given Points. Also translate the other points of the polygon.
+    */
+  def movePolygon(move: Point): Unit = {
+    val xTranslation: Double = move.x - centroid.x
+    val yTranslation: Double = move.y - centroid.y
+
+    // Move the centroid.
+    centroid.x = move.x
+    centroid.y = move.y
+
+    // Move all points of the polygon
+    points.foreach(pnt => {
+      pnt.x += xTranslation
+      pnt.y += yTranslation
+    })
+  }
+
+  def hasAllPointsPositive: Boolean = {
+    points.foldRight(true)( (a,b) => {
+      b && (a.x > 0 && a.y > 0)
+    })
   }
 
 }

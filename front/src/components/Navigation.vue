@@ -25,8 +25,8 @@
             <v-toolbar-title>Packing Geometrico</v-toolbar-title>
         </v-toolbar>
         <v-content>
-            <v-container>
-                <v-card>
+            <v-container class="my-card">
+                <v-card class="my-card">
                     <v-tabs centered color="teal darken-1" dark icons-and-text>
                         <v-tabs-slider color="teal lighten-4"></v-tabs-slider>
 

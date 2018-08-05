@@ -2,7 +2,7 @@ package dto.dim2D.output
 
 import play.api.libs.json.{JsObject, Json, Reads, Writes}
 
-case class Point2D(x: Int, y: Int)
+case class Point2D(x: Double, y: Double)
 
 object Point2D {
 
