@@ -1,5 +1,5 @@
 <template>
-    <div class="fill-height">
+    <div class="page-container fill-height">
         <v-toolbar  dark>
             <v-toolbar-title>Packing</v-toolbar-title>
             <v-divider class="mx-2" inset vertical></v-divider>
@@ -44,7 +44,7 @@
             </v-dialog>
 
         </v-toolbar>
-        <div ref="polygonContainer" class="polygon">
+        <div id='myContainer' ref="polygonContainer" class="polygon">
             <div ref="polygonDrawer"></div>
         </div>
     </div>
@@ -63,7 +63,12 @@
               width: null,
               height: null,
               dialog: false,
-              polygons: []
+              polygons: [],
+              packing: {
+                  height: 0,
+                  width: 0,
+                  polygons: []
+              }
           }
         },
         dictionary: {
@@ -84,36 +89,52 @@
                 // Settings of the canvas.
                 p.setup = () => {
                     // We use the div size as the canvas size.
-                    canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
+                    // console.log(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
+                    canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, p.windowHeight/1.6);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
                     p.frameRate(60);
                     //console.log(canvas);
                 };
+
+                p.windowResized = () => {
+                    if(typeof this.$refs.polygonContainer !== "undefined") {
+                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, p.windowHeight / 1.6)
+                    }
+                };
+
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    p.background(255);
+                    p.background(40,40,40);
+                    p.noFill();
                     p.push();
-                    p.translate(p.width*0.5, p.height*0.5);
-                    p.rotate(p.frameCount / 200.0);
-                    this.drawPolygon(0, 0, this.radius, this.numberOfVertex, p);
+                    this.packing.polygons.forEach(pol => {this.drawPolygon(pol, this.packing.width, this.packing.height, p)});
                     p.pop();
                 };
             };
             const P5 = require('p5');
-            this.ps = new P5(this.script);
+            this.ps = new P5(this.script, 'myContainer');
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
+            if (localStorage.getItem('packing')) this.packing = JSON.parse(localStorage.getItem('packing'));
 
         },
+        watch: {
+            packing: {
+                handler() {
+                    localStorage.setItem('packing', JSON.stringify(this.packing));
+                },
+                deep: true
+            },
+        },
         methods: {
-            drawPolygon(x, y, radius, npoints, p) {
-                const angle = p.TWO_PI / npoints;
+            drawPolygon(polygon, width, height, p) {
+                p.stroke(0, 137, 123);
                 p.beginShape();
-                for (let a = 0; a < p.TWO_PI; a += angle) {
-                    const sx = x + p.cos(a) * radius;
-                    const sy = y + p.sin(a) * radius;
+                polygon.points.forEach(pnt => {
+                    let sx = (pnt.x / width) * p.width;
+                    let sy = (pnt.y / height) * p.height;
                     p.vertex(sx, sy);
-                }
+                });
                 p.endShape(p.CLOSE);
             },
             execute(){
@@ -135,9 +156,10 @@
                                 'height': parseFloat(this.height)
                             };
                             api.sendMesh(data).then(resp => {
-                                console.log(resp);
+                                //console.log(resp);
+                                this.packing = resp.body.mesh
                             }).catch(error => {
-                                console.log(error);
+                                //console.log(error);
                                 alert("Error executing algorithm.");
                             });
                         }
@@ -150,8 +172,13 @@
 </script>
 
 <style scoped>
-
+    .page-container {
+        padding: 0;
+        margin: 0;
+    }
     .polygon {
+        padding:0;
+        margin:0;
         height: 100%;
         min-width: 100%;
     }

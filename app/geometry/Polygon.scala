@@ -49,7 +49,7 @@ class Polygon(val points: List[Point], val radius: Double) {
     }
 
     // We should continue to check an intersection until one of the two polygon had been check entirely.
-    while (indexPolygonA < this.points.size && indexPolygonB < polygon.points.size) {
+    while (indexPolygonA < this.points.size * 2 && indexPolygonB < polygon.points.size * 2) {
       // Here we have two options, advance vector A or B.
       // We will advance vector A if cross product is positive, advance vector B otherwise.
       // But first we need to check if these two vectors intersects.
@@ -57,11 +57,11 @@ class Polygon(val points: List[Point], val radius: Double) {
       intersectionPoints ++= vIntersectionPoints
 
       // For debugging
-      // println("Intersection: " + vIntersectionPoints)
-      // println("-----------------------------------")
-      // println("-----------------------------------")
-      // println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
-      // println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
+//       println("Intersection: " + vIntersectionPoints)
+//       println("-----------------------------------")
+//       println("-----------------------------------")
+//       println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
+//       println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
 
       // We need to advance one of the vector.
       // Depends on where are one vector to each other.

@@ -180,13 +180,9 @@
         },
         methods: {
             editItem(item) {
-                this.$validator.validateAll().then(result =>{
-                    if(result) {
-                        this.editedIndex = this.polygons.indexOf(item);
-                        this.editedItem = Object.assign({}, item);
-                        this.dialog = true;
-                    }
-                })
+                this.editedIndex = this.polygons.indexOf(item);
+                this.editedItem = Object.assign({}, item);
+                this.dialog = true;
             },
             deleteItem(item) {
                 const index = this.polygons.indexOf(item);

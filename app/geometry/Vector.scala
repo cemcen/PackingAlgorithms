@@ -111,6 +111,9 @@ class Vector(var pointA: Point, var pointB: Point) {
       // (q - p) x r
       val valueN: Double = (vectorQ - vectorP) x vectorR
 
+//      println(valueD)
+//      println(valueN)
+
       // This means that we have collinear intersection
       if(valueD == 0 && valueN == 0) {
         // Then we need to know if they are disjoint.
