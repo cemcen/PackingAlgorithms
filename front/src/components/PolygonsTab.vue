@@ -10,7 +10,7 @@
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
                 <v-btn slot="activator" color="teal darken-1" dark class="mb-2">New Item</v-btn>
-                <v-card>
+                <v-card color="grey darken-4">
                     <v-card-title>
                         <span class="headline">{{ formTitle }}</span>
                     </v-card-title>
@@ -59,8 +59,8 @@
 
                     <v-card-actions>
                         <v-spacer></v-spacer>
-                        <v-btn color="blue darken-1" flat @click.native="close">Cancel</v-btn>
-                        <v-btn color="blue darken-1" flat @click.native="save">Save</v-btn>
+                        <v-btn color="teal darken-1" flat @click.native="close">Cancel</v-btn>
+                        <v-btn color="teal darken-1" flat @click.native="save">Save</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>

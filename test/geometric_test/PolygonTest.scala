@@ -34,7 +34,7 @@ class PolygonTest extends FlatSpec with Matchers {
     val square = new Polygon(List(new Point(0,0), new Point(30,0), new Point(30, 30), new Point(0,30)))
 
     val intersection = square.intersectPolygon(triangle)
-    intersection.foreach(println(_))
+    //intersection.foreach(println(_))
 
     intersection.size should be (2)
   }
@@ -48,10 +48,34 @@ class PolygonTest extends FlatSpec with Matchers {
     val square = new Polygon(List(new Point(0,0), new Point(30,0), new Point(30, 30), new Point(0,30)))
 
     val intersection = square.intersectPolygon(triangle)
-    intersection.foreach(println(_))
+    //intersection.foreach(println(_))
 
     intersection.size should be (2)
   }
+
+  it should "intersect correctly (test 3)" in {
+    val heptagon = new Polygon(List(new Point(22.722088525963617, 44.63845831703894),
+      new Point(21.74475438608859, 45.15869767656664),
+      new Point(21.220811788893005, 45.33403380270326),
+      new Point(15.181954660739589, 42.17175475493026),
+      new Point(14.899038444517867, 40.43605192357745),
+      new Point(18.940359498405858, 35.60471881624339),
+      new Point(20.165392747813893, 35.51919491971441)
+    ))
+    val hexagon = new Polygon(List(new Point(32.51651002175753, 50.00000000000007),
+      new Point(22.82824476569928, 46.90925663229614),
+      new Point(20.880761223586987, 43.63886205633711),
+      new Point(26.184081625203447, 31.132702661367574),
+      new Point(30.602442521812513, 30.256043672486946),
+      new Point(31.211217809504625, 30.293717861511716)
+    ))
+
+    val intersection: List[Point] = hexagon.intersectPolygon(heptagon)
+    //intersection.foreach(println(_))
+
+    intersection.size should be (2)
+  }
+
 
   it should "know if a point is inside or outside" in {
     val triangle = new Polygon(List(new Point(0,0), new Point(2,2), new Point(-2, 2)))
@@ -71,8 +95,9 @@ class PolygonTest extends FlatSpec with Matchers {
     val triangle = new Polygon(List(new Point(0, 1), new Point(-1, 0), new Point(1, 0)))
 
     var result: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(pentagon, triangle)
+    //result.points.foreach(println(_))
     result.points.size should be(8)
-    // result.points.foreach(println(_))
+
 
     val bigSquare: Polygon = new Polygon(List(new Point(2, 2), new Point(4, 2), new Point(4, 4), new Point(2, 4)))
     val smallSquare: Polygon = new Polygon(List(new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1)))
@@ -91,7 +116,7 @@ class PolygonTest extends FlatSpec with Matchers {
     hexagon = new Polygon(List(new Point(-5.36091610733671, -8.441598100484162), new Point(1.214984949944071, -9.925916157786615), new Point(2.9223545625618335, -9.563464006868747), new Point(9.70601928893884, -2.406904560373591), new Point(9.94831527300682, 1.0153931400493352), new Point(9.093240309542178, 4.160887005545485)))
     square = new Polygon(List(new Point(3.8128238766380114, 9.244586204138024), new Point(-9.580375071082429, -2.866428700906813), new Point(8.599585034526674, -5.103639606589091), new Point(9.999850085714826, 0.05475639897944287)))
     result = LocusAlgorithm.getLocusOfTwoPolygons(hexagon, square)
-    // result.points.foreach(println(_))
+    //result.points.foreach(println(_))
     result.points.size should be(10)
 
     // Caso en que se puede poner todos los vertices de un polygono en un solo vertice del estatico

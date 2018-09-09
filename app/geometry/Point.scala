@@ -1,6 +1,8 @@
 package geometry
+
 import org.scalactic._
 import org.scalactic.TripleEquals._
+import Tolerance._
 
 /**
   * Contains all definitions needed for points (Addition, multiplication, etc).
@@ -9,6 +11,7 @@ import org.scalactic.TripleEquals._
 class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
 
   implicit val _ = TolerantNumerics.tolerantDoubleEquality(1e-8)
+
   /**
     * Addition between two points.
     */
@@ -35,11 +38,14 @@ class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
   }
 
   override def toString: String = "( " + x + "," + y + ")"
+
   def canEqual(a: Any): Boolean = a.isInstanceOf[Point]
+
   override def equals(that: Any): Boolean = that match {
-    case that: Point => that.canEqual(this) && this.hashCode == that.hashCode
+    case that: Point =>
+      that.canEqual(this) && this.x === that.x +- 1e-8 && this.y === that.y +- 1e-8
     case _ => false
   }
 
-  override def hashCode: Int =  41 * (41 + (this.x * 1e8).toInt) + (this.y * 1e8).toInt
+  override def hashCode: Int = 41 * (41 + (this.x * 1e8).toInt) + (this.y * 1e8).toInt
 }

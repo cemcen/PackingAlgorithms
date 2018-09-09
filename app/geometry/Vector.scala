@@ -82,7 +82,8 @@ class Vector(var pointA: Point, var pointB: Point) {
     * Returns points of intersection
     */
   def intersectVector(vector: Vector): List[Point] = {
-    var intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    intersectVectorV2(vector)
+    /*var intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
 
     // First things first we need to be sure it can have an intersection.
     // For this we will do cross product of a vector and the two points of the other vector.
@@ -157,6 +158,58 @@ class Vector(var pointA: Point, var pointB: Point) {
     }
 
     // Finally return the result.
+    intersectionPoints.toList
+    */
+  }
+
+  /**
+    * Returns points of intersection
+    */
+  def intersectVectorV2(vector: Vector): List[Point] = {
+    var intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+
+    // Rewriting names for easier understanding
+    val p: Vector = Vector(new Point(0,0),this.pointA)
+    val r: Vector = this
+    val q: Vector = Vector(new Point(0,0), vector.pointA)
+    val s: Vector = vector
+
+    val rxs = r x s
+    val qpxr = (p - q) x r
+
+    if(rxs == 0 && qpxr == 0){
+      val t1 = (((s - p) + q) * r) / (r * r)
+      val t0 = t1 - (s * r) / (r * r)
+
+      if (t0 >= 0 && t0 <= 1 || t1 >= 0 && t1 <= 1) {
+        // Collinear overlapping
+        val vectorAC: Vector = Vector(this.pointA, vector.pointA)
+        val vectorAD: Vector = Vector(this.pointA, vector.pointB)
+        val vectorCB: Vector = Vector(vector.pointA, this.pointB)
+
+        if (Math.abs(vectorAC.magnitude() + vectorAD.magnitude() - vector.magnitude()) < 0.001) {
+          intersectionPoints += this.pointA
+        } else {
+          intersectionPoints += this.pointB
+        }
+
+        if (Math.abs(vectorAC.magnitude() + vectorCB.magnitude() - this.magnitude()) < 0.001) {
+          intersectionPoints += vector.pointA
+        } else {
+          intersectionPoints += vector.pointB
+        }
+      }
+    }
+
+    val t = ((q - p) x s) / (r x s)
+    val u = ((q - p) x r) / (r x s)
+
+    if (rxs != 0 && t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      intersectionPoints += new Point(
+        this.pointA.x + t * (this.pointB.x - this.pointA.x),
+        this.pointA.y + t * (this.pointB.y - this.pointA.y))
+    }
+
     intersectionPoints.toList
   }
 }

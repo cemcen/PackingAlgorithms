@@ -22,6 +22,26 @@ class Polygon(val points: List[Point], val radius: Double) {
     */
   def intersectPolygon(polygon: Polygon): List[Point] = {
     val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    val polygonASize: Int = this.points.size
+    val polygonBSize: Int = polygon.points.size
+
+    for (indexPolygonA <- this.points.indices) {
+      for (indexPolygonB <- polygon.points.indices){
+        val vectorPolygonA: Vector = Vector(this.points(Math.floorMod(indexPolygonA + 1, polygonASize)), this.points(Math.floorMod(indexPolygonA, polygonASize)))
+        val vectorPolygonB: Vector = Vector(polygon.points(Math.floorMod(indexPolygonB + 1, polygonBSize)), polygon.points(Math.floorMod(indexPolygonB, polygonBSize)))
+
+        val vIntersectionPoints: List[Point] = vectorPolygonA.intersectVector(vectorPolygonB)
+        vIntersectionPoints.foreach(pnt => if(!intersectionPoints.contains(pnt)) intersectionPoints += pnt)
+      }
+    }
+
+    intersectionPoints.distinct.toList
+    //linearPolygonIntersection(this, polygon)
+  }
+
+  def linearPolygonIntersection(polygonA: Polygon, polygonB: Polygon): List[Point] = {
+
+    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
 
     // Used for reference on the polygon.
     var indexPolygonA: Int = 0
@@ -29,27 +49,27 @@ class Polygon(val points: List[Point], val radius: Double) {
 
     // We will use an algorithm in time O(n + m). This uses two vectors and cross product to determine the intersection.
     // Second point -> first point. Using ccw vectors over the polygon.
-    var vectorPolygonA: Vector = Vector(this.points.tail.head, this.points.head)
-    var vectorPolygonB: Vector = Vector(polygon.points.tail.head, polygon.points.head)
+    var vectorPolygonA: Vector = Vector(polygonA.points.tail.head, polygonA.points.head)
+    var vectorPolygonB: Vector = Vector(polygonB.points.tail.head, polygonB.points.head)
 
-    val polygonASize: Int = this.points.size
-    val polygonBSize: Int = polygon.points.size
+    val polygonASize: Int = polygonA.points.size
+    val polygonBSize: Int = polygonB.points.size
 
     // Methods that will be used on the algorithm of intersection, these are used to advance the vector on each iteration.
     // This will advance the vector used in polygon A.
     def advanceVectorA(): Unit = {
       indexPolygonA += 1
-      vectorPolygonA = Vector(this.points(Math.floorMod(indexPolygonA + 1, polygonASize)), this.points(Math.floorMod(indexPolygonA, polygonASize)))
+      vectorPolygonA = Vector(polygonA.points(Math.floorMod(indexPolygonA + 1, polygonASize)), polygonA.points(Math.floorMod(indexPolygonA, polygonASize)))
     }
 
     // This will advance the vector used in polygon B.
     def advanceVectorB(): Unit = {
       indexPolygonB += 1
-      vectorPolygonB = Vector(polygon.points(Math.floorMod(indexPolygonB + 1, polygonBSize)), polygon.points(Math.floorMod(indexPolygonB, polygonBSize)))
+      vectorPolygonB = Vector(polygonB.points(Math.floorMod(indexPolygonB + 1, polygonBSize)), polygonB.points(Math.floorMod(indexPolygonB, polygonBSize)))
     }
 
     // We should continue to check an intersection until one of the two polygon had been check entirely.
-    while (indexPolygonA < this.points.size * 2 && indexPolygonB < polygon.points.size * 2) {
+    while (indexPolygonA < polygonASize || indexPolygonB < polygonBSize) {
       // Here we have two options, advance vector A or B.
       // We will advance vector A if cross product is positive, advance vector B otherwise.
       // But first we need to check if these two vectors intersects.
@@ -57,11 +77,11 @@ class Polygon(val points: List[Point], val radius: Double) {
       intersectionPoints ++= vIntersectionPoints
 
       // For debugging
-//       println("Intersection: " + vIntersectionPoints)
-//       println("-----------------------------------")
-//       println("-----------------------------------")
-//       println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
-//       println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
+      //       println("Intersection: " + vIntersectionPoints)
+      //       println("-----------------------------------")
+      //       println("-----------------------------------")
+      //       println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
+      //       println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
 
       // We need to advance one of the vector.
       // Depends on where are one vector to each other.

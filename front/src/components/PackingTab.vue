@@ -6,7 +6,7 @@
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
                 <v-btn slot="activator" color="teal darken-1" dark class="mb-2">Create New Packing</v-btn>
-                <v-card>
+                <v-card color="grey darken-4">
                     <v-card-title>
                         <span class="headline">New Packing</span>
                     </v-card-title>
@@ -38,7 +38,7 @@
 
                     <v-card-actions>
                         <v-spacer></v-spacer>
-                        <v-btn color="blue darken-1" flat @click.native="execute">Execute Algorithm</v-btn>
+                        <v-btn color="teal darken-1" flat @click.native="execute">Execute Algorithm</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -127,6 +127,21 @@
             },
         },
         methods: {
+            mouseInsidePolygon(polygon, x, y, width, height, p) {
+                // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+                let inside = false;
+                for(let i = 0; i < polygon.points.length; i++) {
+                    let xi = (polygon.points[i].x/ width) * p.width,
+                        yi = (polygon.points[i].y / height) * p.height;
+                    let xj = (polygon.points[(i + 1) % polygon.points.length].x / width) * p.width,
+                        yj = (polygon.points[(i + 1) % polygon.points.length].y / height) * p.height;
+
+                    let intersect = ((yi > y) !== (yj > y))
+                        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                    if (intersect) inside = !inside;
+                }
+                return inside;
+            },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(0, 137, 123);
                 p.beginShape();
@@ -136,6 +151,9 @@
                     p.vertex(sx, sy);
                 });
                 p.endShape(p.CLOSE);
+                if (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p)) {
+                    console.log(polygon.points.map(pnt => [pnt.x, pnt.y]));
+                }
             },
             execute(){
                 this.$validator.validateAll().then(result => {
