@@ -115,8 +115,10 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       })
 
       // Save polygon Position in the array.
-      insertingPolygon.movePolygon(bestCenterPos)
-      polygonList += insertingPolygon
+      if(bestCenterPos != null) {
+        insertingPolygon.movePolygon(bestCenterPos)
+        polygonList += insertingPolygon
+      }
     })
 
     finalPolygonPosition = polygonList

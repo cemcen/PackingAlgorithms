@@ -43,8 +43,19 @@
                 </v-card>
             </v-dialog>
 
+            <v-dialog v-model="dialogInfo" max-width="500px">
+                <v-card color="grey darken-4" >
+                    <v-card-title class="headline grey darken-4" primary-title>
+                        Propiedades del polígono
+                    </v-card-title>
+
+                    <v-card-text>
+                        Número de vértices: {{this.polygon.points.length}}
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
         </v-toolbar>
-        <div id='myContainer' ref="polygonContainer" class="polygon">
+        <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
             <div ref="polygonDrawer"></div>
         </div>
     </div>
@@ -64,6 +75,11 @@
               height: null,
               dialog: false,
               polygons: [],
+              show: false,
+              dialogInfo: false,
+              polygon: {
+                  points: []
+              },
               packing: {
                   height: 0,
                   width: 0,
@@ -142,8 +158,17 @@
                 }
                 return inside;
             },
+            showPolygonData(){
+                this.dialogInfo = true;
+            },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(0, 137, 123);
+                if (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p)) {
+                    p.fill(0, 137, 123);
+                    this.polygon = polygon
+                } else {
+                    p.noFill();
+                }
                 p.beginShape();
                 polygon.points.forEach(pnt => {
                     let sx = (pnt.x / width) * p.width;
@@ -151,9 +176,6 @@
                     p.vertex(sx, sy);
                 });
                 p.endShape(p.CLOSE);
-                if (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p)) {
-                    console.log(polygon.points.map(pnt => [pnt.x, pnt.y]));
-                }
             },
             execute(){
                 this.$validator.validateAll().then(result => {
