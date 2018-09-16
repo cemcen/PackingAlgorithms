@@ -7,8 +7,8 @@ import scala.collection.mutable.ArrayBuffer
   * 'radius', each point of this polygon will have the center as coordinate system.
   *
   */
-class Polygon(val points: List[Point], val radius: Double) {
-  def this(points: List[Point]) = this(points, -1.0)
+class Polygon(val points: List[Point], val radius: Double, val label: String) {
+  def this(points: List[Point]) = this(points, -1.0, "")
 
   private var _centroid: Point = null
 
@@ -216,7 +216,7 @@ class Polygon(val points: List[Point], val radius: Double) {
 
 object Polygon {
 
-  def apply(points: List[Point], radius: Double): Polygon = {
+  def apply(points: List[Point], radius: Double, label: String): Polygon = {
 
     // Before initializing the polygon we need to order the point ccw.
     // We know that the center of those points is (0,0).
@@ -263,7 +263,7 @@ object Polygon {
     })
 
     // Finally we create a polygon with points ordered ccw.
-    new Polygon(pointsOrderedCCW.toList, radius)
+    new Polygon(pointsOrderedCCW.toList, radius, label)
   }
 
 }

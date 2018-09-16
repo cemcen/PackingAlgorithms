@@ -49,7 +49,7 @@ class MeshController @Inject()(components: ControllerComponents)
             pointList += new Point2D(pnt.x, pnt.y)
           })
 
-          polygonOutput += new OutputPolygon(pointList.toList)
+          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius)
         })
 
         val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)

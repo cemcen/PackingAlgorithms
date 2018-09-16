@@ -316,7 +316,7 @@ object LocusAlgorithm {
     locusAlgorithm.checkSpecialCases(polygonB)
 
     //pointList.foreach(println(_))
-     new Polygon(locusAlgorithm.getPointList.distinct.toList, 0.0)
+     new Polygon(locusAlgorithm.getPointList.distinct.toList, 0.0, "")
   }
 
 }

@@ -163,7 +163,7 @@
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(0, 137, 123);
-                if (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p)) {
+                if (this.polygon === polygon || (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p) && !this.dialogInfo)) {
                     p.fill(0, 137, 123);
                     this.polygon = polygon
                 } else {

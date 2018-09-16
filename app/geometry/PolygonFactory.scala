@@ -18,7 +18,7 @@ object PolygonFactory {
     * @param numberOfVertex number of vertex that the new polygon will have.
     * @return new polygon created.
     */
-  def createNewPolygon(radius: Double, numberOfVertex: Int): Polygon = {
+  def createNewPolygon(radius: Double, numberOfVertex: Int, label: String): Polygon = {
 
     val r = scala.util.Random
     val vertexList = new ArrayBuffer[Point]()
@@ -47,7 +47,7 @@ object PolygonFactory {
     /**
       * Finally we return the polygon result.
       */
-    Polygon(vertexList.toList, radius)
+    Polygon(vertexList.toList, radius, label)
   }
 
   /**
@@ -100,7 +100,8 @@ object PolygonFactory {
 
       // Using the data of the polygon chosen we create a new polygon to be inserted.
       val dataChosenPolygon: InputPolygon = polygonData(indexOfPolygon)
-      val newPolygon = createNewPolygon(dataChosenPolygon.radius, dataChosenPolygon.numberOfVertex)
+      val newPolygon = createNewPolygon(dataChosenPolygon.radius, dataChosenPolygon.numberOfVertex,
+        dataChosenPolygon.label)
       // We erase the polygon to be chosen again.
       appearanceList(indexOfPolygon) -= 1
 
