@@ -1,5 +1,6 @@
 package geometry
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
