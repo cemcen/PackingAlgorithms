@@ -10,7 +10,7 @@ import org.specs2.runner.JUnitRunner
 class PolygonTest extends FlatSpec with Matchers {
 
   "A Polygon" should "have its points oriented ccw" in {
-    val square = PolygonFactory.createNewPolygon(10.0 , 4)
+    val square = PolygonFactory.createNewPolygon(10.0 , 4, "square")
 
     square.ccw() should be (true)
   }
@@ -142,11 +142,11 @@ class PolygonTest extends FlatSpec with Matchers {
   }
 
   it should "get correct locus of 100 randomize polygons" in {
-    var result: Polygon =  PolygonFactory.createNewPolygon(10.0, 6)
+    var result: Polygon =  PolygonFactory.createNewPolygon(10.0, 6, "result")
 
     for (_ <- 1 to 100) {
-      val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6)
-      val Rsquare = PolygonFactory.createNewPolygon(10.0, 4)
+      val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6, "hexagon")
+      val Rsquare = PolygonFactory.createNewPolygon(10.0, 4, "square")
       //println("HEXAGONO PRUEBA")
       //Rhexagon.points.foreach(println(_))
       //println("CUADRADO PRUEBA")

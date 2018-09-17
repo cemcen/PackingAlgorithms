@@ -30,9 +30,11 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
     // Insert first polygon on packing.
     val firstPolygon: Polygon = nextPolygon.head
+    firstPolygon.setHalfEdges()
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
     firstPolygon.movePolygon(leftBottomPoint)
+    locusContainer.updateHalfEdge(firstPolygon)
     polygonList += firstPolygon
 
     // Iterate over nextPolygon array to pack every polygon in the array.

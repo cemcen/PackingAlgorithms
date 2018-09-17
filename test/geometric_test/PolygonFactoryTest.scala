@@ -11,7 +11,7 @@ class PolygonFactoryTest extends FlatSpec with Matchers {
 
 
   "A PolygonFactory" should "creates a properly polygon" in {
-    val pentagon = PolygonFactory.createNewPolygon(1.0, 5)
+    val pentagon = PolygonFactory.createNewPolygon(1.0, 5, "pentagon")
 
     pentagon.points.size should be (5)
     pentagon.ccw() should be (true)

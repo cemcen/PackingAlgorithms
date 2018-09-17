@@ -11,6 +11,9 @@ import scala.collection.mutable.ArrayBuffer
   */
 class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double = 0) {
 
+  // Used for storing the half edges of this polygon.
+  private val containerPolygon: Polygon = new Polygon(List(new Point(xPos, yPos), new Point(width,yPos), new Point(width, height), new Point(xPos, height)))
+
   /**
     * Returns the polygon that makes the centroid of the given polygon
     * when surrounding the inner boundaries of this container.
@@ -38,18 +41,25 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
     }
 
     // Left Bottom Corner
-    saveLocusPoint( 0 - xMin, 0 - yMin)
+    saveLocusPoint( xPos - xMin, yPos - yMin)
 
     // Right Bottom Corner
-    saveLocusPoint( width - xMax,  0 - yMin)
+    saveLocusPoint( width - xMax,  yPos - yMin)
 
     // Right Top Corner
     saveLocusPoint( width - xMax, height - yMax)
 
     // Left Top Corner.
-    saveLocusPoint(0 - xMin, height - yMax)
+    saveLocusPoint( xPos - xMin, height - yMax)
 
     new Polygon(locusPoints.toList)
+  }
+
+  /**
+    * Initialize the half edges inside and outside this container.
+    */
+  def setHalfEdges(): Unit = {
+    containerPolygon.setHalfEdges()
   }
 
   /**
@@ -60,13 +70,15 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
   /**
     * Transform the container in a Polygon.
     */
-  def getPolygon: Polygon = new Polygon(List(new Point(0,0), new Point(width,0), new Point(width, height), new Point(0, height)))
+  def getPolygon: Polygon = containerPolygon
 }
 
 object Container2D {
 
   def apply(width: Double, height: Double): Container2D = {
-    new Container2D(width, height)
+    val container: Container2D = new Container2D(width, height)
+    container.setHalfEdges()
+    container
   }
 
 }
