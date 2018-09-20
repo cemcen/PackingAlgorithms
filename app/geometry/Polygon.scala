@@ -27,7 +27,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     * are well defined.
     */
   def intersectPolygon(polygon: Polygon): List[Point] = {
-    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    /*val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
     val polygonASize: Int = this.points.size
     val polygonBSize: Int = polygon.points.size
 
@@ -41,8 +41,8 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       }
     }
 
-    intersectionPoints.distinct.toList
-    //linearPolygonIntersection(this, polygon)
+    intersectionPoints.distinct.toList*/
+    linearPolygonIntersection(this, polygon)
   }
 
   def linearPolygonIntersection(polygonA: Polygon, polygonB: Polygon): List[Point] = {
@@ -384,7 +384,6 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
     })
   }
-
 
   /**
     * Returns neighbour points from known point of this polygon.

@@ -1,6 +1,6 @@
 package algorithms.packing
 import algorithms.geometric.{Container2D, LocusAlgorithm}
-import geometry.{Point, Polygon}
+import geometry.{HalfEdge, Point, Polygon}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -49,6 +49,9 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       // Best center position.
       var bestCenterPos: Point = null
 
+      // Minimum area
+      var minimumArea: Double = Double.MaxValue
+
       // Check every polygon for possible insertion.
       polygonList.indices.foreach(i => {
         // Current polygon
@@ -67,13 +70,24 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
           // Check if intersection.
           var intersects = false
+          var intersectionPoints: List[Point] = List()
 
           polygonList.foreach(pol => {
-            if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
+            intersectionPoints = insertingPolygon.intersectPolygon(pol).distinct
+            if(intersectionPoints.size > 1) intersects = true
           })
 
           // TODO: Packing condition.
-          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
+          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) {
+
+            // If two points are in one edge of one of the polygons.
+            if(intersectionPoints.size > 2) {
+
+            }
+
+            bestCenterPos = pnt
+          }
+
           insertingPolygon.movePolygon(centroid)
         })
       })
@@ -124,6 +138,19 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     })
 
     finalPolygonPosition = polygonList
+  }
+
+  /**
+    * Returns the area of the hole.
+    *
+    * We need the initial halfedge. The initial point and the end point.
+    */
+  def holeArea(halfEdgeA: HalfEdge, pointA: Point, halfEdgeB: HalfEdge, pointB: Point,
+               polygonAPoint: Point, polygonBPoint: Point): Double = {
+    val area: Double = Double.MaxValue
+
+
+    area
   }
 
 }
