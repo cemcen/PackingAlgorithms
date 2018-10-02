@@ -14,7 +14,7 @@ import Tolerance._
 class Polygon(var points: List[Point], val radius: Double, val label: String) {
   def this(points: List[Point]) = this(points, -1.0, "")
 
-  private var halfEdges: mutable.HashMap[Point, ArrayBuffer[HalfEdge]] = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
+  var halfEdges: mutable.HashMap[Point, ArrayBuffer[HalfEdge]] = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
   private var point_polygon: mutable.HashMap[Point, ArrayBuffer[Polygon]] = new mutable.HashMap[Point, ArrayBuffer[Polygon]]()
   private var _centroid: Point = null
 
@@ -27,7 +27,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     * are well defined.
     */
   def intersectPolygon(polygon: Polygon): List[Point] = {
-    /*val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
     val polygonASize: Int = this.points.size
     val polygonBSize: Int = polygon.points.size
 
@@ -41,8 +41,8 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       }
     }
 
-    intersectionPoints.distinct.toList*/
-    linearPolygonIntersection(this, polygon)
+    intersectionPoints.distinct.toList
+    //linearPolygonIntersection(this, polygon)
   }
 
   def linearPolygonIntersection(polygonA: Polygon, polygonB: Polygon): List[Point] = {
@@ -235,8 +235,8 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       val previousP = points(Math.floorMod(i - 1 + points.length, points.length))
       val nextP = points(Math.floorMod(i + 1, points.length))
 
-      pHalfEdge += new HalfEdge(points(i), nextP, true)
-      pHalfEdge += new HalfEdge(points(i), previousP, false)
+      pHalfEdge += new HalfEdge(points(i), nextP, true, this)
+      pHalfEdge += new HalfEdge(points(i), previousP, false, this)
 
       point_polygon += ((points(i), new ArrayBuffer[Polygon]()))
       halfEdges += ((points(i), pHalfEdge))
@@ -317,7 +317,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         AF.setPointB(pnt)
         AF.nextHalfEdge(DC)
 
-        val FB: HalfEdge = new HalfEdge(pnt, nextPointPolygonA, true)
+        val FB: HalfEdge = new HalfEdge(pnt, nextPointPolygonA, true, this)
         val BX: HalfEdge = this.halfEdges(nextPointPolygonA).filter(_.isInterior)(0)
         FB.nextHalfEdge(BX)
 
@@ -325,7 +325,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         EF.nextHalfEdge(FB)
 
         val BF: HalfEdge = this.halfEdges(nextPointPolygonA).filter(!_.isInterior)(0)
-        val FA: HalfEdge = new HalfEdge(pnt, previousPointPolygonA, false)
+        val FA: HalfEdge = new HalfEdge(pnt, previousPointPolygonA, false, this)
         BF.setPointB(pnt)
         BF.nextHalfEdge(FA)
 
@@ -364,10 +364,11 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
           */
 
         val nearestPointsB: List[Point] = polygon.getNearestPoints(pnt)
+        val nearestPointsA: List[Point] = this.getNearestPoints(pnt)
 
         val C: Point = nearestPointsB.tail.head
         val A: Point = pnt
-        val Y: Point = nearestPointsB.head
+        val Y: Point = nearestPointsA.head
 
         val YA: HalfEdge = this.halfEdges(Y).filter(_.isInterior)(0)
         val AD: HalfEdge = polygon.halfEdges(A).filter(!_.isInterior)(0)
@@ -378,6 +379,15 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         YA.nextHalfEdge(AD)
       }
 
+
+      if (!point_polygon.contains(pnt)){
+        point_polygon += (pnt -> new ArrayBuffer[Polygon]())
+      }
+
+      if(!polygon.point_polygon.contains(pnt)){
+        polygon.point_polygon += (pnt -> new ArrayBuffer[Polygon]())
+      }
+
       // To know which polygon we need to turn when looking for holes.
       point_polygon.put(pnt, point_polygon(pnt) ++ List(polygon))
       polygon.point_polygon.put(pnt, polygon.point_polygon(pnt) ++ List(this))
@@ -385,8 +395,15 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     })
   }
 
+  def resetHalfEdges(): Unit = halfEdges = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
+  def getHalfEdge(point: Point, isInterior: Boolean): HalfEdge = {
+    if(isInterior) this.halfEdges(point).filter(_.isInterior)(0)
+    else this.halfEdges(point).filter(!_.isInterior)(0)
+  }
+
   /**
     * Returns neighbour points from known point of this polygon.
+    * Returns (previous, next)
     */
   def getNearestPoints(pnt: Point): List[Point] = {
 
@@ -423,7 +440,8 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         val maxY: Double = Math.max(pntA.y, pntB.y)
         val minY: Double = Math.min(pntA.y, pntB.y)
 
-        if (minX <= pnt.x && pnt.x <= maxX && minY <= pnt.y && maxY <= pnt.y) {
+        if (minX <= pnt.x && pnt.x <= maxX && minY <= pnt.y && pnt.y <= maxY) {
+
           nearestPoints += pntA
           nearestPoints += pntB
         }

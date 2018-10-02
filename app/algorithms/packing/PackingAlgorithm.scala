@@ -26,6 +26,7 @@ abstract class PackingAlgorithm {
     */
   def createContainer(width: Double, height: Double): Unit = {
     container = new Container2D(width, height)
+    container.setHalfEdges()
   }
 
   /**

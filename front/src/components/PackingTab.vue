@@ -165,7 +165,9 @@
                 p.stroke(0, 137, 123);
                 if (this.polygon === polygon || (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p) && !this.dialogInfo)) {
                     p.fill(0, 137, 123);
-                    this.polygon = polygon
+                    if(!this.dialogInfo) {
+                        this.polygon = polygon;
+                    }
                 } else {
                     p.noFill();
                 }

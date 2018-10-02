@@ -30,11 +30,11 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
     // Insert first polygon on packing.
     val firstPolygon: Polygon = nextPolygon.head
-    firstPolygon.setHalfEdges()
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
     firstPolygon.movePolygon(leftBottomPoint)
-    locusContainer.updateHalfEdge(firstPolygon)
+    firstPolygon.setHalfEdges()
+    container.getPolygon.updateHalfEdge(firstPolygon)
     polygonList += firstPolygon
 
     // Iterate over nextPolygon array to pack every polygon in the array.
@@ -42,6 +42,9 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
       // Next polygon to be inserted.
       val insertingPolygon: Polygon = nextPolygon.tail(i)
+
+      // We need to be sure the polygon has half edges.
+      insertingPolygon.setHalfEdges()
 
       // First case Container vs Polygons.
       val containerLocus: Polygon = container.getInnerLocus(insertingPolygon)
@@ -52,8 +55,12 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       // Minimum area
       var minimumArea: Double = Double.MaxValue
 
+      // Polygons that will be updated.
+      var polygonsUpdated: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+
       // Check every polygon for possible insertion.
       polygonList.indices.foreach(i => {
+
         // Current polygon
         val polygon: Polygon = polygonList(i)
 
@@ -62,36 +69,99 @@ class AdvanceFrontPacking extends PackingAlgorithm {
         val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
 
         intersectionPoints.foreach(pnt => {
+
           // Save centroid.
           val centroid: Point = insertingPolygon.centroid
 
           // Move Polygon.
           insertingPolygon.movePolygon(pnt)
+          insertingPolygon.resetHalfEdges()
+          insertingPolygon.setHalfEdges()
 
           // Check if intersection.
           var intersects = false
-          var intersectionPoints: List[Point] = List()
 
+          var auxUpdating: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+
+          // Check if this position doesn't intersect with other polygon.
           polygonList.foreach(pol => {
-            intersectionPoints = insertingPolygon.intersectPolygon(pol).distinct
-            if(intersectionPoints.size > 1) intersects = true
+            val checkInterPoints: List[Point] = insertingPolygon.intersectPolygon(pol).distinct
+            if(checkInterPoints.size > 1) intersects = true
+            else if (checkInterPoints.size == 1) auxUpdating += pol
           })
 
           // TODO: Packing condition.
-          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) {
+          // TODO: It can intersect the container in two position and still be possible.
+          if(!intersects && container.isInside(pnt) && (0 until 2 contains container.getPolygon.intersectPolygon(insertingPolygon).size)) {
 
-            // If two points are in one edge of one of the polygons.
-            if(intersectionPoints.size > 2) {
+            var iPoints: List[Point] = List()
 
+            val containerPolygon: Polygon = container.getPolygon
+            iPoints = containerPolygon.intersectPolygon(insertingPolygon)
+            println("INTERSECTION")
+            iPoints.foreach(println)
+            println("Polygon")
+            containerPolygon.points.foreach(println)
+            println("inserting")
+            insertingPolygon.points.foreach(println)
+            // Here if we have more than one point we have to choose one.
+            val polygonAPoint: Point = iPoints.head
+
+            if(containerPolygon.points.contains(polygonAPoint)) iPoints = containerPolygon.getNearestPoints(polygonAPoint)
+            else  iPoints = containerPolygon.getNearestPointsFromPoint(polygonAPoint)
+
+            val nextPointA: Point = iPoints.head
+            val previousPointA: Point = iPoints.tail.head
+
+            val nextPointAHE: HalfEdge = containerPolygon.getHalfEdge(nextPointA, isInterior = true)
+            val previousPointAHE: HalfEdge = containerPolygon.getHalfEdge(previousPointA, isInterior = true)
+            val pointAHE: HalfEdge = insertingPolygon.getHalfEdge(polygonAPoint, isInterior = false)
+
+            // The same for the other polygon.
+            iPoints = polygon.intersectPolygon(insertingPolygon)
+            println("INTERSECTION")
+            iPoints.foreach(println)
+            println("Polygon")
+            polygon.points.foreach(println)
+            println("inserting")
+            insertingPolygon.points.foreach(println)
+            val polygonBPoint: Point = iPoints.head
+
+            if(polygon.points.contains(polygonBPoint)) iPoints = polygon.getNearestPoints(polygonBPoint)
+            else  iPoints = polygon.getNearestPointsFromPoint(polygonBPoint)
+
+            val nextPointB: Point = iPoints.tail.head
+            val previousPointB: Point = iPoints.head
+
+            println("Insert Keys")
+            insertingPolygon.halfEdges.keys.foreach(println)
+            println("polygon Keys")
+            polygon.halfEdges.keys.foreach(println)
+
+            val nextPointBHE: HalfEdge = polygon.getHalfEdge(nextPointB, isInterior = false)
+            val previousPointBHE: HalfEdge = polygon.getHalfEdge(previousPointB, isInterior = false)
+            val pointBHE: HalfEdge = insertingPolygon.getHalfEdge(polygonBPoint, isInterior = false)
+
+            val area1: Double = holeArea(nextPointAHE, previousPointBHE, pointAHE, pointBHE)
+            val area2: Double = holeArea(nextPointBHE, previousPointAHE, pointBHE, pointAHE)
+
+            println(area1)
+            println(area2)
+            // Condition minimum density
+            if(Math.min(area1, area2) < minimumArea) {
+              minimumArea = Math.min(area1, area2)
+              bestCenterPos = pnt
+              auxUpdating += locusContainer
+              polygonsUpdated = auxUpdating
+              println("hola")
             }
-
-            bestCenterPos = pnt
           }
 
           insertingPolygon.movePolygon(centroid)
         })
       })
 
+      println("Parte 2")
       // Second case Polygons vs Polygons.
       polygonList.indices.foreach(i => {
 
@@ -133,6 +203,9 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       // Save polygon Position in the array.
       if(bestCenterPos != null) {
         insertingPolygon.movePolygon(bestCenterPos)
+        insertingPolygon.resetHalfEdges()
+        insertingPolygon.setHalfEdges()
+        polygonsUpdated.foreach(pol => pol.updateHalfEdge(insertingPolygon))
         polygonList += insertingPolygon
       }
     })
@@ -142,13 +215,37 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
   /**
     * Returns the area of the hole.
-    *
-    * We need the initial halfedge. The initial point and the end point.
     */
-  def holeArea(halfEdgeA: HalfEdge, pointA: Point, halfEdgeB: HalfEdge, pointB: Point,
-               polygonAPoint: Point, polygonBPoint: Point): Double = {
-    val area: Double = Double.MaxValue
+  def holeArea(nextHalfEdgeA: HalfEdge, previousHalfEdgeB: HalfEdge,
+               pointAHalfEdge: HalfEdge, pointBHalfEdge: HalfEdge): Double = {
 
+    if (pointAHalfEdge.pointA.equals(pointBHalfEdge.pointA)) return 0
+
+    var area: Double = Double.MaxValue
+
+    var previousPoint: Point = pointAHalfEdge.pointA
+    var currentHalfEdge: HalfEdge = nextHalfEdgeA
+    area = area + (currentHalfEdge.pointA.x + previousPoint.x)*(previousPoint.y - currentHalfEdge.pointA.y)
+
+    while(!currentHalfEdge.pointA.equals(previousHalfEdgeB.pointA)) {
+      println("----")
+      previousPoint = currentHalfEdge.pointA
+      currentHalfEdge = currentHalfEdge.getNextHalfEdge
+
+      area = area + (currentHalfEdge.pointA.x + previousPoint.x)*(previousPoint.y - currentHalfEdge.pointA.y)
+    }
+
+    area = area + (pointBHalfEdge.pointA.x + previousPoint.x)*(previousPoint.y - pointBHalfEdge.pointA.y)
+    previousPoint = pointBHalfEdge.pointA
+    currentHalfEdge = pointBHalfEdge
+
+    while(!currentHalfEdge.pointA.equals(pointAHalfEdge.pointA)) {
+      println("*****")
+      area = area + (currentHalfEdge.pointA.x + previousPoint.x)*(previousPoint.y - currentHalfEdge.pointA.y)
+
+      previousPoint = currentHalfEdge.pointA
+      currentHalfEdge = currentHalfEdge.getNextHalfEdge
+    }
 
     area
   }

@@ -7,7 +7,7 @@ package geometry
   *
   * For optimization purposes we will store the previous edge.
   */
-class HalfEdge(var pointA: Point, var pointB: Point, interior: Boolean) {
+class HalfEdge(var pointA: Point, var pointB: Point, interior: Boolean, polygon: Polygon) {
 
   private var previousHalfEdge: HalfEdge = _
   private var nextHalfEdge: HalfEdge = _
@@ -16,6 +16,7 @@ class HalfEdge(var pointA: Point, var pointB: Point, interior: Boolean) {
   def getNextHalfEdge: HalfEdge = nextHalfEdge
   def getPairHalfEdge: HalfEdge = pairHalfEdge
   def getPreviousHalfEdge: HalfEdge = previousHalfEdge
+  def getPolygon: Polygon = polygon
   def isInterior: Boolean = interior
 
   private def setNextHalfEdge(next: HalfEdge): Unit = nextHalfEdge = next
