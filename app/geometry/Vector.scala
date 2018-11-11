@@ -10,6 +10,7 @@ import Tolerance._
   * Class representation for euclidean vectors.
   */
 class Vector(var pointA: Point, var pointB: Point) {
+
   private var i: Double = _
   private var j: Double = _
   private var k: Double = _
@@ -69,6 +70,14 @@ class Vector(var pointA: Point, var pointB: Point) {
     * Returns angle between two vectors.
     */
   def angleBetween(vector: Vector): Double = Math.acos((this * vector) / (this.magnitude() * vector.magnitude()))
+
+  /**
+    * Returns determinant between two points.
+    * https://en.wikipedia.org/wiki/Determinant
+    */
+  def determinant(vector: Vector): Double = {
+    i*vector.j - j*vector.i
+  }
 
   /**
     * Returns true if the point is at the left of this vector.
