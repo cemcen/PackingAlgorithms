@@ -36,12 +36,26 @@ class Graph(private val nodes: ArrayBuffer[Node], private val links: mutable.Has
   }
 
   /**
-    * TODO Do algorithm
+    * This algorithm looks for the route that covers a hole beginning from the exterior of one of the edges of the packing polygon.
     */
-  def lookForShortestRoute(nodeA: Node, nextNode: Node): ArrayBuffer[Node] = {
+  def lookForShortestRoute(nodeA: Node, nodeB: Node): ArrayBuffer[Node] = {
     var currentNode: Node = nodeA
+    var nextNode: Node = nodeB
     var routeList: ArrayBuffer[Node] = new ArrayBuffer[Node]()
     routeList += currentNode
+
+    while(!nextNode.equals(currentNode)){
+
+      // Change currentNode
+      val auxNode = nextNode
+
+      // Look for next node
+      nextNode = lookForMinimumAngle(currentNode, nextNode, links(nextNode))
+
+      // Add current node of this iteration to the route List.
+      currentNode = auxNode
+      routeList += currentNode
+    }
 
     routeList
   }
