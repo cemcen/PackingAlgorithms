@@ -32,6 +32,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     val firstPolygon: Polygon = nextPolygon.head
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
+    val packingTechnique: NaivePacking = new NaivePacking()
     firstPolygon.movePolygon(leftBottomPoint)
     firstPolygon.setHalfEdges()
     container.getPolygon.updateHalfEdge(firstPolygon)
@@ -76,22 +77,11 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
           intersectionPoints.foreach(pnt => {
 
-            // Save centroid.
-            val centroid: Point = insertingPolygon.centroid
+            val insertingPoint: Point = packingTechnique.executeAlgorithm(insertingPolygon, pnt, container, polygonList)
 
-            // Move Polygon.
-            insertingPolygon.movePolygon(pnt)
-
-            // Check if intersection.
-            var intersects = false
-
-            polygonList.foreach(pol => {
-              if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
-            })
-
-            // TODO: Packing condition.
-            if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
-            insertingPolygon.movePolygon(centroid)
+            if (insertingPoint != null) {
+              bestCenterPos = insertingPoint
+            }
           })
         })
       })
@@ -108,23 +98,11 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
         intersectionPoints.foreach(pnt => {
 
-          // Save centroid.
-          val centroid: Point = insertingPolygon.centroid
+          val insertingPoint: Point = packingTechnique.executeAlgorithm(insertingPolygon, pnt, container, polygonList)
 
-          // Move Polygon.
-          insertingPolygon.movePolygon(pnt)
-
-          // TODO: Borrar desde aqui
-          // Check if intersection.
-          var intersects = false
-
-          polygonList.foreach(pol => {
-            if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
-          })
-
-          // TODO: Packing condition.
-          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
-          // TODO: Borrar hasta aqui
+          if (insertingPoint != null) {
+            bestCenterPos = insertingPoint
+          }
 
           /*
           insertingPolygon.resetHalfEdges()
@@ -208,9 +186,10 @@ class AdvanceFrontPacking extends PackingAlgorithm {
               println("hola")
             }
           }
-          */
+
 
           insertingPolygon.movePolygon(centroid)
+          */
         })
       })
 
