@@ -2,10 +2,15 @@ package geometry
 
 import scala.collection.mutable.ArrayBuffer
 
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
+
 /**
   * Class representation for euclidean vectors.
   */
 class Vector(var pointA: Point, var pointB: Point) {
+
   private var i: Double = _
   private var j: Double = _
   private var k: Double = _
@@ -65,6 +70,14 @@ class Vector(var pointA: Point, var pointB: Point) {
     * Returns angle between two vectors.
     */
   def angleBetween(vector: Vector): Double = Math.acos((this * vector) / (this.magnitude() * vector.magnitude()))
+
+  /**
+    * Returns determinant between two points.
+    * https://en.wikipedia.org/wiki/Determinant
+    */
+  def determinant(vector: Vector): Double = {
+    i*vector.j - j*vector.i
+  }
 
   /**
     * Returns true if the point is at the left of this vector.
@@ -169,7 +182,7 @@ class Vector(var pointA: Point, var pointB: Point) {
     var intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
 
     // Rewriting names for easier understanding
-    val p: Vector = Vector(new Point(0,0),this.pointA)
+    val p: Vector = Vector(new Point(0,0), this.pointA)
     val r: Vector = this
     val q: Vector = Vector(new Point(0,0), vector.pointA)
     val s: Vector = vector
@@ -177,23 +190,24 @@ class Vector(var pointA: Point, var pointB: Point) {
     val rxs = r x s
     val qpxr = (p - q) x r
 
-    if(rxs == 0 && qpxr == 0){
+    if(rxs === 0.0 +- 1e-8 && qpxr === 0.0 +- 1e-8){
       val t1 = (((s - p) + q) * r) / (r * r)
       val t0 = t1 - (s * r) / (r * r)
 
-      if (t0 >= 0 && t0 <= 1 || t1 >= 0 && t1 <= 1) {
+      if ((t0 >= 0.0 || t0 === 0.0 +- 1e-8) && (t0 <= 1.0 || t0 === 1.0 +- 1e-8)
+        || (t1 >= 0.0 || t1 === 0.0 +- 1e-8) && (t1 <= 1.0 || t1 === 1.0 +- 1e-8)) {
         // Collinear overlapping
         val vectorAC: Vector = Vector(this.pointA, vector.pointA)
         val vectorAD: Vector = Vector(this.pointA, vector.pointB)
         val vectorCB: Vector = Vector(vector.pointA, this.pointB)
 
-        if (Math.abs(vectorAC.magnitude() + vectorAD.magnitude() - vector.magnitude()) < 0.001) {
+        if (Math.abs(vectorAC.magnitude() + vectorAD.magnitude() - vector.magnitude()) === 0.0 +- 1e-8) {
           intersectionPoints += this.pointA
         } else {
           intersectionPoints += this.pointB
         }
 
-        if (Math.abs(vectorAC.magnitude() + vectorCB.magnitude() - this.magnitude()) < 0.001) {
+        if (Math.abs(vectorAC.magnitude() + vectorCB.magnitude() - this.magnitude()) === 0.0 +- 1e-8) {
           intersectionPoints += vector.pointA
         } else {
           intersectionPoints += vector.pointB
@@ -204,7 +218,8 @@ class Vector(var pointA: Point, var pointB: Point) {
     val t = ((q - p) x s) / (r x s)
     val u = ((q - p) x r) / (r x s)
 
-    if (rxs != 0 && t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+    if (rxs != 0 && (t >= 0.0 || t === 0.0 +- 1e-8) && (t <= 1.0 || t === 1.0 +- 1e-8) &&
+      (u >= 0.0 || u === 0.0 +- 1e-8) && (u <= 1.0 || u === 1.0 +- 1e-8)) {
       intersectionPoints += new Point(
         this.pointA.x + t * (this.pointB.x - this.pointA.x),
         this.pointA.y + t * (this.pointB.y - this.pointA.y))

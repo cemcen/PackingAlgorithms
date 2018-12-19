@@ -32,6 +32,21 @@
                                               clearable
                                               required>
                                 </v-text-field>
+                                <v-checkbox
+                                        v-model="randomShape"
+                                        label="Random shape polygons?"
+                                        required
+                                ></v-checkbox>
+                                <div v-if="!randomShape">
+                                    <v-text-field v-validate="'required|min_value:1'"
+                                              :error-messages="errors.collect('regularity')"
+                                              v-model="regularity"
+                                              type="number"
+                                              label="Container Regularity"
+                                              data-vv-name="regularity"
+                                              clearable>
+                                    </v-text-field>
+                                </div>
                             </v-flex>
                         </v-layout>
                     </v-card-text>
@@ -43,8 +58,19 @@
                 </v-card>
             </v-dialog>
 
+            <v-dialog v-model="dialogInfo" max-width="500px">
+                <v-card color="grey darken-4" >
+                    <v-card-title class="headline grey darken-4" primary-title>
+                        Propiedades del polígono
+                    </v-card-title>
+
+                    <v-card-text>
+                        Número de vértices: {{this.polygon.points.length}}
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
         </v-toolbar>
-        <div id='myContainer' ref="polygonContainer" class="polygon">
+        <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
             <div ref="polygonDrawer"></div>
         </div>
     </div>
@@ -62,8 +88,15 @@
               ps: null,
               width: null,
               height: null,
+              randomShape: false,
+              regularity: 1,
               dialog: false,
               polygons: [],
+              show: false,
+              dialogInfo: false,
+              polygon: {
+                  points: []
+              },
               packing: {
                   height: 0,
                   width: 0,
@@ -81,6 +114,9 @@
                     required: 'Height is required to execute.',
                     min_value: 'Width must be greater than 0'
                 },
+                regularity: {
+                    min_value: 'regularity must be greater than 0'
+                }
             }
         },
         mounted() {
@@ -132,9 +168,9 @@
                 let inside = false;
                 for(let i = 0; i < polygon.points.length; i++) {
                     let xi = (polygon.points[i].x/ width) * p.width,
-                        yi = (polygon.points[i].y / height) * p.height;
+                        yi = ((height - polygon.points[i].y) / height) * p.height;
                     let xj = (polygon.points[(i + 1) % polygon.points.length].x / width) * p.width,
-                        yj = (polygon.points[(i + 1) % polygon.points.length].y / height) * p.height;
+                        yj = ((height - polygon.points[(i + 1) % polygon.points.length].y) / height) * p.height;
 
                     let intersect = ((yi > y) !== (yj > y))
                         && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
@@ -142,18 +178,26 @@
                 }
                 return inside;
             },
+            showPolygonData(){
+                this.dialogInfo = true;
+            },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(0, 137, 123);
+                if (this.polygon === polygon || (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p) && !this.dialogInfo)) {
+                    p.fill(0, 137, 123);
+                    if(!this.dialogInfo) {
+                        this.polygon = polygon;
+                    }
+                } else {
+                    p.noFill();
+                }
                 p.beginShape();
                 polygon.points.forEach(pnt => {
                     let sx = (pnt.x / width) * p.width;
-                    let sy = (pnt.y / height) * p.height;
+                    let sy = ((height - pnt.y) / height) * p.height;
                     p.vertex(sx, sy);
                 });
                 p.endShape(p.CLOSE);
-                if (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p)) {
-                    console.log(polygon.points.map(pnt => [pnt.x, pnt.y]));
-                }
             },
             execute(){
                 this.$validator.validateAll().then(result => {
@@ -171,7 +215,9 @@
                                     };
                                 }),
                                 'width': parseFloat(this.width),
-                                'height': parseFloat(this.height)
+                                'height': parseFloat(this.height),
+                                'randomShape': this.randomShape,
+                                'regularity': parseInt(this.regularity)
                             };
                             api.sendMesh(data).then(resp => {
                                 //console.log(resp);

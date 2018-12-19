@@ -23,7 +23,7 @@ class MeshController @Inject()(components: ControllerComponents)
       case s: JsSuccess[Input2DMesh] =>
         // Get the json with the data.
         val mesh: Input2DMesh = s.get
-        var width, height: Double = 0
+        var width, height: Double = 0.0
 
         // We store the result in this list.
         var polygonMesh: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
@@ -34,13 +34,10 @@ class MeshController @Inject()(components: ControllerComponents)
           width = mesh.width.get
           height = mesh.height.get
           Packing2D.setPackingAlgorithm(new AdvanceFrontPacking)
-          polygonMesh = Packing2D.createMesh(mesh.polygons, width, height)
+          polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 
-        } else {
-          // TODO: create a box container of the area of all polygons.
         }
 
-        // TODO: Create list of output polygons.
         var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
         polygonMesh.foreach(pol => {
           var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
@@ -49,7 +46,7 @@ class MeshController @Inject()(components: ControllerComponents)
             pointList += new Point2D(pnt.x, pnt.y)
           })
 
-          polygonOutput += new OutputPolygon(pointList.toList)
+          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius)
         })
 
         val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
