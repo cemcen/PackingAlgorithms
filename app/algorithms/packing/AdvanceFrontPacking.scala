@@ -75,6 +75,20 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
           // Move Polygon.
           insertingPolygon.movePolygon(pnt)
+
+          // TODO: Borrar desde aqui
+          // Check if intersection.
+          var intersects = false
+
+          polygonList.foreach(pol => {
+            if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
+          })
+
+          // TODO: Packing condition.
+          if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
+          // TODO: Borrar hasta aqui
+
+          /*
           insertingPolygon.resetHalfEdges()
           insertingPolygon.setHalfEdges()
 
@@ -156,12 +170,12 @@ class AdvanceFrontPacking extends PackingAlgorithm {
               println("hola")
             }
           }
+          */
 
           insertingPolygon.movePolygon(centroid)
         })
       })
 
-      println("Parte 2")
       // Second case Polygons vs Polygons.
       polygonList.indices.foreach(i => {
 
@@ -203,9 +217,9 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       // Save polygon Position in the array.
       if(bestCenterPos != null) {
         insertingPolygon.movePolygon(bestCenterPos)
-        insertingPolygon.resetHalfEdges()
-        insertingPolygon.setHalfEdges()
-        polygonsUpdated.foreach(pol => pol.updateHalfEdge(insertingPolygon))
+        //insertingPolygon.resetHalfEdges()
+        //insertingPolygon.setHalfEdges()
+        //polygonsUpdated.foreach(pol => pol.updateHalfEdge(insertingPolygon))
         polygonList += insertingPolygon
       }
     })

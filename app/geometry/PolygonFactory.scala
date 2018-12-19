@@ -18,7 +18,7 @@ object PolygonFactory {
     * @param numberOfVertex number of vertex that the new polygon will have.
     * @return new polygon created.
     */
-  def createNewPolygon(radius: Double, numberOfVertex: Int, label: String): Polygon = {
+  def createNewPolygon(radius: Double, numberOfVertex: Int, label: String, randomFigure: Boolean, regularity: Int): Polygon = {
 
     val r = scala.util.Random
     val vertexList = new ArrayBuffer[Point]()
@@ -26,22 +26,37 @@ object PolygonFactory {
     var y: Double = 0
     var condition: Boolean = true
 
-    // We iterate on the number of vertex, then create the vertex randomly on a circle with radius R
-    // and finally checks if this vertex is repeated on the list of previous generated vertex.
-    for(i <- 1 to numberOfVertex) {
+    if (randomFigure) {
+      // We iterate on the number of vertex, then create the vertex randomly on a circle with radius R
+      // and finally checks if this vertex is repeated on the list of previous generated vertex.
+      for (i <- 1 to numberOfVertex) {
 
-      condition = true
+        condition = true
 
-      // It probable to finish on the first iteration.
-      while(condition) {
-        condition = false
-        val randomValue = 2*math.Pi*r.nextFloat()
-        x = radius*math.cos(randomValue)
-        y= radius*math.sin(randomValue)
-        vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y && ((vertex.x-x)*(vertex.x-x) + (vertex.y-y)*(vertex.y-y)) > radius/2) condition = true)
+        // It probable to finish on the first iteration.
+        while (condition) {
+          condition = false
+          val randomValue = 2 * math.Pi * r.nextFloat()
+          x = radius * math.cos(randomValue)
+          y = radius * math.sin(randomValue)
+          vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y && ((vertex.x - x) * (vertex.x - x) + (vertex.y - y) * (vertex.y - y)) > radius / 2) condition = true)
+        }
+
+        vertexList.+=(new Point(x, y))
+      }
+    } else {
+      // We need to make a regular shape polygon with some sort of random.
+
+      // First we randomly choose the angle of the first vertex
+      val randomValue = 2 * math.Pi * r.nextFloat()
+
+      for (i <- 1 to numberOfVertex) {
+        val randomAngle = ((2 * math.Pi * r.nextFloat()) - math.Pi) / regularity
+        x = radius * math.cos(randomValue + randomAngle + ((2 * math.Pi / numberOfVertex) * (i - 1)))
+        y = radius * math.sin(randomValue + randomAngle + ((2 * math.Pi / numberOfVertex) * (i - 1)))
+        vertexList.+=(new Point(x, y))
       }
 
-      vertexList.+=(new Point(x,y))
     }
 
     /**
@@ -60,7 +75,7 @@ object PolygonFactory {
     * @param polygonData this list should have the user chosen properties of the mesh.
     * @return a list with the order of the polygons that will be inserted.
     */
-  def createPolygonArrayInsertion(polygonData: List[InputPolygon]) : List[Polygon] = {
+  def createPolygonArrayInsertion(polygonData: List[InputPolygon], randomFigure: Boolean, regularity: Int) : List[Polygon] = {
 
     // Output list with the order of the polygons.
     val polygonList = new ArrayBuffer[Polygon]()
@@ -101,7 +116,7 @@ object PolygonFactory {
       // Using the data of the polygon chosen we create a new polygon to be inserted.
       val dataChosenPolygon: InputPolygon = polygonData(indexOfPolygon)
       val newPolygon = createNewPolygon(dataChosenPolygon.radius, dataChosenPolygon.numberOfVertex,
-        dataChosenPolygon.label)
+        dataChosenPolygon.label, randomFigure, regularity)
       // We erase the polygon to be chosen again.
       appearanceList(indexOfPolygon) -= 1
 

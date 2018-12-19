@@ -32,6 +32,21 @@
                                               clearable
                                               required>
                                 </v-text-field>
+                                <v-checkbox
+                                        v-model="randomShape"
+                                        label="Random shape polygons?"
+                                        required
+                                ></v-checkbox>
+                                <div v-if="!randomShape">
+                                    <v-text-field v-validate="'required|min_value:1'"
+                                              :error-messages="errors.collect('regularity')"
+                                              v-model="regularity"
+                                              type="number"
+                                              label="Container Regularity"
+                                              data-vv-name="regularity"
+                                              clearable>
+                                    </v-text-field>
+                                </div>
                             </v-flex>
                         </v-layout>
                     </v-card-text>
@@ -73,6 +88,8 @@
               ps: null,
               width: null,
               height: null,
+              randomShape: false,
+              regularity: 1,
               dialog: false,
               polygons: [],
               show: false,
@@ -97,6 +114,9 @@
                     required: 'Height is required to execute.',
                     min_value: 'Width must be greater than 0'
                 },
+                regularity: {
+                    min_value: 'regularity must be greater than 0'
+                }
             }
         },
         mounted() {
@@ -148,9 +168,9 @@
                 let inside = false;
                 for(let i = 0; i < polygon.points.length; i++) {
                     let xi = (polygon.points[i].x/ width) * p.width,
-                        yi = (polygon.points[i].y / height) * p.height;
+                        yi = ((height - polygon.points[i].y) / height) * p.height;
                     let xj = (polygon.points[(i + 1) % polygon.points.length].x / width) * p.width,
-                        yj = (polygon.points[(i + 1) % polygon.points.length].y / height) * p.height;
+                        yj = ((height - polygon.points[(i + 1) % polygon.points.length].y) / height) * p.height;
 
                     let intersect = ((yi > y) !== (yj > y))
                         && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
@@ -174,7 +194,7 @@
                 p.beginShape();
                 polygon.points.forEach(pnt => {
                     let sx = (pnt.x / width) * p.width;
-                    let sy = (pnt.y / height) * p.height;
+                    let sy = ((height - pnt.y) / height) * p.height;
                     p.vertex(sx, sy);
                 });
                 p.endShape(p.CLOSE);
@@ -195,7 +215,9 @@
                                     };
                                 }),
                                 'width': parseFloat(this.width),
-                                'height': parseFloat(this.height)
+                                'height': parseFloat(this.height),
+                                'randomShape': this.randomShape,
+                                'regularity': parseInt(this.regularity)
                             };
                             api.sendMesh(data).then(resp => {
                                 //console.log(resp);
