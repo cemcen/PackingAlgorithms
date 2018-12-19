@@ -66,7 +66,7 @@ object Packing2D {
   def createMesh(data: List[InputPolygon], width: Double, height: Double, randomShape: Boolean, regularity: Int): ArrayBuffer[Polygon] = {
 
     // The first step of this algorithm is to choose the order of insertion of the polygons.
-    val nextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(data, randomShape, regularity)
+    val nextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(data, height, width, randomShape, regularity)
 
     // We need to tell the algorithm on which container we will pack.
     packing2d.setContainerDimensions(width, height)

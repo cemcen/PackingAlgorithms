@@ -58,6 +58,44 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       // Polygons that will be updated.
       var polygonsUpdated: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
 
+      // Second case Polygons vs Polygons.
+      polygonList.indices.foreach(i => {
+
+        // First Polygon
+        val polygonA: Polygon = polygonList(i)
+
+
+        polygonList.indices.filter(j => j > i).foreach(j => {
+          // Second Polygon
+          val polygonB: Polygon = polygonList(j)
+
+          // Get locus from the two polygons.
+          val polygonALocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonA, insertingPolygon)
+          val polygonBLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonB, insertingPolygon)
+          val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
+
+          intersectionPoints.foreach(pnt => {
+
+            // Save centroid.
+            val centroid: Point = insertingPolygon.centroid
+
+            // Move Polygon.
+            insertingPolygon.movePolygon(pnt)
+
+            // Check if intersection.
+            var intersects = false
+
+            polygonList.foreach(pol => {
+              if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
+            })
+
+            // TODO: Packing condition.
+            if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
+            insertingPolygon.movePolygon(centroid)
+          })
+        })
+      })
+
       // Check every polygon for possible insertion.
       polygonList.indices.foreach(i => {
 
@@ -173,44 +211,6 @@ class AdvanceFrontPacking extends PackingAlgorithm {
           */
 
           insertingPolygon.movePolygon(centroid)
-        })
-      })
-
-      // Second case Polygons vs Polygons.
-      polygonList.indices.foreach(i => {
-
-        // First Polygon
-        val polygonA: Polygon = polygonList(i)
-
-
-        polygonList.indices.filter(j => j > i).foreach(j => {
-          // Second Polygon
-          val polygonB: Polygon = polygonList(j)
-
-          // Get locus from the two polygons.
-          val polygonALocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonA, insertingPolygon)
-          val polygonBLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonB, insertingPolygon)
-          val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
-
-          intersectionPoints.foreach(pnt => {
-
-            // Save centroid.
-            val centroid: Point = insertingPolygon.centroid
-
-            // Move Polygon.
-            insertingPolygon.movePolygon(pnt)
-
-            // Check if intersection.
-            var intersects = false
-
-            polygonList.foreach(pol => {
-              if(insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
-            })
-
-            // TODO: Packing condition.
-            if(!intersects && container.isInside(pnt) && container.getPolygon.intersectPolygon(insertingPolygon).size < 2) bestCenterPos = pnt
-            insertingPolygon.movePolygon(centroid)
-          })
         })
       })
 

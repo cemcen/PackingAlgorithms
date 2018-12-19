@@ -39,7 +39,7 @@ object PolygonFactory {
           val randomValue = 2 * math.Pi * r.nextFloat()
           x = radius * math.cos(randomValue)
           y = radius * math.sin(randomValue)
-          vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y && ((vertex.x - x) * (vertex.x - x) + (vertex.y - y) * (vertex.y - y)) > radius / 2) condition = true)
+          vertexList.foreach(vertex => if (vertex.x == x && vertex.y == y && ((vertex.x - x) * (vertex.x - x) + (vertex.y - y) * (vertex.y - y)) > radius) condition = true)
         }
 
         vertexList.+=(new Point(x, y))
@@ -75,38 +75,44 @@ object PolygonFactory {
     * @param polygonData this list should have the user chosen properties of the mesh.
     * @return a list with the order of the polygons that will be inserted.
     */
-  def createPolygonArrayInsertion(polygonData: List[InputPolygon], randomFigure: Boolean, regularity: Int) : List[Polygon] = {
+  def createPolygonArrayInsertion(polygonData: List[InputPolygon], height: Double, width: Double,
+                                  randomFigure: Boolean, regularity: Int) : List[Polygon] = {
 
     // Output list with the order of the polygons.
     val polygonList = new ArrayBuffer[Polygon]()
 
-    // We need the total number of polygons.
-    var totalNumberOfPolygons = 0
+    // We need the total area of the container.
+    var totalArea: Double = height*width
+
+    // We also need the area that's been covered.
+    var coveredArea: Double = 0.0
 
     // Random seed.
     val r = scala.util.Random
 
+    // Probabilities sum.
+    var totalProbability: Double = 0.0
+
     // First we need to know all the appearance of each polygon.
-    // The i value of this array contains the number of appearance of polygon on index i of the input list.
+    // The i value of this array contains the probability of appearance of the ith polygon.
     val appearanceList = new ArrayBuffer[Int]()
-    polygonData.foreach( pData => {
+    polygonData.foreach(pData => {
       appearanceList.+=(pData.percentage)
-      totalNumberOfPolygons += pData.percentage
+      totalProbability += pData.percentage
     })
 
-    // The next step is to choose the order of the polygons, so we are going to iterate as long as we have polygons left.
-    // In each step we will reduce the total numberOfPolygons in one and the index of the chosen polygon by one also.
-    for(x <- 0 until totalNumberOfPolygons ) {
-      val chosenPolygon = r.nextInt(totalNumberOfPolygons - x + 1)
-      var polygonCurrentAppearances = 0
+    // Know we need to choose polygons until we have covered the total area of the container.
+    while(totalArea > coveredArea) {
+      var randomPolygon: Double =  r.nextFloat() * totalProbability
       var indexOfPolygon = 0
+      var localSum = 0
 
       // In each iteration search which polygon was chosen.
       breakable {
         for (i <- appearanceList.indices) {
-          polygonCurrentAppearances += appearanceList(i)
+          localSum += appearanceList(i)
           // This means we found the polygon and save the index of the polygon.
-          if (polygonCurrentAppearances >= chosenPolygon) {
+          if (localSum >= randomPolygon) {
             indexOfPolygon = i
             break
           }
@@ -115,13 +121,12 @@ object PolygonFactory {
 
       // Using the data of the polygon chosen we create a new polygon to be inserted.
       val dataChosenPolygon: InputPolygon = polygonData(indexOfPolygon)
-      val newPolygon = createNewPolygon(dataChosenPolygon.radius, dataChosenPolygon.numberOfVertex,
+      val newPolygon: Polygon = createNewPolygon(dataChosenPolygon.radius, dataChosenPolygon.numberOfVertex,
         dataChosenPolygon.label, randomFigure, regularity)
-      // We erase the polygon to be chosen again.
-      appearanceList(indexOfPolygon) -= 1
 
-      // Finally we add the polygon to the list.
+      // Finally we add the polygon to the list and add the area to the covered area variable.
       polygonList += newPolygon
+      coveredArea += newPolygon.getArea
     }
 
     polygonList.toList

@@ -36,11 +36,8 @@ class MeshController @Inject()(components: ControllerComponents)
           Packing2D.setPackingAlgorithm(new AdvanceFrontPacking)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 
-        } else {
-          // TODO: create a box container of the area of all polygons.
         }
 
-        // TODO: Create list of output polygons.
         var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
         polygonMesh.foreach(pol => {
           var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()

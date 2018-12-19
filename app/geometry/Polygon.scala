@@ -12,11 +12,13 @@ import Tolerance._
   *
   */
 class Polygon(var points: List[Point], val radius: Double, val label: String) {
+
   def this(points: List[Point]) = this(points, -1.0, "")
 
   var halfEdges: mutable.HashMap[Point, ArrayBuffer[HalfEdge]] = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
   private var point_polygon: mutable.HashMap[Point, ArrayBuffer[Polygon]] = new mutable.HashMap[Point, ArrayBuffer[Polygon]]()
   private var _centroid: Point = null
+  private var _area: Double = -1
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
@@ -417,6 +419,25 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     }
 
     nearestPoints.toList
+  }
+
+  /**
+    * Returns the area of the polygon.
+    */
+  def getArea: Double = {
+
+    if(_area == -1){
+      _area = 0.0
+      for (i <- this.points.indices) {
+        val pointA: Point = this.points(i)
+        val pointB: Point = this.points((i + 1) % this.points.length)
+
+        _area += (pointA.x + pointB.x) * (pointA.y - pointB.y)
+      }
+      _area = math.abs(_area * 0.5)
+    }
+
+    _area
   }
 
   /**
