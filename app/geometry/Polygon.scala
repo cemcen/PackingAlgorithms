@@ -29,7 +29,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     * are well defined.
     */
   def intersectPolygon(polygon: Polygon): List[Point] = {
-    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    /*val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
     val polygonASize: Int = this.points.size
     val polygonBSize: Int = polygon.points.size
 
@@ -43,22 +43,30 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       }
     }
 
-    intersectionPoints.distinct.toList
-    //linearPolygonIntersection(this, polygon)
+    intersectionPoints.distinct.toList*/
+    linearPolygonIntersection(this, polygon)
   }
 
   def linearPolygonIntersection(polygonA: Polygon, polygonB: Polygon): List[Point] = {
 
     val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
 
+    // println("Poligono A: " + polygonA.points)
+    // println("Poligono B: " + polygonB.points)
+
     // Used for reference on the polygon.
     var indexPolygonA: Int = 0
     var indexPolygonB: Int = 0
 
+    // movement after first interseccion.
+    var aadv: Int = 0
+    var bbdv: Int = 0
+    var firstInter: Boolean = true
+
     // We will use an algorithm in time O(n + m). This uses two vectors and cross product to determine the intersection.
     // Second point -> first point. Using ccw vectors over the polygon.
-    var vectorPolygonA: Vector = Vector(polygonA.points.tail.head, polygonA.points.head)
-    var vectorPolygonB: Vector = Vector(polygonB.points.tail.head, polygonB.points.head)
+    var vectorPolygonA: Vector = Vector(polygonA.points.head, polygonA.points.tail.head)
+    var vectorPolygonB: Vector = Vector(polygonB.points.head, polygonB.points.tail.head)
 
     val polygonASize: Int = polygonA.points.size
     val polygonBSize: Int = polygonB.points.size
@@ -67,22 +75,30 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     // This will advance the vector used in polygon A.
     def advanceVectorA(): Unit = {
       indexPolygonA += 1
-      vectorPolygonA = Vector(polygonA.points(Math.floorMod(indexPolygonA + 1, polygonASize)), polygonA.points(Math.floorMod(indexPolygonA, polygonASize)))
+      aadv += 1
+      vectorPolygonA = Vector(polygonA.points(Math.floorMod(indexPolygonA, polygonASize)), polygonA.points(Math.floorMod(indexPolygonA + 1, polygonASize)))
     }
 
     // This will advance the vector used in polygon B.
     def advanceVectorB(): Unit = {
       indexPolygonB += 1
-      vectorPolygonB = Vector(polygonB.points(Math.floorMod(indexPolygonB + 1, polygonBSize)), polygonB.points(Math.floorMod(indexPolygonB, polygonBSize)))
+      bbdv += 1
+      vectorPolygonB = Vector(polygonB.points(Math.floorMod(indexPolygonB, polygonBSize)), polygonB.points(Math.floorMod(indexPolygonB + 1, polygonBSize)))
     }
 
-    // We should continue to check an intersection until one of the two polygon had been check entirely.
-    while (indexPolygonA < polygonASize || indexPolygonB < polygonBSize) {
+    // We should continue to check an intersection until one of the two polygon had been check entirely
+    while ((indexPolygonA < polygonASize || indexPolygonB < polygonBSize) && aadv < 2 * polygonASize && bbdv < 2 * polygonBSize) {
+
       // Here we have two options, advance vector A or B.
       // We will advance vector A if cross product is positive, advance vector B otherwise.
       // But first we need to check if these two vectors intersects.
       val vIntersectionPoints: List[Point] = vectorPolygonA.intersectVector(vectorPolygonB)
       intersectionPoints ++= vIntersectionPoints
+      if(vIntersectionPoints.nonEmpty && firstInter) {
+        firstInter = false
+        aadv = 0
+        bbdv = 0
+      }
 
       // For debugging
       //       println("Intersection: " + vIntersectionPoints)
@@ -96,13 +112,13 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       val crossProduct: Double = vectorPolygonA x vectorPolygonB
 
       if (crossProduct > 0) {
-        if (vectorPolygonA.leftOn(vectorPolygonB.pointA)) {
+        if ((vectorPolygonA x Vector(vectorPolygonA.pointA, vectorPolygonB.pointB)) >= 0) {
           advanceVectorA()
         } else {
           advanceVectorB()
         }
       } else {
-        if (vectorPolygonB.leftOn(vectorPolygonA.pointA)) {
+        if ((vectorPolygonB x Vector(vectorPolygonB.pointA, vectorPolygonA.pointB)) >= 0) {
           advanceVectorB()
         } else {
           advanceVectorA()
