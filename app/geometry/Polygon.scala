@@ -1,6 +1,5 @@
 package geometry
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import org.scalactic._
 import org.scalactic.TripleEquals._
@@ -15,8 +14,6 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
   def this(points: List[Point]) = this(points, -1.0, "")
 
-  var halfEdges: mutable.HashMap[Point, ArrayBuffer[HalfEdge]] = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
-  private var point_polygon: mutable.HashMap[Point, ArrayBuffer[Polygon]] = new mutable.HashMap[Point, ArrayBuffer[Polygon]]()
   private var _centroid: Point = null
   private var _area: Double = -1
 
@@ -29,21 +26,6 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     * are well defined.
     */
   def intersectPolygon(polygon: Polygon): List[Point] = {
-    /*val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
-    val polygonASize: Int = this.points.size
-    val polygonBSize: Int = polygon.points.size
-
-    for (indexPolygonA <- this.points.indices) {
-      for (indexPolygonB <- polygon.points.indices){
-        val vectorPolygonA: Vector = Vector(this.points(Math.floorMod(indexPolygonA + 1, polygonASize)), this.points(Math.floorMod(indexPolygonA, polygonASize)))
-        val vectorPolygonB: Vector = Vector(polygon.points(Math.floorMod(indexPolygonB + 1, polygonBSize)), polygon.points(Math.floorMod(indexPolygonB, polygonBSize)))
-
-        val vIntersectionPoints: List[Point] = vectorPolygonA.intersectVector(vectorPolygonB)
-        vIntersectionPoints.foreach(pnt => if(!intersectionPoints.contains(pnt)) intersectionPoints += pnt)
-      }
-    }
-
-    intersectionPoints.distinct.toList*/
     linearPolygonIntersection(this, polygon)
   }
 
@@ -99,13 +81,6 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         aadv = 0
         bbdv = 0
       }
-
-      // For debugging
-      //       println("Intersection: " + vIntersectionPoints)
-      //       println("-----------------------------------")
-      //       println("-----------------------------------")
-      //       println("VectorA: " +  vectorPolygonA.pointA + ";" + vectorPolygonA.pointB)
-      //       println("VectorB: " +  vectorPolygonB.pointA + ";" + vectorPolygonB.pointB)
 
       // We need to advance one of the vector.
       // Depends on where are one vector to each other.
@@ -174,7 +149,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       val vectorAC: Vector = Vector(pointA, point)
 
       // It is at this vector's left if cross product is negative.
-      if ((vectorAB x vectorAC) == 0) {
+      if ((vectorAB x vectorAC) === 0.0 +- 1e-8) {
         collinear ++= List(pointA, pointB)
       }
     }
@@ -236,189 +211,6 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     })
   }
 
-
-  /** ALL METHODS OF HALF EDGE **/
-
-  /**
-    * Here we initialize the half edges of this polygon.
-    *
-    * We only use them when needed.
-    */
-  def setHalfEdges(): Unit = {
-
-    // Create all half edges of every point.
-    for (i <- points.indices) {
-      var pHalfEdge: ArrayBuffer[HalfEdge] = new ArrayBuffer[HalfEdge]()
-
-      val previousP = points(Math.floorMod(i - 1 + points.length, points.length))
-      val nextP = points(Math.floorMod(i + 1, points.length))
-
-      pHalfEdge += new HalfEdge(points(i), nextP, true, this)
-      pHalfEdge += new HalfEdge(points(i), previousP, false, this)
-
-      point_polygon += ((points(i), new ArrayBuffer[Polygon]()))
-      halfEdges += ((points(i), pHalfEdge))
-    }
-
-    // set pair, next and previous.
-    for (i <- points.indices) {
-      val currentHE: ArrayBuffer[HalfEdge] = halfEdges(points(i))
-      val previousHE: ArrayBuffer[HalfEdge] = halfEdges(points(Math.floorMod(i - 1 + points.length, points.length)))
-      val nextHE: ArrayBuffer[HalfEdge] = halfEdges(points(Math.floorMod(i + 1, points.length)))
-
-      val previousIHE: HalfEdge = previousHE.filter(_.isInterior)(0)
-      val previousEHE: HalfEdge = previousHE.filter(!_.isInterior)(0)
-      val nextIHE: HalfEdge = nextHE.filter(_.isInterior)(0)
-      val nextEHE: HalfEdge = nextHE.filter(!_.isInterior)(0)
-      val currentIHE: HalfEdge = currentHE.filter(_.isInterior)(0)
-      val currentEHE: HalfEdge = currentHE.filter(!_.isInterior)(0)
-
-      currentIHE.nextHalfEdge(nextIHE)
-      currentIHE.pairHalfEdge(nextEHE)
-      currentIHE.previousHalfEdge(previousIHE)
-      currentEHE.nextHalfEdge(previousEHE)
-      currentEHE.pairHalfEdge(previousIHE)
-      currentEHE.previousHalfEdge(nextEHE)
-    }
-  }
-
-  /**
-    * Updates half edge structure on intersection points.
-    */
-  def updateHalfEdge(polygon: Polygon): Unit = {
-
-    val intersectionPoints: List[Point] = this.intersectPolygon(polygon)
-
-    // Add intersection points to this polygon.
-    intersectionPoints.foreach(pnt => {
-
-      // Two possible cases. Contained or not contained.
-      if(!points.contains(pnt)){
-
-        /**
-          * A ------------------- Y
-          *   |
-          *   |    * C
-          *   |   /
-          *   |  /
-          *   | /
-          * F * D
-          *   | \
-          *   |  \
-          *   |   \
-          *   |    * E
-          *   |
-          *   |
-          * B * ------------------ X
-          *
-          *  This code follows this figure.
-          */
-        // If pnt is not in this polygon we must add this point to this polygon.
-        // This will help to update the half edge structure.
-
-        var pPolAHalfEdge: ArrayBuffer[HalfEdge] = new ArrayBuffer[HalfEdge]()
-        val pPolBHalfEdge: ArrayBuffer[HalfEdge] = polygon.halfEdges(pnt)
-
-        // We need to have the previous point and
-        // the next point of this intersection point in both polygons.
-        var nearestPoints: List[Point] = polygon.getNearestPoints(pnt)
-
-        val nextPointPolygonB: Point = nearestPoints.tail.head
-
-        nearestPoints = this.getNearestPointsFromPoint(pnt)
-
-        val previousPointPolygonA: Point = nearestPoints.head
-        val nextPointPolygonA: Point = nearestPoints.tail.head
-
-        val DC: HalfEdge = pPolBHalfEdge.filter(!_.isInterior)(0)
-        val AF: HalfEdge = this.halfEdges(previousPointPolygonA).filter(_.isInterior)(0)
-        AF.setPointB(pnt)
-        AF.nextHalfEdge(DC)
-
-        val FB: HalfEdge = new HalfEdge(pnt, nextPointPolygonA, true, this)
-        val BX: HalfEdge = this.halfEdges(nextPointPolygonA).filter(_.isInterior)(0)
-        FB.nextHalfEdge(BX)
-
-        val EF: HalfEdge = polygon.halfEdges(nextPointPolygonB).filter(!_.isInterior)(0)
-        EF.nextHalfEdge(FB)
-
-        val BF: HalfEdge = this.halfEdges(nextPointPolygonA).filter(!_.isInterior)(0)
-        val FA: HalfEdge = new HalfEdge(pnt, previousPointPolygonA, false, this)
-        BF.setPointB(pnt)
-        BF.nextHalfEdge(FA)
-
-        val AY: HalfEdge = this.halfEdges(previousPointPolygonA).filter(!_.isInterior)(0)
-        FA.previousHalfEdge(AY)
-
-        AF.pairHalfEdge(FA)
-        BF.pairHalfEdge(FB)
-
-        pPolAHalfEdge ++= List(FA, FB)
-        halfEdges += ((pnt, pPolAHalfEdge))
-
-        var newPointsArrange: ArrayBuffer[Point] = new ArrayBuffer[Point]()
-
-        for(i <- points.indices) {
-          newPointsArrange += points(i)
-          if(points(i) == previousPointPolygonA) {
-            newPointsArrange += pnt
-          }
-        }
-
-        points = newPointsArrange.toList
-      } else {
-        /**
-          * A *------------------ Y (previous)
-          *   | \------D (previous)
-          *   |  \
-          *   |   \
-          *   |    \
-          *   |     C (next)
-          *   |
-          * B * ----------------- X
-          * (next)
-          *
-          *  This code follows this figure.
-          */
-
-        val nearestPointsB: List[Point] = polygon.getNearestPoints(pnt)
-        val nearestPointsA: List[Point] = this.getNearestPoints(pnt)
-
-        val C: Point = nearestPointsB.tail.head
-        val A: Point = pnt
-        val Y: Point = nearestPointsA.head
-
-        val YA: HalfEdge = this.halfEdges(Y).filter(_.isInterior)(0)
-        val AD: HalfEdge = polygon.halfEdges(A).filter(!_.isInterior)(0)
-        val CA: HalfEdge = polygon.halfEdges(C).filter(!_.isInterior)(0)
-        val AB: HalfEdge = this.halfEdges(A).filter(_.isInterior)(0)
-
-        CA.nextHalfEdge(AB)
-        YA.nextHalfEdge(AD)
-      }
-
-
-      if (!point_polygon.contains(pnt)){
-        point_polygon += (pnt -> new ArrayBuffer[Polygon]())
-      }
-
-      if(!polygon.point_polygon.contains(pnt)){
-        polygon.point_polygon += (pnt -> new ArrayBuffer[Polygon]())
-      }
-
-      // To know which polygon we need to turn when looking for holes.
-      point_polygon.put(pnt, point_polygon(pnt) ++ List(polygon))
-      polygon.point_polygon.put(pnt, polygon.point_polygon(pnt) ++ List(this))
-
-    })
-  }
-
-  def resetHalfEdges(): Unit = halfEdges = new mutable.HashMap[Point, ArrayBuffer[HalfEdge]]()
-  def getHalfEdge(point: Point, isInterior: Boolean): HalfEdge = {
-    if(isInterior) this.halfEdges(point).filter(_.isInterior)(0)
-    else this.halfEdges(point).filter(!_.isInterior)(0)
-  }
-
   /**
     * Returns neighbour points from known point of this polygon.
     * Returns (previous, next)
@@ -477,7 +269,10 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
         val maxY: Double = Math.max(pntA.y, pntB.y)
         val minY: Double = Math.min(pntA.y, pntB.y)
 
-        if (minX <= pnt.x && pnt.x <= maxX && minY <= pnt.y && pnt.y <= maxY) {
+        if ((minX < pnt.x || minX === pnt.x +- 1e-8) &&
+          (pnt.x < maxX || pnt.x === maxX +- 1e-8) &&
+          (minY < pnt.y || minY === pnt.y +- 1e-8) &&
+          (pnt.y < maxY || pnt.y === maxY +- 1e-8)) {
 
           nearestPoints += pntA
           nearestPoints += pntB

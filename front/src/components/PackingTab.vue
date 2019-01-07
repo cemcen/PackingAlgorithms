@@ -86,10 +86,10 @@
         data() {
           return {
               ps: null,
-              width: null,
-              height: null,
+              width: 100,
+              height: 50,
               randomShape: false,
-              regularity: 1,
+              regularity: 36,
               dialog: false,
               polygons: [],
               show: false,

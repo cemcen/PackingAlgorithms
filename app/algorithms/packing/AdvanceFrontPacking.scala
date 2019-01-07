@@ -1,6 +1,7 @@
 package algorithms.packing
 import algorithms.geometric.{Container2D, LocusAlgorithm}
-import geometry.{HalfEdge, Point, Polygon}
+import geometry.{Point, Polygon}
+import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -19,6 +20,8 @@ class AdvanceFrontPacking extends PackingAlgorithm {
   override var nextPolygon: List[Polygon] = _
   override var finalPolygonPosition: ArrayBuffer[Polygon] = _
   override protected var container: Container2D = _
+  override val packingTechnique: PackingApproach = new SpaceReducePacking()
+  override var graph: Graph = _
 
   /**
     * Executes the packing algorithm. Classes that extends this abstract class must implement this method.
@@ -32,10 +35,15 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     val firstPolygon: Polygon = nextPolygon.head
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
-    val packingTechnique: NaivePacking = new NaivePacking()
+
+    // For neighbourhood we will use a graph.
+    graph = new Graph()
+    graph.addContainer(container)
+
     firstPolygon.movePolygon(leftBottomPoint)
-    firstPolygon.setHalfEdges()
-    container.getPolygon.updateHalfEdge(firstPolygon)
+    graph = graph.addPolygon1Intersection(firstPolygon, container.getPolygon)
+    packingTechnique.updateGraph(graph)
+
     polygonList += firstPolygon
 
     // Iterate over nextPolygon array to pack every polygon in the array.

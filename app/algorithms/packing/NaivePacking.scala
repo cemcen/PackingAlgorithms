@@ -5,9 +5,9 @@ import geometry.{Point, Polygon}
 
 import scala.collection.mutable.ArrayBuffer
 
-class NaivePacking {
+class NaivePacking extends PackingApproach {
 
-  def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
+  override def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
 
     // We want to find the best position for the polygon to be inserted. In this approach we prioritize positions on the container
     // than between polygons.
@@ -34,7 +34,7 @@ class NaivePacking {
 
         intersectionPoints.foreach(pnt => {
 
-          val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList)
+          val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
 
           if (insertingPoint != null) {
             bestCenterPos = insertingPoint
@@ -55,7 +55,7 @@ class NaivePacking {
 
       intersectionPoints.foreach(pnt => {
 
-        val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList)
+        val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygon, container.getPolygon)
 
         if (insertingPoint != null) {
           bestCenterPos = insertingPoint
@@ -67,7 +67,9 @@ class NaivePacking {
   }
 
 
-  def executeAlgorithm(insertingPolygon: Polygon, pointAnalyzed: Point, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
+  override def executeAlgorithm(insertingPolygon: Polygon, pointAnalyzed: Point,
+                                container: Container2D, polygonList: ArrayBuffer[Polygon],
+                                polygonIntersectionA: Polygon, polygonIntersectionB: Polygon): Point = {
 
     var bestPosition: Point = null
 

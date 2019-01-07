@@ -56,13 +56,6 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
   }
 
   /**
-    * Initialize the half edges inside and outside this container.
-    */
-  def setHalfEdges(): Unit = {
-    containerPolygon.setHalfEdges()
-  }
-
-  /**
     * Check if the given point is inside the container.
     */
   def isInside(point: Point): Boolean = point.x <= width && point.x >= 0 && point.y <= height && point.y >= 0
@@ -77,7 +70,6 @@ object Container2D {
 
   def apply(width: Double, height: Double): Container2D = {
     val container: Container2D = new Container2D(width, height)
-    container.setHalfEdges()
     container
   }
 
