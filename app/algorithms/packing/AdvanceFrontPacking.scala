@@ -20,7 +20,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
   override var nextPolygon: List[Polygon] = _
   override var finalPolygonPosition: ArrayBuffer[Polygon] = _
   override protected var container: Container2D = _
-  override val packingTechnique: PackingApproach = new SpaceReducePacking()
+  override var packingTechnique: PackingApproach = _
   override var graph: Graph = _
 
   /**

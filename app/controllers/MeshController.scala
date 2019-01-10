@@ -1,7 +1,7 @@
 package controllers
 
 import algorithms.Packing2D
-import algorithms.packing.AdvanceFrontPacking
+import algorithms.packing.{AdvanceFrontPacking, NaivePacking, PackingAlgorithm, SpaceReducePacking}
 import dto.dim2D.input.Input2DMesh
 import dto.dim2D.output.{Output2DMesh, OutputPolygon, Point2D}
 import geometry.Polygon
@@ -33,7 +33,13 @@ class MeshController @Inject()(components: ControllerComponents)
           // If defined we only get the dimensions.
           width = mesh.width.get
           height = mesh.height.get
-          Packing2D.setPackingAlgorithm(new AdvanceFrontPacking)
+          val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
+          if(mesh.approachAlgorithm.get == 0) {
+            packingAlgorithm.setPackingTechnique(new NaivePacking)
+          } else if (mesh.approachAlgorithm.get == 1) {
+            packingAlgorithm.setPackingTechnique(new SpaceReducePacking)
+          }
+          Packing2D.setPackingAlgorithm(packingAlgorithm)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 
         }

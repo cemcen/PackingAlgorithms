@@ -260,7 +260,6 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
       if(angle.isNaN) angle = 0
       // We order the angles counterclockwise.
-      // TODO: check if the signs are correct.
 
       if (angle < minimumAngle && !(angle === 0.0 +- 1e-3)) {
         minimumAngle = angle

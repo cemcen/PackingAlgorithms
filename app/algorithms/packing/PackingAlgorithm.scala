@@ -11,7 +11,7 @@ abstract class PackingAlgorithm {
   protected var nextPolygon: List[Polygon]
   protected var finalPolygonPosition: ArrayBuffer[Polygon]
   protected var container: Container2D
-  protected val packingTechnique: PackingApproach
+  protected var packingTechnique: PackingApproach
   protected var graph: Graph
 
   /**
@@ -35,4 +35,8 @@ abstract class PackingAlgorithm {
     * This method is the algorithm.
     */
   def executeAlgorithm(): Unit
+
+  def setPackingTechnique(packing: PackingApproach): Unit = {
+    packingTechnique = packing
+  }
 }
