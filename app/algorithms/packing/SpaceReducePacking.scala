@@ -2,19 +2,47 @@ package algorithms.packing
 
 import algorithms.geometric.{Container2D, LocusAlgorithm}
 import geometry.{Point, Polygon}
+import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
 
-class NaivePacking extends PackingApproach {
+class SpaceReducePacking extends PackingApproach {
+
+  var minimumArea: Double = _
+  var bestGraph: Graph = _
 
   override def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
 
-    // We want to find the best position for the polygon to be inserted. In this approach we prioritize positions on the container
-    // than between polygons.
+    // Reinitialize the two values to be considered, minimum area and the graph that contains that possibility.
+    minimumArea = Double.MaxValue
+    bestGraph = this.graph
+
+    // We want to find the best position for the polygon to be inserted. In this approach we choose the one that has less area.
     var bestCenterPos: Point = null
 
-    // First case Container vs Polygons.
+    // We need the container locus to choose if a polygon may be attached to him.
     val containerLocus: Polygon = container.getInnerLocus(insertingPolygon)
+
+    // Check every polygon for possible insertion.
+    polygonList.indices.foreach(i => {
+
+      // Current polygon
+      val polygon: Polygon = polygonList(i)
+
+      // Get locus from polygon inserted.
+      val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
+      val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
+
+      // If they intersect it means that the polygon can be placed there.
+      intersectionPoints.foreach(pnt => {
+
+        val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, container.getPolygon, polygon)
+
+        if (insertingPoint != null) {
+          bestCenterPos = insertingPoint
+        }
+      })
+    })
 
     // Second case Polygons vs Polygons.
     polygonList.indices.foreach(i => {
@@ -33,7 +61,6 @@ class NaivePacking extends PackingApproach {
         val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
 
         intersectionPoints.foreach(pnt => {
-
           val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
 
           if (insertingPoint != null) {
@@ -43,29 +70,8 @@ class NaivePacking extends PackingApproach {
       })
     })
 
-    // Check every polygon for possible insertion.
-    polygonList.indices.foreach(i => {
-
-      // Current polygon
-      val polygon: Polygon = polygonList(i)
-
-      // Get locus from polygon inserted.
-      val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
-      val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
-
-      intersectionPoints.foreach(pnt => {
-
-        val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygon, container.getPolygon)
-
-        if (insertingPoint != null) {
-          bestCenterPos = insertingPoint
-        }
-      })
-    })
-
     bestCenterPos
   }
-
 
   override def executeAlgorithm(insertingPolygon: Polygon, pointAnalyzed: Point,
                                 container: Container2D, polygonList: ArrayBuffer[Polygon],
@@ -87,11 +93,25 @@ class NaivePacking extends PackingApproach {
     })
 
     val containerIntersections: Int = container.getPolygon.intersectPolygon(insertingPolygon).size
+
+    if (!intersects && container.isInside(pointAnalyzed) && containerIntersections < 2) {
+
+      val maybeBestGraph : Graph = graph.addPolygon2Intersections(insertingPolygon, polygonIntersectionA, polygonIntersectionB)
+      val maybeBestMinimumValue: Double = maybeBestGraph.calculateHoleArea(insertingPolygon, polygonIntersectionA)
+
+      if(maybeBestMinimumValue < minimumArea) {
+        bestGraph = maybeBestGraph
+        minimumArea = maybeBestMinimumValue
+        bestPosition = pointAnalyzed
+      }
+    }
+
     insertingPolygon.movePolygon(centroid)
 
-    if (!intersects && container.isInside(pointAnalyzed) && containerIntersections < 2) bestPosition = pointAnalyzed
+    if(bestPosition != null) {
+      updateGraph(bestGraph)
+    }
 
     bestPosition
   }
-
 }

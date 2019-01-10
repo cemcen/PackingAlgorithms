@@ -47,6 +47,10 @@
                                               clearable>
                                     </v-text-field>
                                 </div>
+                                <v-radio-group v-model="approachAlgorithm" row>
+                                    <v-radio label="Border Preference" value="0"></v-radio>
+                                    <v-radio label="Less Density" value="1"></v-radio>
+                                </v-radio-group>
                             </v-flex>
                         </v-layout>
                     </v-card-text>
@@ -86,10 +90,11 @@
         data() {
           return {
               ps: null,
-              width: null,
-              height: null,
+              width: 150,
+              height: 75,
+              approachAlgorithm: "0",
               randomShape: false,
-              regularity: 1,
+              regularity: 36,
               dialog: false,
               polygons: [],
               show: false,
@@ -217,7 +222,8 @@
                                 'width': parseFloat(this.width),
                                 'height': parseFloat(this.height),
                                 'randomShape': this.randomShape,
-                                'regularity': parseInt(this.regularity)
+                                'regularity': parseInt(this.regularity),
+                                'approachAlgorithm': parseInt(this.approachAlgorithm)
                             };
                             api.sendMesh(data).then(resp => {
                                 //console.log(resp);

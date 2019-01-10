@@ -10,7 +10,7 @@ import org.specs2.runner.JUnitRunner
 class PolygonTest extends FlatSpec with Matchers {
 
   "A Polygon" should "have its points oriented ccw" in {
-    val square = PolygonFactory.createNewPolygon(10.0 , 4, "square")
+    val square = PolygonFactory.createNewPolygon(10.0 , 4, "square", randomFigure = true, 10)
 
     square.ccw() should be (true)
   }
@@ -74,6 +74,26 @@ class PolygonTest extends FlatSpec with Matchers {
     //intersection.foreach(println(_))
 
     intersection.size should be (2)
+  }
+
+  it should "intersect correctly (test 4)" in {
+    val heptagon = new Polygon(List(new Point(36.21565993843079,16.498081341021432),
+      new Point(24.686913466144038,19.00930884550694),
+      new Point(18.925750094977115,7.9093775023294555),
+      new Point(27.09109702597053,0.0),
+      new Point(37.29939199500738,4.7054953174034395)
+    ))
+    val hexagon = new Polygon(List(new Point(3.332601853312731,17.888411743233632),
+      new Point(0.0,6.267989280787981),
+      new Point(10.855552093811463,0.0),
+      new Point(19.22658744888097,8.488995499366002),
+      new Point(13.82759586971709,18.81055401984132)
+    ))
+
+    val intersection: List[Point] = hexagon.intersectPolygon(heptagon)
+    //intersection.foreach(println(_))
+
+    intersection.size should be (1)
   }
 
 
@@ -142,11 +162,11 @@ class PolygonTest extends FlatSpec with Matchers {
   }
 
   it should "get correct locus of 100 randomize polygons" in {
-    var result: Polygon =  PolygonFactory.createNewPolygon(10.0, 6, "result")
+    var result: Polygon =  PolygonFactory.createNewPolygon(10.0, 6, "result", randomFigure = true, 18)
 
     for (_ <- 1 to 100) {
-      val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6, "hexagon")
-      val Rsquare = PolygonFactory.createNewPolygon(10.0, 4, "square")
+      val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6, "hexagon", randomFigure = true, 18)
+      val Rsquare = PolygonFactory.createNewPolygon(10.0, 4, "square", randomFigure = true, 18)
       //println("HEXAGONO PRUEBA")
       //Rhexagon.points.foreach(println(_))
       //println("CUADRADO PRUEBA")
