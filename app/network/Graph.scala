@@ -6,6 +6,12 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import geometry.{Point, Polygon, Vector}
 
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
+
+import util.control.Breaks._
+
 class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: mutable.HashMap[Node, ArrayBuffer[Node]]) {
 
   def this() = this(new mutable.HashMap[Point, Node](), new mutable.HashMap[Node, ArrayBuffer[Node]]())
@@ -104,7 +110,6 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     points.indices.foreach(i => {
       addLink(nodes(points(i)), nodes(points(Math.floorMod(i + 1, points.length))))
-      addLink(nodes(points(Math.floorMod(i + 1, points.length))), nodes(points(i)))
     })
   }
 
@@ -125,16 +130,46 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     links(nodeB) += nodeA
   }
 
+  def getCloserNodeBetweenFrom(nodeA: Node, nodeC: Node, nodeB: Node): Node = {
+
+    var auxNodeA: Node = nodeA
+
+    if(!links(nodeA).contains(nodeC)) {
+      var nodeALinks: ArrayBuffer[Node] = links(nodeA)
+
+      breakable {
+        while (!nodeALinks.contains(nodeC) && !nodeALinks.contains(nodeB)) {
+          nodeALinks.foreach(node => {
+            val pointList: List[Point] = Vector(nodeA.value, nodeC.value).intersectVector(Vector(nodeA.value, node.value))
+            if (pointList.size > 1) {
+              val pointList: List[Point] = Vector(node.value, nodeC.value).intersectVector(Vector(nodeB.value, node.value))
+              if (pointList.size == 1) {
+                break
+              }
+              auxNodeA = node
+              nodeALinks = links(node)
+            }
+          })
+        }
+      }
+    }
+
+    auxNodeA
+  }
+
   private def changeLinks(nodeA: Node, nodeB: Node, nodeC: Node): Unit = {
 
-    links(nodeA) -= nodeC
-    links(nodeA) += nodeB
-    links(nodeC) -= nodeA
-    links(nodeC) += nodeB
+    var auxNodeA: Node = getCloserNodeBetweenFrom(nodeA, nodeC, nodeB)
+    var auxNodeC: Node = getCloserNodeBetweenFrom(nodeC, auxNodeA, nodeB)
+
+    links(auxNodeA) -= auxNodeC
+    links(auxNodeA) += nodeB
+    links(auxNodeC) -= auxNodeA
+    links(auxNodeC) += nodeB
 
     addNode(nodeB.value, nodeB)
-    links(nodeB) += nodeC
-    links(nodeB) += nodeA
+    links(nodeB) += auxNodeC
+    links(nodeB) += auxNodeA
   }
 
   private def getAreaOfRoute(route: ArrayBuffer[Node]): Double = {
@@ -154,7 +189,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
   def calculateHoleArea(polygon: Polygon, polygonIntersected: Polygon): Double = {
 
     val polygonPoints: List[Point] = polygon.points
-    var intersectionPoint: Point = polygon.points.head
+    var intersectionPoint: Point = null
 
     polygonPoints.foreach(pnt => {
       val pointList: ArrayBuffer[Point] = polygonIntersected.getCollinear(pnt)
@@ -163,6 +198,15 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       }
     })
 
+    if(intersectionPoint == null) {
+      polygonIntersected.points.foreach(pnt => {
+        val pointList: ArrayBuffer[Point] = polygon.getCollinear(pnt)
+        if (pointList.nonEmpty) {
+          intersectionPoint = pnt
+        }
+      })
+    }
+
     var pointsNear: List[Point] = List()
     if(polygonIntersected.points.contains(intersectionPoint)){
       pointsNear = polygonIntersected.getNearestPoints(intersectionPoint)
@@ -170,21 +214,6 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       pointsNear = polygonIntersected.getNearestPointsFromPoint(intersectionPoint)
     }
 
-    println("----------------")
-    println("Polygon")
-    polygon.points.foreach(pnt => {
-      println(pnt)
-    })
-    println("Polygon Inter")
-    polygonIntersected.points.foreach(pnt => {
-      println(pnt)
-    })
-    println("inter Point")
-    println(intersectionPoint)
-    println("previous Point")
-    println(pointsNear.head)
-    println("next point")
-    println(pointsNear.tail.head)
     val route1: ArrayBuffer[Node] = lookForShortestRoute(nodes(pointsNear.head), nodes(intersectionPoint))
     val route2: ArrayBuffer[Node] = lookForShortestRoute(nodes(intersectionPoint), nodes(pointsNear.tail.head))
 
@@ -200,7 +229,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     var routeList: ArrayBuffer[Node] = new ArrayBuffer[Node]()
     routeList += currentNode
 
-    while(!nextNode.equals(currentNode)){
+    while(routeList.distinct.size == routeList.size) {
 
       // Change currentNode
       val auxNode = nextNode
@@ -223,23 +252,29 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
   private def lookForMinimumAngle(nodeIni: Node, nodeEnd: Node, possibleNextNodes: ArrayBuffer[Node]): Node = {
     var chosenNode: Node = possibleNextNodes.head
     var minimumAngle: Double = Double.MaxValue
-    val compareVector: Vector =  new Vector(nodeEnd.value, nodeIni.value)
+    val compareVector: Vector =  Vector(nodeEnd.value, nodeIni.value)
 
     possibleNextNodes.foreach(node => {
-      val maybeVector: Vector =  new Vector(nodeEnd.value, node.value)
-      var angle: Double = Math.atan2(maybeVector * compareVector, maybeVector.determinant(compareVector))
+      val maybeVector: Vector =  Vector(nodeEnd.value, node.value)
+      var angle: Double = Math.acos((maybeVector * compareVector) / (maybeVector.magnitude() * compareVector.magnitude()))
 
+      if(angle.isNaN) angle = 0
       // We order the angles counterclockwise.
       // TODO: check if the signs are correct.
-      if (angle > 0) angle = 360 - angle
-      else if (angle < 0) angle = Math.abs(angle)
 
-      if (angle < minimumAngle) {
+      if (angle < minimumAngle && !(angle === 0.0 +- 1e-3)) {
         minimumAngle = angle
         chosenNode = node
       }
     })
+
     chosenNode
+  }
+
+  /**  For testing purpose. */
+
+  def containsNode(node: Node): Boolean = {
+    nodes.contains(node.value)
   }
 
 }
