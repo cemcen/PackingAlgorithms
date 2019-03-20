@@ -1,101 +1,87 @@
 <template>
     <div>
-        <v-toolbar dark>
-            <v-toolbar-title>List of Polygons</v-toolbar-title>
-            <v-divider
-                    class="mx-2"
-                    inset
-                    vertical
-            ></v-divider>
-            <v-spacer></v-spacer>
-            <v-dialog v-model="dialog" max-width="500px">
-                <v-btn slot="activator" color="teal darken-1" dark class="mb-2">New Item</v-btn>
-                <v-card color="grey darken-4">
-                    <v-card-title>
-                        <span class="headline">{{ formTitle }}</span>
-                    </v-card-title>
+        <v-dialog v-model="dialog" max-width="500px">
+            <v-card>
+                <v-card-title>
+                    <span class="headline">{{ formTitle }}</span>
+                </v-card-title>
 
-                    <v-card-text>
-                        <v-layout justify-center>
-                            <v-flex>
-                                <v-text-field v-validate="'required'"
-                                              :error-messages="errors.collect('label')"
-                                              v-model="editedItem.label"
-                                              label="Label"
-                                              data-vv-name="label"
-                                              clearable
-                                              required>
-                                </v-text-field>
-                                <v-text-field v-validate="'required|min_value:3'"
-                                              :error-messages="errors.collect('vertex')"
-                                              v-model="editedItem.numberOfVertex"
-                                              type="number"
-                                              label="Number of vertex"
-                                              data-vv-name="vertex"
-                                              clearable
-                                              required>
-                                </v-text-field>
-                                <v-text-field v-validate="'required|isBiggerThanZero'"
-                                              :error-messages="errors.collect('radius')"
-                                              v-model="editedItem.radius"
-                                              type="number"
-                                              label="Radius"
-                                              data-vv-name="radius"
-                                              clearable
-                                              required>
-                                </v-text-field>
-                                <v-text-field v-validate="'required|isBiggerThanZero'"
-                                              :error-messages="errors.collect('percentage')"
-                                              v-model="editedItem.percentage"
-                                              type="number"
-                                              label="Probability of appearance"
-                                              data-vv-name="percentage"
-                                              clearable
-                                              required>
-                                </v-text-field>
-                            </v-flex>
-                        </v-layout>
-                    </v-card-text>
+                <v-card-text>
+                    <v-layout justify-center>
+                        <v-flex>
+                            <v-text-field v-validate="'required'"
+                                          :error-messages="errors.collect('label')"
+                                          v-model="editedItem.label"
+                                          label="Label"
+                                          data-vv-name="label"
+                                          clearable
+                                          required>
+                            </v-text-field>
+                            <v-text-field v-validate="'required|min_value:3'"
+                                          :error-messages="errors.collect('vertex')"
+                                          v-model="editedItem.numberOfVertex"
+                                          type="number"
+                                          label="Number of vertex"
+                                          data-vv-name="vertex"
+                                          clearable
+                                          required>
+                            </v-text-field>
+                            <v-text-field v-validate="'required|isBiggerThanZero'"
+                                          :error-messages="errors.collect('radius')"
+                                          v-model="editedItem.radius"
+                                          type="number"
+                                          label="Radius"
+                                          data-vv-name="radius"
+                                          clearable
+                                          required>
+                            </v-text-field>
+                            <v-text-field v-validate="'required|isBiggerThanZero'"
+                                          :error-messages="errors.collect('percentage')"
+                                          v-model="editedItem.percentage"
+                                          type="number"
+                                          label="Probability of appearance"
+                                          data-vv-name="percentage"
+                                          clearable
+                                          required>
+                            </v-text-field>
+                        </v-flex>
+                    </v-layout>
+                </v-card-text>
 
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn color="teal darken-1" flat @click.native="close">Cancel</v-btn>
-                        <v-btn color="teal darken-1" flat @click.native="save">Save</v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-        </v-toolbar>
-        <v-data-table
-                :headers="headers"
-                :items="polygons"
-                hide-actions
-                class="elevation-1"
-        >
-            <template slot="items" slot-scope="props">
-                <td>{{ props.item.label }}</td>
-                <td class="text-xs-right">{{ props.item.numberOfVertex }}</td>
-                <td class="text-xs-right">{{ props.item.radius }}</td>
-                <td class="text-xs-right">{{ props.item.percentage }}</td>
-                <td class="justify-center layout px-0">
-                    <v-icon small class="mr-2" @click="editItem(props.item)">
-                        edit
-                    </v-icon>
-                    <v-icon small @click="deleteItem(props.item)">
-                        delete
-                    </v-icon>
-                </td>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="black" flat @click.native="close">Cancel</v-btn>
+                    <v-btn color="teal darken-1" flat @click.native="save">Save</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-list two-line>
+            <v-btn fixed fab bottom right color="teal lighten-2" @click="dialog = true">
+                <v-icon>add</v-icon>
+            </v-btn>
+            <template v-for="(item, index) in polygons">
+
+                <v-list-tile :key="item.label" avatar @click="">
+
+                    <v-list-tile-content>
+                        <v-list-tile-title v-html="item.label"></v-list-tile-title>
+                        <v-list-tile-sub-title>
+                            <span>Number of Vertex: {{ item.numberOfVertex }},</span>
+                            <span>Percentage: {{ item.percentage }},</span>
+                            <span>Radius: {{ item.radius }}</span>
+                        </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+                <v-divider></v-divider>
             </template>
-            <template slot="no-data">
-                <v-alert :value="true" color="teal darken-1" icon="warning">
-                    No polygons for packing algorithm.
-                </v-alert>
-            </template>
-        </v-data-table>
+        </v-list>
     </div>
 </template>
 
 <script>
-    import { Validator } from 'vee-validate';
+    import {Validator} from 'vee-validate';
+
     Validator.extend('isBiggerThanZero', {
         getMessage: field => 'The ' + field + ' is not greater than 0.',
         validate: value => value > 0
@@ -196,8 +182,8 @@
                 }, 300)
             },
             save() {
-                this.$validator.validateAll().then(result =>{
-                    if(result) {
+                this.$validator.validateAll().then(result => {
+                    if (result) {
                         if (this.editedIndex > -1) {
                             Object.assign(this.polygons[this.editedIndex], this.editedItem);
                         } else {

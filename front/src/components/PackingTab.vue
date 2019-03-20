@@ -1,12 +1,12 @@
 <template>
-    <div class="page-container fill-height">
-        <v-toolbar  dark>
+    <div class="page-container">
+        <v-toolbar color="#eeeeee">
             <v-toolbar-title>Packing</v-toolbar-title>
             <v-divider class="mx-2" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
-                <v-btn slot="activator" color="teal darken-1" dark class="mb-2">Create New Packing</v-btn>
-                <v-card color="grey darken-4">
+                <v-btn slot="activator" color="teal lighten-2" class="mb-2">Create New Packing</v-btn>
+                <v-card color="#ffffff">
                     <v-card-title>
                         <span class="headline">New Packing</span>
                     </v-card-title>
@@ -14,42 +14,25 @@
                     <v-card-text>
                         <v-layout justify-center>
                             <v-flex>
-                                <v-text-field v-validate="'required|min_value:1'"
-                                              :error-messages="errors.collect('width')"
-                                              v-model="width"
-                                              type="number"
-                                              label="Container Width"
-                                              data-vv-name="width"
-                                              clearable
-                                              required>
+                                <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('width')"
+                                              v-model="width" type="number" label="Container Width"
+                                              data-vv-name="width" clearable required>
                                 </v-text-field>
-                                <v-text-field v-validate="'required|min_value:1'"
-                                              :error-messages="errors.collect('height')"
-                                              v-model="height"
-                                              type="number"
-                                              label="Container Height"
-                                              data-vv-name="height"
-                                              clearable
-                                              required>
+                                <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('height')"
+                                              v-model="height" type="number" label="Container Height"
+                                              data-vv-name="height" clearable required>
                                 </v-text-field>
-                                <v-checkbox
-                                        v-model="randomShape"
-                                        label="Random shape polygons?"
-                                        required
-                                ></v-checkbox>
+                                <v-checkbox color="black" v-model="randomShape" label="Random shape polygons?"
+                                        required></v-checkbox>
                                 <div v-if="!randomShape">
-                                    <v-text-field v-validate="'required|min_value:1'"
-                                              :error-messages="errors.collect('regularity')"
-                                              v-model="regularity"
-                                              type="number"
-                                              label="Container Regularity"
-                                              data-vv-name="regularity"
+                                    <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('regularity')"
+                                              v-model="regularity" type="number" label="Container Regularity" data-vv-name="regularity"
                                               clearable>
                                     </v-text-field>
                                 </div>
                                 <v-radio-group v-model="approachAlgorithm" row>
-                                    <v-radio label="Border Preference" value="0"></v-radio>
-                                    <v-radio label="Less Density" value="1"></v-radio>
+                                    <v-radio color="black" label="Border Preference" value="0"></v-radio>
+                                    <v-radio color="black" label="Less Density" value="1"></v-radio>
                                 </v-radio-group>
                             </v-flex>
                         </v-layout>
@@ -63,13 +46,13 @@
             </v-dialog>
 
             <v-dialog v-model="dialogInfo" max-width="500px">
-                <v-card color="grey darken-4" >
-                    <v-card-title class="headline grey darken-4" primary-title>
-                        Propiedades del polígono
+                <v-card color="#ffffff" >
+                    <v-card-title>
+                        <span class="headline">Polygon Properties</span>
                     </v-card-title>
 
                     <v-card-text>
-                        Número de vértices: {{this.polygon.points.length}}
+                        Number of vertex: {{this.polygon.points.length}}
                     </v-card-text>
                 </v-card>
             </v-dialog>
@@ -82,11 +65,12 @@
 
 <script>
     import api from "../services/api.services";
+
     export default {
         $_veeValidate: {
             validator: 'new'
         },
-        name: "Packing",
+        name: "packing",
         data() {
           return {
               ps: null,
@@ -130,8 +114,8 @@
                 // Settings of the canvas.
                 p.setup = () => {
                     // We use the div size as the canvas size.
-                    // console.log(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
-                    canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, p.windowHeight/1.6);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
+                    //console.log(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
+                    canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
                     p.frameRate(60);
@@ -140,13 +124,13 @@
 
                 p.windowResized = () => {
                     if(typeof this.$refs.polygonContainer !== "undefined") {
-                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, p.windowHeight / 1.6)
+                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight)
                     }
                 };
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    p.background(40,40,40);
+                    p.background(255,255,255);
                     p.noFill();
                     p.push();
                     this.packing.polygons.forEach(pol => {this.drawPolygon(pol, this.packing.width, this.packing.height, p)});
@@ -187,9 +171,9 @@
                 this.dialogInfo = true;
             },
             drawPolygon(polygon, width, height, p) {
-                p.stroke(0, 137, 123);
+                p.stroke(33,33,33);
                 if (this.polygon === polygon || (this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p) && !this.dialogInfo)) {
-                    p.fill(0, 137, 123);
+                    p.fill(77,182,172);
                     if(!this.dialogInfo) {
                         this.polygon = polygon;
                     }
@@ -237,7 +221,7 @@
                     }
                 });
             }
-        }
+        },
     }
 </script>
 
@@ -245,11 +229,12 @@
     .page-container {
         padding: 0;
         margin: 0;
+        height: 100%;
     }
     .polygon {
         padding:0;
         margin:0;
-        height: 100%;
+        height: 90%;
         min-width: 100%;
     }
 </style>
