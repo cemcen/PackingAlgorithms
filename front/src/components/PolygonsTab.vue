@@ -51,7 +51,7 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="black" flat @click.native="close">Cancel</v-btn>
-                    <v-btn color="teal darken-1" flat @click.native="save">Save</v-btn>
+                    <v-btn color="teal lighten-2" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>

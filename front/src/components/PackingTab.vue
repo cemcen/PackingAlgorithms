@@ -40,7 +40,7 @@
 
                     <v-card-actions>
                         <v-spacer></v-spacer>
-                        <v-btn color="teal darken-1" flat @click.native="execute">Execute Algorithm</v-btn>
+                        <v-btn color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
