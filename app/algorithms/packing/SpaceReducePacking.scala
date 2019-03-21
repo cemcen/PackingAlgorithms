@@ -70,6 +70,10 @@ class SpaceReducePacking extends PackingApproach {
       })
     })
 
+    if(bestCenterPos != null) {
+      this.graph = bestGraph
+    }
+
     bestCenterPos
   }
 
@@ -108,10 +112,7 @@ class SpaceReducePacking extends PackingApproach {
 
     insertingPolygon.movePolygon(centroid)
 
-    if(bestPosition != null) {
-      updateGraph(bestGraph)
-    }
-
     bestPosition
   }
+
 }

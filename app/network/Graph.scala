@@ -18,14 +18,26 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
   def addPolygon1Intersection(polygon: Polygon, interPolygon: Polygon): Graph = {
 
-    val newGraph: Graph = new Graph(this.nodes, this.links)
+    val myNodes: mutable.HashMap[Point, Node] = new mutable.HashMap[Point, Node]() ++ this.nodes
+    val myLinks: mutable.HashMap[Node, ArrayBuffer[Node]] = new mutable.HashMap[Node, ArrayBuffer[Node]]
+    links.keys.foreach(node => {
+      val newLinks = new ArrayBuffer[Node]() ++ links(node)
+      myLinks += ((node, newLinks))
+    })
+    val newGraph: Graph = new Graph(myNodes, myLinks)
     newGraph.addIntersectingPolygonOneIntersection(polygon, interPolygon)
     newGraph
   }
 
   def addPolygon2Intersections(polygon: Polygon, interPolygon: Polygon, interPolygon2: Polygon): Graph = {
 
-    val newGraph: Graph = new Graph(this.nodes, this.links)
+    val myNodes: mutable.HashMap[Point, Node] = new mutable.HashMap[Point, Node]() ++ this.nodes
+    val myLinks: mutable.HashMap[Node, ArrayBuffer[Node]] = new mutable.HashMap[Node, ArrayBuffer[Node]]
+    links.keys.foreach(node => {
+      val newLinks = new ArrayBuffer[Node]() ++ links(node)
+      myLinks += ((node, newLinks))
+    })
+    val newGraph: Graph = new Graph(myNodes, myLinks)
     newGraph.addIntersectingPolygonTwoIntersections(polygon, interPolygon, interPolygon2)
     newGraph
   }
@@ -37,7 +49,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     val polygonPoints: List[Point] = polygon.points
 
     polygonPoints.foreach(pnt => {
-      if(nodes.contains(pnt)) {
+      if (nodes.contains(pnt)) {
         exists += true
       } else {
         addNode(new Point(pnt.x, pnt.y), Node(new Point(pnt.x, pnt.y)))
@@ -48,12 +60,12 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     polygonPoints.indices.foreach(i => {
 
       // El nodo ya estaba en el grafo
-      if(!exists(i)) {
+      if (!exists(i)) {
 
         // We need to check if the new node is between some vertex of the intersected polygon.
         val nearestPoints: ArrayBuffer[Point] = interPolygon.getCollinear(polygonPoints(i))
 
-        if(nearestPoints.nonEmpty) {
+        if (nearestPoints.nonEmpty) {
           // Fixed links with
           changeLinks(nodes(nearestPoints.head), nodes(polygonPoints(i)), nodes(nearestPoints.tail.head))
         }
@@ -68,29 +80,37 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     var exists: ArrayBuffer[Boolean] = new ArrayBuffer[Boolean]()
     val polygonPoints: List[Point] = polygon.points
+    //println(polygon.points.length)
 
     polygonPoints.foreach(pnt => {
-      if(nodes.contains(pnt)) {
+      if (nodes.contains(pnt)) {
         exists += true
+        //println("HasNode")
       } else {
         addNode(new Point(pnt.x, pnt.y), Node(new Point(pnt.x, pnt.y)))
         exists += false
+        //println("HasntNode")
       }
     })
 
     polygonPoints.indices.foreach(i => {
 
       // El nodo ya estaba en el grafo
-      if(!exists(i)) {
+      if (!exists(i)) {
 
         // We need to check if the new node is between some vertex of the intersected polygon.
         val nearestPoints1: ArrayBuffer[Point] = interPolygon1.getCollinear(polygonPoints(i))
         val nearestPoints2: ArrayBuffer[Point] = interPolygon2.getCollinear(polygonPoints(i))
 
-        if(nearestPoints1.nonEmpty) {
+        //println("****** GET COLLINEAR ********")
+        //println("POINT: " + polygonPoints(i))
+        //println("RESULTS A: " + nearestPoints1.length)
+        //println("RESULTS B: " + nearestPoints2.length)
+
+        if (nearestPoints1.nonEmpty) {
           // Fixed links with
           changeLinks(nodes(nearestPoints1.head), nodes(polygonPoints(i)), nodes(nearestPoints1.tail.head))
-        } else if( nearestPoints2.nonEmpty ) {
+        } else if (nearestPoints2.nonEmpty) {
           // Fixed links with
           changeLinks(nodes(nearestPoints2.head), nodes(polygonPoints(i)), nodes(nearestPoints2.tail.head))
         }
@@ -99,6 +119,41 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       // Finally add the edge representing the connexion with the next vertex of the polygon.
       addLink(nodes(polygonPoints(i)), nodes(polygonPoints(Math.floorMod(i + 1, polygonPoints.length))))
     })
+
+
+    // Check If the others polygons has collinear point to this one
+    interPolygon1.points.indices.foreach(i => {
+
+      // We need to check if the new node is between some vertex of the intersected polygon.
+      val nearestPoints1: ArrayBuffer[Point] = polygon.getCollinear(interPolygon1.points(i))
+
+      //println("****** GET COLLINEAR ********")
+      //println("POINT: " + interPolygon1.points(i))
+      //println("RESULTS A: " + nearestPoints1.length)
+
+      if (nearestPoints1.nonEmpty) {
+        // Fixed links with
+        changeLinks(nodes(nearestPoints1.head), nodes(interPolygon1.points(i)), nodes(nearestPoints1.tail.head))
+      }
+
+    })
+
+    interPolygon2.points.indices.foreach(i => {
+
+      // We need to check if the new node is between some vertex of the intersected polygon.
+      val nearestPoints1: ArrayBuffer[Point] = polygon.getCollinear(interPolygon2.points(i))
+
+      //println("****** GET COLLINEAR ********")
+      //println("POINT: " + interPolygon2.points(i))
+      //println("RESULTS A: " + nearestPoints1.length)
+
+      if (nearestPoints1.nonEmpty) {
+        // Fixed links with
+        changeLinks(nodes(nearestPoints1.head), nodes(interPolygon2.points(i)), nodes(nearestPoints1.tail.head))
+      }
+
+    })
+
   }
 
   def addContainer(container: Container2D): Unit = {
@@ -134,7 +189,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     var auxNodeA: Node = nodeA
 
-    if(!links(nodeA).contains(nodeC)) {
+    if (!links(nodeA).contains(nodeC)) {
       var nodeALinks: ArrayBuffer[Node] = links(nodeA)
 
       breakable {
@@ -143,7 +198,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
             val pointList: List[Point] = Vector(nodeA.value, nodeC.value).intersectVector(Vector(nodeA.value, node.value))
             if (pointList.size > 1) {
               val pointList: List[Point] = Vector(node.value, nodeC.value).intersectVector(Vector(nodeB.value, node.value))
-              if (pointList.size == 1) {
+              if (pointList.size == 1 || node.value.distance(nodeA.value) > nodeB.value.distance(nodeA.value)) {
                 break
               }
               auxNodeA = node
@@ -159,8 +214,16 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
   private def changeLinks(nodeA: Node, nodeB: Node, nodeC: Node): Unit = {
 
+    //println("********** CHANGE LINKS ***************")
+    //println("Node A: " + nodeA)
+    //println("Node B: " + nodeB)
+    //println("Node C: " + nodeC)
+
     var auxNodeA: Node = getCloserNodeBetweenFrom(nodeA, nodeC, nodeB)
     var auxNodeC: Node = getCloserNodeBetweenFrom(nodeC, auxNodeA, nodeB)
+
+    //println("Node AUX A: " + auxNodeA)
+    //println("Node AUX C: " + auxNodeC)
 
     links(auxNodeA) -= auxNodeC
     links(auxNodeA) += nodeB
@@ -198,7 +261,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       }
     })
 
-    if(intersectionPoint == null) {
+    if (intersectionPoint == null) {
       polygonIntersected.points.foreach(pnt => {
         val pointList: ArrayBuffer[Point] = polygon.getCollinear(pnt)
         if (pointList.nonEmpty) {
@@ -208,13 +271,15 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     }
 
     var pointsNear: List[Point] = List()
-    if(polygonIntersected.points.contains(intersectionPoint)){
+    if (polygonIntersected.points.contains(intersectionPoint)) {
       pointsNear = polygonIntersected.getNearestPoints(intersectionPoint)
     } else {
       pointsNear = polygonIntersected.getNearestPointsFromPoint(intersectionPoint)
     }
 
+    //println("***** FIRST ROUTE *******")
     val route1: ArrayBuffer[Node] = lookForShortestRoute(nodes(pointsNear.head), nodes(intersectionPoint))
+    //println("***** SECOND ROUTE *******")
     val route2: ArrayBuffer[Node] = lookForShortestRoute(nodes(intersectionPoint), nodes(pointsNear.tail.head))
 
     math.min(getAreaOfRoute(route1), getAreaOfRoute(route2))
@@ -223,20 +288,22 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
   /**
     * This algorithm looks for the route that covers a hole beginning from the exterior of one of the edges of the packing polygon.
     */
-  private def lookForShortestRoute(nodeA: Node, nodeB: Node): ArrayBuffer[Node] = {
+  def lookForShortestRoute(nodeA: Node, nodeB: Node): ArrayBuffer[Node] = {
     var currentNode: Node = nodeA
     var nextNode: Node = nodeB
     var routeList: ArrayBuffer[Node] = new ArrayBuffer[Node]()
     routeList += currentNode
 
-    while(routeList.distinct.size == routeList.size) {
+    while (routeList.distinct.size == routeList.size) {
 
+      //println("---------------")
+      //println("Current Node: " + currentNode)
       // Change currentNode
       val auxNode = nextNode
 
       // Look for next node
       nextNode = lookForMinimumAngle(currentNode, nextNode, links(nextNode))
-
+      //println("Next Node: " + auxNode)
       // Add current node of this iteration to the route List.
       currentNode = auxNode
       routeList += currentNode
@@ -252,16 +319,38 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
   private def lookForMinimumAngle(nodeIni: Node, nodeEnd: Node, possibleNextNodes: ArrayBuffer[Node]): Node = {
     var chosenNode: Node = possibleNextNodes.head
     var minimumAngle: Double = Double.MaxValue
-    val compareVector: Vector =  Vector(nodeEnd.value, nodeIni.value)
+    val compareVector: Vector = Vector(nodeEnd.value, nodeIni.value)
+
+    //println("***** LOOKING FOR ANGLE ********")
+
+    // Only one route possible
+    if(possibleNextNodes.length == 2) {
+      possibleNextNodes.foreach(node => {
+        val maybeVector: Vector = Vector(nodeEnd.value, node.value)
+        val crossProductSign = compareVector x maybeVector
+
+        //println("Node: " + node)
+        //println("CrossProduct: " + crossProductSign)
+        //println("********")
+        if(!(crossProductSign === 0.0 +- 1e-3))
+          return node
+      })
+    }
 
     possibleNextNodes.foreach(node => {
-      val maybeVector: Vector =  Vector(nodeEnd.value, node.value)
+      val maybeVector: Vector = Vector(nodeEnd.value, node.value)
       var angle: Double = Math.acos((maybeVector * compareVector) / (maybeVector.magnitude() * compareVector.magnitude()))
+      val crossProductSign = compareVector x maybeVector
 
-      if(angle.isNaN) angle = 0
+      //println("Node: " + node)
+      //println("Angle: " + angle)
+      //println("CrossProduct: " + crossProductSign)
+      //println("********")
+
+      if (angle.isNaN) angle = 0
       // We order the angles counterclockwise.
 
-      if (angle < minimumAngle && !(angle === 0.0 +- 1e-3)) {
+      if (angle < minimumAngle && crossProductSign < 0 && !(angle === 0.0 +- 1e-3)) {
         minimumAngle = angle
         chosenNode = node
       }
@@ -270,10 +359,56 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     chosenNode
   }
 
-  /**  For testing purpose. */
+  /** For testing purpose. */
 
   def containsNode(node: Node): Boolean = {
     nodes.contains(node.value)
   }
 
+  def getPolygonInGraph(polygon: List[Polygon]): ArrayBuffer[Polygon] = {
+
+    //println("Number Of Nodes: " + this.getNumberOfNodes)
+    //nodes.toList.foreach(element => {
+    //  val nodeA: Node = element._2
+    //  println("Node: " + nodeA)
+    //  links(nodeA).foreach(println(_))
+    //})
+
+    var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+    var edges: mutable.HashMap[Node, ArrayBuffer[Node]] = new mutable.HashMap[Node, ArrayBuffer[Node]]()
+
+    for (node <- nodes) {
+      edges += ((node._2, new mutable.ArrayBuffer[Node]()))
+    }
+
+    nodes.toList.foreach(element => {
+      val nodeA: Node = element._2
+      //println("****************")
+      //println(nodeA)
+
+      links(nodeA).foreach(nodeB => {
+        if (!edges(nodeA).contains(nodeB)) {
+          //println("****************")
+          //println(nodeB)
+          edges(nodeA) += nodeB
+          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeA, nodeB).distinct
+          //println("---------------------")
+          //nodeList.foreach(println(_))
+          for (i <- nodeList.indices) {
+            val node1: Node = nodeList(i)
+            val node2: Node = nodeList((i + 1) % nodeList.length)
+            if (!edges(node1).contains(node2)) {
+              edges(node1) += node2
+            }
+          }
+          polygonList += new Polygon(nodeList.map(_.value).toList)
+        }
+      })
+    })
+
+    polygonList
+  }
+
+  def getNumberOfNodes: Int = nodes.toList.length
+  def getNodeByPoint(point: Point): Node = nodes(point)
 }

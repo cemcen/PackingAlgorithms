@@ -47,7 +47,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     polygonList += firstPolygon
 
     // Iterate over nextPolygon array to pack every polygon in the array.
-    nextPolygon.tail.indices.foreach( i => {
+    nextPolygon.tail.indices.foreach(i => {
 
       // Next polygon to be inserted.
       val insertingPolygon: Polygon = nextPolygon.tail(i)
@@ -59,9 +59,11 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       if(bestCenterPos != null) {
         insertingPolygon.movePolygon(bestCenterPos)
         polygonList += insertingPolygon
+        //println("Number Of Polygon: " + polygonList.length)
+        //println("Step: " + i + 1)
       }
     })
 
-    finalPolygonPosition = polygonList
+    finalPolygonPosition = polygonList//packingTechnique.getPolygonList(polygonList.toList)
   }
 }
