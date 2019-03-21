@@ -130,7 +130,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     for (i <- 1 to points.size) {
       val pointA = points(Math.floorMod(i, points.size))
       val pointB = points(Math.floorMod(i + 1, points.size))
-      sum = (pointB.x - pointA.x) * (pointB.y + pointA.y)
+      sum += (pointB.x - pointA.x) * (pointB.y + pointA.y)
     }
 
     sum < 0

@@ -322,6 +322,8 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     val compareVector: Vector = Vector(nodeEnd.value, nodeIni.value)
 
     //println("***** LOOKING FOR ANGLE ********")
+    //println("Node INI: " + nodeIni)
+    //println("Node END: " + nodeEnd)
 
     // Only one route possible
     if(possibleNextNodes.length == 2) {
@@ -365,7 +367,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     nodes.contains(node.value)
   }
 
-  def getPolygonInGraph(polygon: List[Polygon]): ArrayBuffer[Polygon] = {
+  def getPolygonInGraph: ArrayBuffer[Polygon] = {
 
     //println("Number Of Nodes: " + this.getNumberOfNodes)
     //nodes.toList.foreach(element => {
@@ -384,16 +386,14 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     nodes.toList.foreach(element => {
       val nodeA: Node = element._2
       //println("****************")
-      //println(nodeA)
+      //println("Node A: " + nodeA)
 
       links(nodeA).foreach(nodeB => {
         if (!edges(nodeA).contains(nodeB)) {
           //println("****************")
-          //println(nodeB)
+          //println("Node B: " + nodeB)
           edges(nodeA) += nodeB
           val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeA, nodeB).distinct
-          //println("---------------------")
-          //nodeList.foreach(println(_))
           for (i <- nodeList.indices) {
             val node1: Node = nodeList(i)
             val node2: Node = nodeList((i + 1) % nodeList.length)
@@ -401,7 +401,15 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
               edges(node1) += node2
             }
           }
-          polygonList += new Polygon(nodeList.map(_.value).toList)
+
+          val polygon: Polygon = new Polygon(nodeList.map(_.value).toList)
+
+          if(polygon.ccw() && links(nodeList(nodeList.length - 1)).contains(nodeList.head)) {
+            polygonList += polygon
+            //println("---------------------")
+            //polygon.points.foreach(println(_))
+            //println("IAM CCW")
+          }
         }
       })
     })

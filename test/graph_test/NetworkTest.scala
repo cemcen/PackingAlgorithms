@@ -87,5 +87,7 @@ class NetworkTest extends FlatSpec with Matchers {
 
     route.distinct.length should === (11)
     route2.distinct.length should === (5)
+
+    graph.getPolygonInGraph
   }
 }
