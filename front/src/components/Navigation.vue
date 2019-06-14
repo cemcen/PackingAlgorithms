@@ -15,11 +15,6 @@
                         <v-tabs centered color="#eeeeee" icons-and-text>
                             <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
 
-                            <!--<v-tab id="tab-packing" @click="selectTab(2)" >
-                                Packing
-                                <v-icon>category</v-icon>
-                            </v-tab>-->
-
                             <v-tab id="tab-polygon" @click="selectTab(1)">
                                 Polygons
                                 <v-icon>category</v-icon>

@@ -64,6 +64,6 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       }
     })
 
-    finalPolygonPosition = packingTechnique.getPolygonList
+    finalPolygonPosition = polygonList
   }
 }

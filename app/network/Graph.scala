@@ -406,9 +406,9 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
           if(polygon.ccw() && links(nodeList(nodeList.length - 1)).contains(nodeList.head)) {
             polygonList += polygon
-            //println("---------------------")
-            //polygon.points.foreach(println(_))
-            //println("IAM CCW")
+            println("---------------------")
+            polygon.points.foreach(println(_))
+            println("IAM CCW")
           }
         }
       })

@@ -4,8 +4,12 @@
             <v-toolbar-title>Packing</v-toolbar-title>
             <v-divider class="mx-2" inset vertical></v-divider>
             <v-spacer></v-spacer>
+            <v-btn color="teal lighten-2" @click="exportPacking" class="mb-2">
+                <v-icon>save_alt</v-icon>
+                Export
+            </v-btn>
+            <v-btn color="teal lighten-2" @click="dialog = true" class="mb-2">Create New Packing</v-btn>
             <v-dialog v-model="dialog" max-width="500px">
-                <v-btn slot="activator" color="teal lighten-2" class="mb-2">Create New Packing</v-btn>
                 <v-card color="#ffffff">
                     <v-card-title>
                         <span class="headline">New Packing</span>
@@ -166,6 +170,95 @@
                     if (intersect) inside = !inside;
                 }
                 return inside;
+            },
+            exportPacking(){
+
+                let file = '';
+                let points = {};
+                let edges = {};
+                let polygons = {};
+                let p = 1;
+                let e = 1;
+                let polCount = 1;
+
+                this.packing.polygons.forEach(pol => {
+
+                    let polygonPoints = [];
+
+                    for(let i = 0; i < pol.points.length; i++) {
+
+                        let pointA = pol.points[i];
+                        let pointB = pol.points[(i + 1) % pol.points.length];
+                        if(!([pointA.x,pointA.y] in points)) {
+                            points[[pointA.x,pointA.y]] = p;
+                            p += 1;
+                        }
+
+                        if(!([pointB.x,pointB.y] in points)) {
+                            points[[pointB.x,pointB.y]] = p;
+                            p += 1;
+                        }
+
+                        if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
+                            edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
+                            e += 1;
+                        }
+                        polygonPoints.push(points[[pointA.x,pointA.y]]);
+                    }
+
+                    if(!(polygonPoints in polygons)) {
+                        polygons[polygonPoints] = polCount;
+                        polCount += 1;
+                    }
+                });
+
+                let sortedPoints = this.sortDictionary(points);
+                let sortedEdges = this.sortDictionary(edges);
+                let sortedPolygons = this.sortDictionary(polygons);
+
+                file += Object.keys(points).length + ' ' + Object.keys(edges).length + ' ' + Object.keys(polygons).length +'\n';
+
+                sortedPoints.forEach(point => {
+                    let splitted = point[0].split(",");
+                    file += splitted[0] + ' ' + splitted[1] + '\n';
+                });
+
+                sortedEdges.forEach(edge => {
+                    let splitted = edge[0].split(",");
+                    file += splitted[0] + ' ' + splitted[1] + '\n';
+                });
+
+                sortedPolygons.forEach(polygon => {
+                    let splitted = polygon[0].split(",");
+                    splitted.forEach(s => {
+                        file += (s + ' ');
+                    });
+                    file = file.slice(0,-1);
+                    file += '\n';
+                });
+
+
+                let filename = 'packing.txt';
+                let universalBOM = "\uFEFF";
+
+                let link = document.createElement('a');
+                link.setAttribute('href',  'data:text/csv; charset=utf-8,' + encodeURIComponent(universalBOM+file));
+                link.setAttribute('download', filename);
+                link.click();
+
+            },
+            sortDictionary(dict){
+                // Create items array
+                let sorted = Object.keys(dict).map(function(key) {
+                    return [key, dict[key]];
+                });
+
+                // Sort the array based on the second element
+                sorted.sort(function(first, second) {
+                    return first[1] - second[1];
+                });
+
+                return sorted;
             },
             showPolygonData(){
                 this.dialogInfo = true;

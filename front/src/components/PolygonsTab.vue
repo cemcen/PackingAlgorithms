@@ -67,11 +67,16 @@
                     <v-list-tile-content>
                         <v-list-tile-title v-html="item.label"></v-list-tile-title>
                         <v-list-tile-sub-title>
-                            <span>Number of Vertex: {{ item.numberOfVertex }},</span>
-                            <span>Percentage: {{ item.percentage }},</span>
+                            <span>Number of Vertex: {{ item.numberOfVertex }}</span> <br/>
+                            <span>Percentage: {{ item.percentage }}</span>
                             <span>Radius: {{ item.radius }}</span>
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
+                    <v-list-tile-action>
+                        <v-btn icon ripple @click="editedItem = item; dialog = true">
+                            <v-icon color="teal lighten-2">edit</v-icon>
+                        </v-btn>
+                    </v-list-tile-action>
                 </v-list-tile>
                 <v-divider></v-divider>
             </template>
