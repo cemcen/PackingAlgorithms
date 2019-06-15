@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-dialog v-model="dialog" max-width="500px">
+        <v-dialog v-model="dialog" persistent max-width="500px">
             <v-card>
                 <v-card-title>
                     <span class="headline">{{ formTitle }}</span>
@@ -51,13 +51,13 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="black" flat @click.native="close">Cancel</v-btn>
-                    <v-btn color="teal lighten-2" @click.native="save">Save</v-btn>
+                    <v-btn color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
 
         <v-list two-line>
-            <v-btn fixed fab bottom right color="teal lighten-2" @click="dialog = true">
+            <v-btn fixed fab bottom right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
             <template v-for="(item, index) in polygons">
@@ -73,9 +73,18 @@
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
                     <v-list-tile-action>
-                        <v-btn icon ripple @click="editedItem = item; dialog = true">
-                            <v-icon color="teal lighten-2">edit</v-icon>
-                        </v-btn>
+                        <v-layout row>
+                            <v-flex>
+                                <v-btn icon ripple @click="editItem(item)">
+                                    <v-icon color="teal lighten-2">edit</v-icon>
+                                </v-btn>
+                            </v-flex>
+                            <v-flex>
+                                <v-btn icon ripple @click="deleteItem(item)">
+                                    <v-icon color="red lighten-2">delete</v-icon>
+                                </v-btn>
+                            </v-flex>
+                        </v-layout>
                     </v-list-tile-action>
                 </v-list-tile>
                 <v-divider></v-divider>
@@ -131,23 +140,23 @@
                     {text: 'Probability', value: 'percentage'},
                     {text: 'Actions', value: 'name', sortable: false}
                 ],
-            }
-        },
-        dictionary: {
-            custom: {
-                label: {
-                    required: () => 'Must enter a label.',
+                dictionary: {
+                    custom: {
+                        label: {
+                            required: () => 'Must enter a label.',
+                        },
+                        vertex: {
+                            required: () => 'Must enter the number of vertex.',
+                            min_value: () => 'The polygon must have at least 3 vertex'
+                        },
+                        percentage: {
+                            required: () => 'Must enter the probability of appearance.'
+                        },
+                        radius: {
+                            required: () => 'Must enter the radius.'
+                        }
+                    }
                 },
-                vertex: {
-                    required: 'Must enter the number of vertex.',
-                    min: 'The polygon must have at least 3 vertex'
-                },
-                percentage: {
-                    required: 'Must enter the probability of appearance.'
-                },
-                radius: {
-                    required: 'Must enter the radius.'
-                }
             }
         },
         computed: {
@@ -157,6 +166,7 @@
         },
         mounted() {
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
+            this.$validator.localize('en', this.dictionary);
         },
         watch: {
             polygons: {
@@ -187,9 +197,16 @@
                 }, 300)
             },
             save() {
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        if (this.editedIndex > -1) {
+                let array = [
+                    this.$validator.validate('label'),
+                    this.$validator.validate('vertex'),
+                    this.$validator.validate('percentage'),
+                    this.$validator.validate('radius'),
+                ];
+                Promise.all(array).then(res => {
+                    const areValid = res.every(isValid => isValid);
+                    if (areValid) {
+                        if (this.editedIndex !== -1) {
                             Object.assign(this.polygons[this.editedIndex], this.editedItem);
                         } else {
                             this.polygons.push(this.editedItem);
@@ -197,6 +214,10 @@
                         this.close();
                     }
                 });
+            },
+            openDialog() {
+                this.dialog = true;
+                this.errors.clear();
             }
         }
     }

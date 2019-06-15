@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 import Navigation from './components/Navigation.vue'
 import PolygonsTab from './components/PolygonsTab.vue'
 import ProbabilityTab from './components/ProbabiltyTab.vue'
+import PropertiesTab from './components/PropertiesTab.vue'
 import PackingTab from './components/PackingTab.vue'
 
 
@@ -17,6 +18,10 @@ const router = new VueRouter({
                 {
                     path: "probability",
                     component: ProbabilityTab
+                },
+                {
+                    path: "properties",
+                    component: PropertiesTab
                 },
                 {
                     path: "polygons",

@@ -8,8 +8,9 @@
                 <v-icon>save_alt</v-icon>
                 Export
             </v-btn>
-            <v-btn color="teal lighten-2" @click="dialog = true" class="mb-2">Create New Packing</v-btn>
-            <v-dialog v-model="dialog" max-width="500px">
+            <v-btn color="teal lighten-2" :disabled="executing" @click="dialog = true" class="mb-2">Create New Packing</v-btn>
+            <v-progress-circular v-show="executing" indeterminate color="teal lighten-2"></v-progress-circular>
+            <v-dialog v-model="dialog" persistent max-width="500px">
                 <v-card color="#ffffff">
                     <v-card-title>
                         <span class="headline">New Packing</span>
@@ -44,20 +45,50 @@
 
                     <v-card-actions>
                         <v-spacer></v-spacer>
+                        <v-btn color="black" flat @click.native="dialog = false">Close</v-btn>
                         <v-btn color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
 
-            <v-dialog v-model="dialogInfo" max-width="500px">
+            <v-dialog v-model="dialogInfo" persistent max-width="500px">
                 <v-card color="#ffffff" >
                     <v-card-title>
                         <span class="headline">Polygon Properties</span>
                     </v-card-title>
 
                     <v-card-text>
-                        Number of vertex: {{this.polygon.points.length}}
+                        <v-layout column>
+                            <v-flex>
+                                <v-text-field disabled v-model="polygon.label"
+                                              label="Label">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex>
+                                <v-text-field disabled v-model="polygon.points.length"
+                                              label="Number of vertex">
+                                </v-text-field>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout row v-for="property in polygon.properties" :key="property">
+                            <v-flex>
+                                <v-text-field disabled v-model="property.name"
+                                              label="Property">
+                                </v-text-field>
+                            </v-flex>
+                            <v-flex>
+                                <v-text-field disabled v-model="property.value"
+                                              label="Value">
+                                </v-text-field>
+                            </v-flex>
+                        </v-layout>
                     </v-card-text>
+
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="teal lighten-2" flat @click.native="dialogInfo = false">Close</v-btn>
+                        <v-btn color="teal lighten-2" @keyup.enter="" @click.native="">Save</v-btn>
+                    </v-card-actions>
                 </v-card>
             </v-dialog>
         </v-toolbar>
@@ -87,6 +118,7 @@
               polygons: [],
               show: false,
               dialogInfo: false,
+              executing: false,
               polygon: {
                   points: []
               },
@@ -94,23 +126,23 @@
                   height: 0,
                   width: 0,
                   polygons: []
-              }
+              },
+              dictionary: {
+                  custom: {
+                      width: {
+                          required: () => 'Width is required to execute.',
+                          min_value: 'Width must be greater than 0'
+                      },
+                      height: {
+                          required: 'Height is required to execute.',
+                          min_value: 'Width must be greater than 0'
+                      },
+                      regularity: {
+                          min_value: 'regularity must be greater than 0'
+                      }
+                  }
+              },
           }
-        },
-        dictionary: {
-            custom: {
-                width: {
-                    required: () => 'Width is required to execute.',
-                    min_value: 'Width must be greater than 0'
-                },
-                height: {
-                    required: 'Height is required to execute.',
-                    min_value: 'Width must be greater than 0'
-                },
-                regularity: {
-                    min_value: 'regularity must be greater than 0'
-                }
-            }
         },
         mounted() {
             this.script = p => {
@@ -145,7 +177,7 @@
             this.ps = new P5(this.script, 'myContainer');
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
             if (localStorage.getItem('packing')) this.packing = JSON.parse(localStorage.getItem('packing'));
-
+            this.$validator.localize('es', this.dictionary);
         },
         watch: {
             packing: {
@@ -262,6 +294,9 @@
             },
             showPolygonData(){
                 this.dialogInfo = true;
+                if(this.polygon.properties == null) {
+                    this.polygon.properties = [];
+                }
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(33,33,33);
@@ -302,10 +337,13 @@
                                 'regularity': parseInt(this.regularity),
                                 'approachAlgorithm': parseInt(this.approachAlgorithm)
                             };
+                            this.executing = true;
                             api.sendMesh(data).then(resp => {
-                                //console.log(resp);
-                                this.packing = resp.body.mesh
+                                this.executing = false;
+                                console.log(resp);
+                                this.packing = resp.body.mesh;
                             }).catch(error => {
+                                this.executing = false;
                                 //console.log(error);
                                 alert("Error executing algorithm.");
                             });

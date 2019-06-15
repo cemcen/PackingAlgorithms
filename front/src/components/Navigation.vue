@@ -12,17 +12,15 @@
                 </v-flex>
                 <v-flex sm3 pa-2>
                     <v-card class="my-card">
-                        <v-tabs centered color="#eeeeee" icons-and-text>
+                        <v-tabs show-arrows grow color="#eeeeee">
                             <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
 
                             <v-tab id="tab-polygon" @click="selectTab(1)">
-                                Polygons
-                                <v-icon>category</v-icon>
+                                <v-icon>category</v-icon> Polygons
                             </v-tab>
 
                             <v-tab id="tab-distribution" @click="selectTab(0)">
-                                Analysis
-                                <v-icon>dashboard</v-icon>
+                                <v-icon>list_alt</v-icon> Properties
                             </v-tab>
                         </v-tabs>
                         <router-view/>
@@ -37,7 +35,7 @@
 <script>
     import Packing from "./PackingTab.vue";
 
-    const routes = ["/probability", "/polygons"];
+    const routes = ["/properties", "/polygons"];
 
     export default {
         components: {Packing},
