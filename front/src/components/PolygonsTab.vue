@@ -60,6 +60,9 @@
             <v-btn fixed fab bottom right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
+            <div class="text-centered font-weight-light grey--text title mb-2" v-show="polygons.length === 0">
+                No polygons registered.
+            </div>
             <template v-for="(item, index) in polygons">
 
                 <v-list-tile :key="item.label" avatar @click="">
@@ -68,7 +71,7 @@
                         <v-list-tile-title v-html="item.label"></v-list-tile-title>
                         <v-list-tile-sub-title>
                             <span>Number of Vertex: {{ item.numberOfVertex }}</span> <br/>
-                            <span>Percentage: {{ item.percentage }}</span>
+                            <span>Percentage: {{ item.percentage }}%,</span>
                             <span>Radius: {{ item.radius }}</span>
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
@@ -187,7 +190,7 @@
             },
             deleteItem(item) {
                 const index = this.polygons.indexOf(item);
-                confirm('Are you sure you want to delete this item?') && this.polygons.splice(index, 1);
+                confirm('Are you sure you want to delete this polygon?') && this.polygons.splice(index, 1);
             },
             close() {
                 this.dialog = false;
@@ -228,5 +231,9 @@
     .page-container {
         overflow: auto;
         margin: 2px;
+    }
+
+    .text-centered{
+        text-align: center;
     }
 </style>

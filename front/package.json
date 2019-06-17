@@ -39,9 +39,11 @@
     "vee-validate": "^2.1.0-beta.7",
     "vue": "^2.3.2",
     "vue-chartjs": "^3.3.1",
+    "vue-color": "^2.7.0",
     "vue-directive-tooltip": "^1.4.5",
     "vue-material": "1.0.0-beta-7",
     "vue-resource": "^1.5.0",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue-swatches": "^1.0.3"
   }
 }

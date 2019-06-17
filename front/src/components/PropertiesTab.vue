@@ -7,13 +7,20 @@
                 </v-card-title>
 
                 <v-card-text>
-                    <v-layout justify-center column>
+                    <v-layout justify-center>
                         <v-flex>
                             <v-text-field v-validate="'required'" :error-messages="errors.collect('label')"
                                           v-model="editedItem.label" label="Label" data-vv-name="label"
                                           clearable required>
                             </v-text-field>
                         </v-flex>
+                    </v-layout>
+                    <v-layout>
+                        <v-flex>
+                            <swatches v-model="editedItem.color" colors="material-basic" inline/>
+                        </v-flex>
+                    </v-layout>
+                    <v-layout>
                         <v-flex>
                             <v-select v-validate="'required'" :error-messages="errors.collect('typeOfValue')"
                                       v-model="editedItem.typeOfValue" :items="typeOfValues"
@@ -35,9 +42,16 @@
             <v-btn fixed fab bottom right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
+            <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
+                No properties registered.
+            </div>
             <template v-for="(item, index) in properties">
 
                 <v-list-tile :key="item.label" avatar @click="">
+
+                    <v-list-tile-avatar>
+                        <swatches v-model="item.color" disabled colors="material-basic"/>
+                    </v-list-tile-avatar>
 
                     <v-list-tile-content>
                         <v-list-tile-title v-html="item.label"></v-list-tile-title>
@@ -68,6 +82,10 @@
 
 <script>
     import {Validator} from 'vee-validate';
+    import Swatches from 'vue-swatches'
+
+    // Import the styles too, globally
+    import "vue-swatches/dist/vue-swatches.min.css"
 
     Validator.extend('isBiggerThanZero', {
         getMessage: field => 'The ' + field + ' is not greater than 0.',
@@ -78,6 +96,9 @@
         $_veeValidate: {
             validator: 'new'
         },
+        components: {
+            Swatches,
+        },
         data() {
             return {
                 dialog: false,
@@ -85,7 +106,8 @@
                 properties: [],
                 editedItem: {
                     label: '',
-                    typeOfValue: ''
+                    typeOfValue: '',
+                    color: "#F44336"
                 },
                 typeOfValues: ['Number', 'String'],
                 dictionary: {
@@ -122,10 +144,14 @@
         },
         methods: {
             editItem(item) {
-
+                this.editedItem = Object.assign({}, item);
+                this.editedIndex = this.properties.indexOf(item);
+                this.isEditing = true;
+                this.dialog = true;
             },
             deleteItem(item) {
-
+                const index = this.properties.indexOf(item);
+                confirm('Are you sure you want to delete this property?') && this.properties.splice(index, 1);
             },
             close() {
                 this.dialog = false;
@@ -133,6 +159,12 @@
             save(){
                 this.$validator.validateAll().then(result => {
                     if (result) {
+                        if(this.isEditing) {
+                            Object.assign(this.properties[this.editedIndex], this.editedItem);
+                            this.isEditing = false;
+                        } else {
+                            this.properties.push(this.editedItem);
+                        }
                         this.close();
                     }
                 });
@@ -150,5 +182,9 @@
     .page-container {
         overflow: auto;
         margin: 2px;
+    }
+
+    .text-centered{
+        text-align: center;
     }
 </style>
