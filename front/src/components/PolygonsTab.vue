@@ -50,14 +50,14 @@
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="black" flat @click.native="close">Cancel</v-btn>
-                    <v-btn color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
+                    <v-btn color="teal lighten-2" flat @click.native="close">Cancel</v-btn>
+                    <v-btn dark color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
 
         <v-list two-line>
-            <v-btn fixed fab bottom right color="teal lighten-2" @click="openDialog">
+            <v-btn fixed fab bottom dark right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="polygons.length === 0">

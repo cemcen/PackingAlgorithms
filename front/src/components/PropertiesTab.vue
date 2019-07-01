@@ -28,26 +28,47 @@
                                       clearable required></v-select>
                         </v-flex>
                     </v-layout>
+                    <v-layout>
+                        <v-flex>
+                            <v-text-field v-model="editedItem.default" label="Default Value"
+                                          :type="editedItem.typeOfValue === 'Number'? 'number': 'text'"
+                                          clearable required>
+                            </v-text-field>
+                        </v-flex>
+                    </v-layout>
                 </v-card-text>
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="black" flat @click.native="close">Cancel</v-btn>
-                    <v-btn color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
+                    <v-btn color="teal lighten-2" flat @click.native="close">Cancel</v-btn>
+                    <v-btn dark color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
 
         <v-list two-line>
-            <v-btn fixed fab bottom right color="teal lighten-2" @click="openDialog">
+            <v-btn fixed dark fab bottom right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
+            <v-layout class="right-layout" align-end>
+                <v-flex>
+                    <v-btn :dark="selectedProperties.some(val => val)" depressed
+                           :disabled="!selectedProperties.some(val => val)" color="teal lighten-2"
+                           @click="assignProperties">
+                        Assign Properties
+                    </v-btn>
+                </v-flex>
+            </v-layout>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
                 No properties registered.
             </div>
             <template v-for="(item, index) in properties">
 
                 <v-list-tile :key="item.label" avatar @click="">
+
+                    <v-list-tile-action class="checkbox-width">
+                        <v-checkbox color="teal lighten-2" v-model="selectedProperties[index]"></v-checkbox>
+                    </v-list-tile-action>
 
                     <v-list-tile-avatar>
                         <swatches v-model="item.color" disabled colors="material-basic"/>
@@ -56,11 +77,12 @@
                     <v-list-tile-content>
                         <v-list-tile-title v-html="item.label"></v-list-tile-title>
                         <v-list-tile-sub-title>
-                            <span>Type of value: {{ item.typeOfValue }}</span>
+                            <span>Type of value: {{ item.typeOfValue }}</span> <br/>
+                            <span>Default value: {{ item.default? item.default : 'Not Defined' }}</span>
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
-                    <v-list-tile-action>
-                        <v-layout row>
+                    <v-list-tile-action class="checkbox-width">
+                        <v-layout column>
                             <v-flex>
                                 <v-btn icon ripple @click="editItem(item)">
                                     <v-icon color="teal lighten-2">edit</v-icon>
@@ -103,6 +125,7 @@
             return {
                 dialog: false,
                 isEditing: false,
+                selectedProperties: [],
                 properties: [],
                 editedItem: {
                     label: '',
@@ -128,7 +151,10 @@
             }
         },
         mounted() {
-            if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
+            if (localStorage.getItem('properties')) {
+                this.properties = JSON.parse(localStorage.getItem('properties'));
+                this.properties.forEach(() => this.selectedProperties.push(false));
+            }
             this.$validator.localize('es', this.dictionary);
         },
         watch: {
@@ -151,7 +177,11 @@
             },
             deleteItem(item) {
                 const index = this.properties.indexOf(item);
-                confirm('Are you sure you want to delete this property?') && this.properties.splice(index, 1);
+
+                if(confirm('Are you sure you want to delete this property?')) {
+                    this.properties.splice(index, 1);
+                    this.selectedProperties.splice(index, 1);
+                }
             },
             close() {
                 this.dialog = false;
@@ -164,10 +194,15 @@
                             this.isEditing = false;
                         } else {
                             this.properties.push(this.editedItem);
+                            this.selectedProperties.push(false);
                         }
+                        localStorage.setItem('properties', JSON.stringify(this.properties));
                         this.close();
                     }
                 });
+            },
+            assignProperties() {
+                this.$emit('assign', true)
             },
             openDialog() {
                 this.dialog = true;
@@ -186,5 +221,14 @@
 
     .text-centered{
         text-align: center;
+    }
+
+    .checkbox-width{
+        min-width: 20px;
+    }
+
+    .right-layout{
+        display: grid;
+        justify-content: flex-end;
     }
 </style>
