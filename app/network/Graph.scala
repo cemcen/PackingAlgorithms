@@ -14,9 +14,10 @@ import java.awt.image.BufferedImage
 import java.awt.{BasicStroke, Color, Font, Graphics2D}
 import java.awt.geom._
 
+import scala.reflect.io.Path
+
 class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: mutable.HashMap[Node, ArrayBuffer[Node]]) {
 
-  val circle_size: (Double, Double) = (20.0, 20.0)
   val size: (Int, Int) = (550, 550)
 
   def this() = this(new mutable.HashMap[Point, Node](), new mutable.HashMap[Node, ArrayBuffer[Node]]())
@@ -294,6 +295,11 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     * This algorithm looks for the route that covers a hole beginning from the exterior of one of the edges of the packing polygon.
     */
   def lookForShortestRoute(nodeA: Node, nodeB: Node): ArrayBuffer[Node] = {
+
+//    println("***** LOOKING FOR ROUTE ********")
+//    println("Node INI: " + nodeA)
+//    println("Node END: " + nodeB)
+
     var currentNode: Node = nodeA
     var nextNode: Node = nodeB
     var routeList: ArrayBuffer[Node] = new ArrayBuffer[Node]()
@@ -301,14 +307,11 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     while (routeList.distinct.size == routeList.size) {
 
-      //println("---------------")
-      //println("Current Node: " + currentNode)
-      // Change currentNode
       val auxNode = nextNode
 
       // Look for next node
       nextNode = lookForMinimumAngle(currentNode, nextNode, links(nextNode))
-      //println("Next Node: " + auxNode)
+
       // Add current node of this iteration to the route List.
       currentNode = auxNode
       routeList += currentNode
@@ -326,19 +329,19 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     var minimumAngle: Double = Double.MaxValue
     val compareVector: Vector = Vector(nodeEnd.value, nodeIni.value)
 
-    //println("***** LOOKING FOR ANGLE ********")
-    //println("Node INI: " + nodeIni)
-    //println("Node END: " + nodeEnd)
+//    println("***** LOOKING FOR ANGLE ********")
+//    println("Node INI: " + nodeIni)
+//    println("Node END: " + nodeEnd)
 
     // Only one route possible
     if(possibleNextNodes.length == 2) {
       possibleNextNodes.foreach(node => {
         val maybeVector: Vector = Vector(nodeEnd.value, node.value)
         val crossProductSign = compareVector x maybeVector
-
-        //println("Node: " + node)
-        //println("CrossProduct: " + crossProductSign)
-        //println("********")
+//
+//        println("Node: " + node)
+//        println("CrossProduct: " + crossProductSign)
+//        println("********")
         if(!(crossProductSign === 0.0 +- 1e-3))
           return node
       })
@@ -346,18 +349,21 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     possibleNextNodes.foreach(node => {
       val maybeVector: Vector = Vector(nodeEnd.value, node.value)
-      var angle: Double = Math.acos((maybeVector * compareVector) / (maybeVector.magnitude() * compareVector.magnitude()))
+      var calculation: Double = (maybeVector * compareVector) / (maybeVector.magnitude() * compareVector.magnitude())
+      if(calculation === -1.0 +- 1e-8) calculation = -1.0
+      if(calculation === 1.0 +- 1e-8) calculation = 1.0
+      var angle: Double = Math.acos(calculation)
       val crossProductSign = compareVector x maybeVector
 
-      //println("Node: " + node)
-      //println("Angle: " + angle)
-      //println("CrossProduct: " + crossProductSign)
-      //println("********")
+//      println("Node: " + node)
+//      println("Angle: " + angle)
+//      println("CrossProduct: " + crossProductSign)
+//      println("********")
 
       if (angle.isNaN) angle = 0
       // We order the angles counterclockwise.
 
-      if (angle < minimumAngle && crossProductSign < 0 && !(angle === 0.0 +- 1e-3)) {
+      if (angle < minimumAngle && (crossProductSign < 0 || crossProductSign === 0.0 +- 1e-8) && !(angle === 0.0 +- 1e-8)) {
         minimumAngle = angle
         chosenNode = node
       }
@@ -372,14 +378,28 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     nodes.contains(node.value)
   }
 
-  def getPolygonInGraph(drawRoutes: Boolean = false, route: String = "", width: Int = 0, height: Int = 0): ArrayBuffer[Polygon] = {
+  def getPolygonInGraph(drawRoutes: Boolean = false, route: String = "", width: Int = 0, height: Int = 0,
+                        circle_size: (Double, Double) = (20,20)): ArrayBuffer[Polygon] = {
 
-    //println("Number Of Nodes: " + this.getNumberOfNodes)
-    //nodes.toList.foreach(element => {
-    //  val nodeA: Node = element._2
-    //  println("Node: " + nodeA)
-    //  links(nodeA).foreach(println(_))
-    //})
+    if(drawRoutes) {
+      val path = Path.string2path(route)
+      path.jfile.listFiles.foreach(f => {
+        f.delete()
+      })
+    }
+
+    var edgesMarked: mutable.HashMap[Node, mutable.HashMap[Node, Boolean]] = new mutable.HashMap[Node, mutable.HashMap[Node, Boolean]]()
+    links.foreach(link => {
+      val nodeA = link._1
+      if(!(edgesMarked contains nodeA)) {
+        edgesMarked += ((nodeA, new mutable.HashMap[Node, Boolean]()))
+      }
+      link._2.foreach(nodeB => {
+        if(!(edgesMarked(nodeA) contains nodeB)) {
+          edgesMarked(nodeA) += ((nodeB, false))
+        }
+      })
+    })
 
     var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
 
@@ -388,7 +408,28 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
       if(links(nodeA).length > 2) {
         links(nodeA).foreach(nodeB => {
-          // Look for node in ccw direction.
+          if(!edgesMarked(nodeA)(nodeB)) {
+            val nextNode = lookForMinimumAngle(nodeA, nodeB, links(nodeB))
+            if(!edgesMarked(nodeB)(nextNode)
+                  && (Vector.apply(nodeA.value, nodeB.value) x Vector.apply(nodeB.value, nextNode.value)) > 0
+                  && !((Vector.apply(nodeA.value, nodeB.value) x Vector.apply(nodeB.value, nextNode.value)) === 0.0 +- 1e-8)) {
+//              println("***************************")
+//              println("*******  PREVIOUS NODE *********")
+//              println("NODE: " + nodeA)
+              val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeB, nextNode)
+              for( i <- nodeList.indices) {
+                val node1 = nodeList(i)
+                val node2 = nodeList((i + 1) % nodeList.length)
+                edgesMarked(node1)(node2) = true
+              }
+              if (drawRoutes) {
+                this.exportPNGRoute(width, height, route,
+                  nodeB.value.toString + "__" + nextNode.value.toString + ".png",
+                  nodeList, circle_size)
+              }
+              polygonList += nodeListToPolygon(nodeList)
+            }
+          }
         })
       } else {
         // Store both points
@@ -400,18 +441,36 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
         val vectorCA: Vector = Vector(nodeC.value, nodeA.value)
 
         if((vectorBA x vectorCA) < 0) {
-          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeB, nodeA)
-          if(drawRoutes) {
-            this.exportPNGRoute(width, height, route, nodeB.value.toString + "__" + nodeA.toString + ".png", nodeList)
+          if(!edgesMarked(nodeB)(nodeA)) {
+            val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeB, nodeA)
+            for( i <- nodeList.indices) {
+              val node1 = nodeList(i)
+              val node2 = nodeList((i + 1) % nodeList.length)
+              edgesMarked(node1)(node2) = true
+            }
+            if (drawRoutes) {
+              this.exportPNGRoute(width, height, route,
+                nodeB.value.toString + "__" + nodeA.value.toString + ".png",
+                nodeList, circle_size)
+            }
+            polygonList += nodeListToPolygon(nodeList)
           }
-          polygonList += nodeListToPolygon(nodeList)
 
         } else if((vectorBA x vectorCA) > 0) {
-          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeC, nodeA)
-          if(drawRoutes) {
-            this.exportPNGRoute(width, height, route, nodeC.value.toString + "__" + nodeA.toString + ".png", nodeList)
+          if(!edgesMarked(nodeC)(nodeA)) {
+            val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeC, nodeA)
+            for( i <- nodeList.indices) {
+              val node1 = nodeList(i)
+              val node2 = nodeList((i + 1) % nodeList.length)
+              edgesMarked(node1)(node2) = true
+            }
+            if (drawRoutes) {
+              this.exportPNGRoute(width, height, route,
+                nodeC.value.toString + "__" + nodeA.value.toString + ".png",
+                nodeList, circle_size)
+            }
+            polygonList += nodeListToPolygon(nodeList)
           }
-          polygonList += nodeListToPolygon(nodeList)
         }
       }
 
@@ -458,24 +517,22 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     new Polygon(points.toList)
   }
 
-  def exportPNGRoute(height: Int, width: Int, route: String, filename: String, routeList: ArrayBuffer[Node]): Unit = {
-    var drawG = this.drawGraph(50,50)
-    drawG = this.drawRoute(drawG._1, drawG._2, routeList, 50, 50, drawNumbers = true)
+  def exportPNGRoute(height: Int, width: Int, route: String, filename: String,
+                     routeList: ArrayBuffer[Node], circle_size: (Double, Double) = (20,20)): Unit = {
+    var drawG = this.drawGraph(width,height, circle_size)
+    drawG = this.drawRoute(drawG._1, drawG._2, routeList, height, width, drawNumbers = true, circle_size)
     this.exportCanvas(drawG._1, drawG._2,route, filename)
 
   }
 
-  def exportPNGGraph(height: Int, width: Int, route: String, filename: String): Unit = {
-    val drawG = this.drawGraph(50,50)
-    this.exportCanvas(drawG._1, drawG._2, "debug/test/graph_test/test_4/", "graph.png")
+  def exportPNGGraph(height: Int, width: Int, route: String, filename: String, circle_size: (Double, Double) = (20,20)): Unit = {
+    val drawG = this.drawGraph(width,height, circle_size)
+    this.exportCanvas(drawG._1, drawG._2, route, filename)
   }
 
-  private def drawRoute(g: Graphics2D,
-                canvas: BufferedImage,
-                routeList: ArrayBuffer[Node],
-                height: Int,
-                width: Int,
-                drawNumbers: Boolean = false): (Graphics2D, BufferedImage) = {
+  private def drawRoute(g: Graphics2D, canvas: BufferedImage, routeList: ArrayBuffer[Node],
+                        height: Int, width: Int, drawNumbers: Boolean = false,
+                        circle_size: (Double, Double)): (Graphics2D, BufferedImage) = {
 
 
     // Color for the edges (BLACK)
@@ -520,7 +577,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     (g, canvas)
   }
 
-  private def drawGraph(width: Int, height: Int): (Graphics2D, BufferedImage) = {
+  private def drawGraph(width: Int, height: Int, circle_size: (Double, Double)): (Graphics2D, BufferedImage) = {
 
     // create an image
     val canvas = new BufferedImage(size._1, size._2, BufferedImage.TYPE_INT_RGB)

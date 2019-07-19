@@ -64,6 +64,16 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       }
     })
 
+    println(" PACKING ")
+    println()
+    polygonList.foreach(pol => {
+      println("POLYGON")
+      pol.points.foreach(pnt => {
+        println(pnt)
+      })
+      println()
+    })
+
     finalPolygonPosition = packingTechnique.getPolygonList
   }
 }
