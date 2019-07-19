@@ -5,14 +5,19 @@ import algorithms.geometric.Container2D
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import geometry.{Point, Polygon, Vector}
-
 import org.scalactic._
 import org.scalactic.TripleEquals._
 import Tolerance._
 
 import util.control.Breaks._
+import java.awt.image.BufferedImage
+import java.awt.{BasicStroke, Color, Font, Graphics2D}
+import java.awt.geom._
 
 class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: mutable.HashMap[Node, ArrayBuffer[Node]]) {
+
+  val circle_size: (Double, Double) = (20.0, 20.0)
+  val size: (Int, Int) = (550, 550)
 
   def this() = this(new mutable.HashMap[Point, Node](), new mutable.HashMap[Node, ArrayBuffer[Node]]())
 
@@ -367,7 +372,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     nodes.contains(node.value)
   }
 
-  def getPolygonInGraph: ArrayBuffer[Polygon] = {
+  def getPolygonInGraph(drawRoutes: Boolean = false, route: String = "", width: Int = 0, height: Int = 0): ArrayBuffer[Polygon] = {
 
     //println("Number Of Nodes: " + this.getNumberOfNodes)
     //nodes.toList.foreach(element => {
@@ -377,46 +382,197 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     //})
 
     var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
-    var edges: mutable.HashMap[Node, ArrayBuffer[Node]] = new mutable.HashMap[Node, ArrayBuffer[Node]]()
-
-    for (node <- nodes) {
-      edges += ((node._2, new mutable.ArrayBuffer[Node]()))
-    }
 
     nodes.toList.foreach(element => {
       val nodeA: Node = element._2
-      //println("****************")
-      //println("Node A: " + nodeA)
 
-      links(nodeA).foreach(nodeB => {
-        if (!edges(nodeA).contains(nodeB)) {
-          //println("****************")
-          //println("Node B: " + nodeB)
-          edges(nodeA) += nodeB
-          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeA, nodeB).distinct
-          for (i <- nodeList.indices) {
-            val node1: Node = nodeList(i)
-            val node2: Node = nodeList((i + 1) % nodeList.length)
-            if (!edges(node1).contains(node2)) {
-              edges(node1) += node2
-            }
+      if(links(nodeA).length > 2) {
+        links(nodeA).foreach(nodeB => {
+          // Look for node in ccw direction.
+        })
+      } else {
+        // Store both points
+        val nodeB: Node = links(nodeA).head
+        val nodeC: Node = links(nodeA).tail.head
+
+        // Check if BAC or CAB is ccw and the look for the cycle (polygon or hole).
+        val vectorBA: Vector = Vector(nodeB.value, nodeA.value)
+        val vectorCA: Vector = Vector(nodeC.value, nodeA.value)
+
+        if((vectorBA x vectorCA) < 0) {
+          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeB, nodeA)
+          if(drawRoutes) {
+            this.exportPNGRoute(width, height, route, nodeB.value.toString + "__" + nodeA.toString + ".png", nodeList)
           }
+          polygonList += nodeListToPolygon(nodeList)
 
-          val polygon: Polygon = new Polygon(nodeList.map(_.value).toList)
-
-          if(polygon.ccw() && links(nodeList(nodeList.length - 1)).contains(nodeList.head)) {
-            polygonList += polygon
-            println("---------------------")
-            polygon.points.foreach(println(_))
-            println("IAM CCW")
+        } else if((vectorBA x vectorCA) > 0) {
+          val nodeList: ArrayBuffer[Node] = lookForShortestRoute(nodeC, nodeA)
+          if(drawRoutes) {
+            this.exportPNGRoute(width, height, route, nodeC.value.toString + "__" + nodeA.toString + ".png", nodeList)
           }
+          polygonList += nodeListToPolygon(nodeList)
         }
-      })
+      }
+
     })
 
     polygonList
   }
 
   def getNumberOfNodes: Int = nodes.toList.length
+  def getNumberOfEdges: Int = {
+    var count = 0
+    links.toList.foreach(link => {
+      count += link._2.length
+    })
+
+    count / 2
+  }
+
+  def printEdgeList(): Unit = {
+    links.toList.foreach(link => {
+      println("**************")
+      println("Edge List")
+      println()
+      println("Node: " + link._1.value)
+      println()
+      link._2.foreach(node => {
+        println("Edge: " + node.value)
+        println()
+      })
+    })
+  }
+
   def getNodeByPoint(point: Point): Node = nodes(point)
+
+  def nodeListToPolygon(nodeList: ArrayBuffer[Node]): Polygon = {
+    var points: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+
+    nodeList.foreach(node => {
+      if(!points.contains(node.value)) {
+        points += node.value
+      }
+    })
+
+    new Polygon(points.toList)
+  }
+
+  def exportPNGRoute(height: Int, width: Int, route: String, filename: String, routeList: ArrayBuffer[Node]): Unit = {
+    var drawG = this.drawGraph(50,50)
+    drawG = this.drawRoute(drawG._1, drawG._2, routeList, 50, 50, drawNumbers = true)
+    this.exportCanvas(drawG._1, drawG._2,route, filename)
+
+  }
+
+  def exportPNGGraph(height: Int, width: Int, route: String, filename: String): Unit = {
+    val drawG = this.drawGraph(50,50)
+    this.exportCanvas(drawG._1, drawG._2, "debug/test/graph_test/test_4/", "graph.png")
+  }
+
+  private def drawRoute(g: Graphics2D,
+                canvas: BufferedImage,
+                routeList: ArrayBuffer[Node],
+                height: Int,
+                width: Int,
+                drawNumbers: Boolean = false): (Graphics2D, BufferedImage) = {
+
+
+    // Color for the edges (BLACK)
+    g.setColor(new Color(0, 0, 0))
+
+    for( i <- 0 until routeList.indices.length - 1) {
+      val NodeA = routeList(i)
+      val NodeB = routeList((i + 1) % routeList.length)
+
+      g.draw(new Line2D.Double(
+        (NodeA.value.x / width) * 500 + circle_size._1 / 2,
+        ((height - NodeA.value.y) / height) * 500 + circle_size._2 / 2,
+        (NodeB.value.x / width) * 500 + circle_size._1 / 2,
+        ((height - NodeB.value.y) / height) * 500 + circle_size._2 / 2))
+    }
+
+
+    for( i <- 0 until routeList.indices.length - 1) {
+      val NodeA = routeList(i)
+      // set color of the nodes (RED)
+      g.setColor(new Color(255,134,124))
+      g.fill(new Ellipse2D.Double(
+        (NodeA.value.x / width) * 500 ,
+        ((height - NodeA.value.y) / height) * 500,
+        circle_size._1,
+        circle_size._2))
+
+      // black color for fonts.
+      if(drawNumbers) {
+        g.setColor(new Color(0, 0, 0))
+        g.setFont(new Font("Serif", Font.BOLD, 15))
+        val fm = g.getFontMetrics()
+        val w = fm.stringWidth((i + 1).toString)
+        val h = fm.getAscent
+        g.drawString(
+          (i + 1).toString,
+          ((NodeA.value.x / width) * 500 + circle_size._1 / 2 - (w / 2)).toFloat,
+          (((height - NodeA.value.y) / height) * 500 + circle_size._2 / 2 + (h / 4)).toFloat)
+      }
+    }
+
+    (g, canvas)
+  }
+
+  private def drawGraph(width: Int, height: Int): (Graphics2D, BufferedImage) = {
+
+    // create an image
+    val canvas = new BufferedImage(size._1, size._2, BufferedImage.TYPE_INT_RGB)
+
+    // get Graphics2D for the image
+    val g = canvas.createGraphics()
+
+    // clear background
+    g.setColor(Color.WHITE)
+    g.fillRect(0, 0, canvas.getWidth, canvas.getHeight)
+
+    // enable anti-aliased rendering (prettier lines and circles)
+    // Comment it out to see what this does!
+    g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+      java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+
+    // Draw the nodes.
+    g.setStroke(new BasicStroke())  // reset to default
+    g.setColor(new Color(0, 0, 0)) // same as Color.BLUE
+
+    links.toList.foreach(link => {
+      link._2.toList.foreach(node => {
+        g.draw(new Line2D.Double(
+          (link._1.value.x / width) * 500 + circle_size._1 / 2,
+          ((height - link._1.value.y) / height) * 500 + circle_size._2 / 2,
+          (node.value.x / width) * 500 + circle_size._1 / 2,
+          ((height - node.value.y) / height) * 500 + circle_size._2 / 2))
+      })
+    })
+
+    // set color of the nodes
+    g.setColor(new Color(66,165,245))
+
+    // Draw the nodes.
+    links.toList.foreach(link => {
+      g.fill(new Ellipse2D.Double(
+        (link._1.value.x / width) * 500 ,
+        ((height - link._1.value.y) / height) * 500,
+        circle_size._1,
+        circle_size._2))
+    })
+
+
+    (g, canvas)
+  }
+
+  private def exportCanvas(g: Graphics2D, canvas: BufferedImage, route: String, filename: String): Unit = {
+
+    // done with drawing
+    g.dispose()
+
+    // write image to a file
+    javax.imageio.ImageIO.write(canvas, "png", new java.io.File(route + filename))
+  }
 }

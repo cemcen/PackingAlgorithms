@@ -19,5 +19,5 @@ abstract class PackingApproach {
                        container: Container2D, polygonList: ArrayBuffer[Polygon],
                        polygonIntersectionA: Polygon, polygonIntersectionB: Polygon): Point
 
-  def getPolygonList: ArrayBuffer[Polygon] = this.graph.getPolygonInGraph
+  def getPolygonList: ArrayBuffer[Polygon] = this.graph.getPolygonInGraph()
 }

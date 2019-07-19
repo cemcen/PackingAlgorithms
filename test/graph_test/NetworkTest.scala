@@ -88,6 +88,86 @@ class NetworkTest extends FlatSpec with Matchers {
     route.distinct.length should === (11)
     route2.distinct.length should === (5)
 
-    graph.getPolygonInGraph
+    graph.getPolygonInGraph()
+  }
+
+
+  it should "it should find the correct holes" in {
+
+    var graph: Graph = new Graph()
+    val container: Container2D = Container2D(50, 50)
+    graph.addContainer(container)
+
+    val polygonA: Polygon = new Polygon(List(new Point(25.009771483112065,2.998712319330295),
+      new Point(29.680474897306794,16.256907321448658),
+      new Point(20.122892114600255,28.072282969822055),
+      new Point(4.947623285251153,25.300816713567258),
+      new Point(0.0,11.890919459601822),
+      new Point(9.542436253995271,0.0)
+    ))
+
+    val polygonB: Polygon = new Polygon(List(new Point(19.38181701665519,39.0844692643667),
+      new Point(7.8365197894500085,46.12946215677053),
+      new Point(3.552713678800501E-15,34.19507813253752),
+      new Point(12.302696434326421,26.644077071863144)
+    ))
+
+    val polygonC: Polygon = new Polygon(List(new Point(27.356295257807812,9.659522699084789),
+      new Point(38.05488497660717,0.0),
+      new Point(47.349850599115264,9.804331423452119),
+      new Point(37.86227699705536,19.962155611049738)
+    ))
+
+    val polygonD: Polygon = new Polygon(List(new Point(50.00000000000001,33.88201640308741),
+      new Point(35.71064651419611,33.721694626521845),
+      new Point(35.49094167746731,20.1274735760122),
+      new Point(49.37799313948949,19.15933589085798)
+    ))
+
+    val polygonE: Polygon = new Polygon(List(new Point(35.04618569254171,47.90867216691592),
+      new Point(21.012190873257257,49.999999999999986),
+      new Point(18.930703370051607,36.06421421376885),
+      new Point(32.54550964970839,33.66861394420066)
+    ))
+
+    graph = graph.addPolygon1Intersection(polygonA, container.getPolygon)
+    graph = graph.addPolygon2Intersections(polygonB, container.getPolygon, polygonA)
+    graph = graph.addPolygon2Intersections(polygonC, container.getPolygon, polygonA)
+    graph = graph.addPolygon2Intersections(polygonD, container.getPolygon, polygonC)
+    graph = graph.addPolygon2Intersections(polygonE, container.getPolygon, polygonB)
+
+    graph.exportPNGGraph(50, 50, "debug/test/graph_test/test_4/", "graph.png")
+
+    val route = graph.lookForShortestRoute(
+      graph.getNodeByPoint(new Point(47.349850599115264,9.804331423452119)),
+      graph.getNodeByPoint(new Point(38.05488497660717,0.0))
+    )
+
+    graph.exportPNGRoute(50, 50, "debug/test/graph_test/test_4/", "route1.png", route)
+
+    val route2 = graph.lookForShortestRoute(
+      graph.getNodeByPoint(new Point(18.930703370051607,36.06421421376885)),
+      graph.getNodeByPoint(new Point(32.54550964970839,33.66861394420066))
+    )
+
+    val route3 = graph.lookForShortestRoute(
+      graph.getNodeByPoint(new Point(35.71064651419611,33.721694626521845)),
+      graph.getNodeByPoint(new Point(35.49094167746731,20.1274735760122))
+    )
+
+    val route4 = graph.lookForShortestRoute(
+      graph.getNodeByPoint(new Point(37.86227699705536,19.962155611049738)),
+      graph.getNodeByPoint(new Point(49.37799313948949,19.15933589085798))
+    )
+
+    route.distinct.length should === (6)
+    route2.length should === (6)
+    route3.length should === (6)
+    route4.length should === (6)
+
+    graph.getNumberOfEdges should === (36)
+    graph.getNumberOfNodes should === (26)
+
+    graph.getPolygonInGraph(drawRoutes = true, "debug/test/graph_test/test_4/allRoutes/", 50, 50)
   }
 }

@@ -2,101 +2,113 @@
     <div class="page-container">
         <v-layout class="all-height">
             <v-flex sm9 pa-2>
-                <v-toolbar color="#eeeeee">
-                    <v-toolbar-title>Packing</v-toolbar-title>
-                    <v-divider class="mx-2" inset vertical></v-divider>
-                    <v-spacer></v-spacer>
-                    <v-btn color="teal lighten-2" dark @click="exportPacking" class="mb-2">
-                        <v-icon>save_alt</v-icon>
-                        Export
-                    </v-btn>
-                    <v-btn color="teal lighten-2" :disabled="executing" @click="dialog = true" dark class="mb-2">Create New Packing</v-btn>
-                    <v-progress-circular v-show="executing" indeterminate color="teal lighten-2"></v-progress-circular>
-                    <v-dialog v-model="dialog" persistent max-width="500px">
-                        <v-card color="#ffffff">
-                            <v-card-title>
-                                <span class="headline">New Packing</span>
-                            </v-card-title>
+                <v-card class="my-card">
+                    <v-toolbar color="#eeeeee">
+                        <v-toolbar-title>Packing</v-toolbar-title>
+                        <v-divider class="mx-2" inset vertical></v-divider>
+                        <v-spacer></v-spacer>
+                        <v-btn color="teal lighten-2" dark @click="exportPacking" class="mb-2">
+                            <v-icon>save_alt</v-icon>
+                            Export
+                        </v-btn>
+                        <v-btn color="teal lighten-2" :disabled="executing" @click="dialog = true" dark class="mb-2">
+                            Create New Packing
+                        </v-btn>
+                        <v-progress-circular v-show="executing" indeterminate
+                                             color="teal lighten-2"></v-progress-circular>
+                        <v-dialog v-model="dialog" persistent max-width="500px">
+                            <v-card color="#ffffff">
+                                <v-card-title>
+                                    <span class="headline">New Packing</span>
+                                </v-card-title>
 
-                            <v-card-text>
-                                <v-layout justify-center>
-                                    <v-flex>
-                                        <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('width')"
-                                                      v-model="width" type="number" label="Container Width"
-                                                      data-vv-name="width" clearable required>
-                                        </v-text-field>
-                                        <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('height')"
-                                                      v-model="height" type="number" label="Container Height"
-                                                      data-vv-name="height" clearable required>
-                                        </v-text-field>
-                                        <v-checkbox color="teal lighten-2" v-model="randomShape" label="Random shape polygons?"
-                                                    required></v-checkbox>
-                                        <div v-if="!randomShape">
-                                            <v-text-field v-validate="'required|min_value:1'" :error-messages="errors.collect('regularity')"
-                                                          v-model="regularity" type="number" label="Container Regularity" data-vv-name="regularity"
-                                                          clearable>
+                                <v-card-text>
+                                    <v-layout justify-center>
+                                        <v-flex>
+                                            <v-text-field v-validate="'required|min_value:1'"
+                                                          :error-messages="errors.collect('width')"
+                                                          v-model="width" type="number" label="Container Width"
+                                                          data-vv-name="width" clearable required>
                                             </v-text-field>
-                                        </div>
-                                        <v-radio-group v-model="approachAlgorithm" row>
-                                            <v-radio color="teal lighten-2" label="Border Preference" value="0"></v-radio>
-                                            <v-radio color="teal lighten-2" label="Less Density" value="1"></v-radio>
-                                        </v-radio-group>
-                                    </v-flex>
-                                </v-layout>
-                            </v-card-text>
+                                            <v-text-field v-validate="'required|min_value:1'"
+                                                          :error-messages="errors.collect('height')"
+                                                          v-model="height" type="number" label="Container Height"
+                                                          data-vv-name="height" clearable required>
+                                            </v-text-field>
+                                            <v-checkbox color="teal lighten-2" v-model="randomShape"
+                                                        label="Random shape polygons?"
+                                                        required></v-checkbox>
+                                            <div v-if="!randomShape">
+                                                <v-text-field v-validate="'required|min_value:1'"
+                                                              :error-messages="errors.collect('regularity')"
+                                                              v-model="regularity" type="number"
+                                                              label="Container Regularity" data-vv-name="regularity"
+                                                              clearable>
+                                                </v-text-field>
+                                            </div>
+                                            <v-radio-group v-model="approachAlgorithm" row>
+                                                <v-radio color="teal lighten-2" label="Border Preference"
+                                                         value="0"></v-radio>
+                                                <v-radio color="teal lighten-2" label="Less Density"
+                                                         value="1"></v-radio>
+                                            </v-radio-group>
+                                        </v-flex>
+                                    </v-layout>
+                                </v-card-text>
 
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn color="teal lighten-2" flat @click.native="dialog = false">Close</v-btn>
-                                <v-btn dark color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="teal lighten-2" flat @click.native="dialog = false">Close</v-btn>
+                                    <v-btn dark color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
 
-                    <!--<v-dialog v-model="dialogInfo" persistent max-width="500px">
-                        <v-card color="#ffffff" >
-                            <v-card-title>
-                                <span class="headline">Polygon Properties</span>
-                            </v-card-title>
+                        <!--<v-dialog v-model="dialogInfo" persistent max-width="500px">
+                            <v-card color="#ffffff" >
+                                <v-card-title>
+                                    <span class="headline">Polygon Properties</span>
+                                </v-card-title>
 
-                            <v-card-text>
-                                <v-layout column>
-                                    <v-flex>
-                                        <v-text-field disabled v-model="polygon.label"
-                                                      label="Label">
-                                        </v-text-field>
-                                    </v-flex>
-                                    <v-flex>
-                                        <v-text-field disabled v-model="polygon.points.length"
-                                                      label="Number of vertex">
-                                        </v-text-field>
-                                    </v-flex>
-                                </v-layout>
-                                <v-layout row v-for="property in polygon.properties" :key="property">
-                                    <v-flex>
-                                        <v-text-field disabled v-model="property.name"
-                                                      label="Property">
-                                        </v-text-field>
-                                    </v-flex>
-                                    <v-flex>
-                                        <v-text-field disabled v-model="property.value"
-                                                      label="Value">
-                                        </v-text-field>
-                                    </v-flex>
-                                </v-layout>
-                            </v-card-text>
+                                <v-card-text>
+                                    <v-layout column>
+                                        <v-flex>
+                                            <v-text-field disabled v-model="polygon.label"
+                                                          label="Label">
+                                            </v-text-field>
+                                        </v-flex>
+                                        <v-flex>
+                                            <v-text-field disabled v-model="polygon.points.length"
+                                                          label="Number of vertex">
+                                            </v-text-field>
+                                        </v-flex>
+                                    </v-layout>
+                                    <v-layout row v-for="property in polygon.properties" :key="property">
+                                        <v-flex>
+                                            <v-text-field disabled v-model="property.name"
+                                                          label="Property">
+                                            </v-text-field>
+                                        </v-flex>
+                                        <v-flex>
+                                            <v-text-field disabled v-model="property.value"
+                                                          label="Value">
+                                            </v-text-field>
+                                        </v-flex>
+                                    </v-layout>
+                                </v-card-text>
 
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn color="teal lighten-2" flat @click.native="dialogInfo = false">Close</v-btn>
-                                <v-btn color="teal lighten-2" @keyup.enter="" @click.native="">Save</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog> -->
-                </v-toolbar>
-                <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
-                    <div ref="polygonDrawer"></div>
-                </div>
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="teal lighten-2" flat @click.native="dialogInfo = false">Close</v-btn>
+                                    <v-btn color="teal lighten-2" @keyup.enter="" @click.native="">Save</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog> -->
+                    </v-toolbar>
+                    <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
+                        <div ref="polygonDrawer"></div>
+                    </div>
+                </v-card>
             </v-flex>
             <v-flex sm3 pa-2>
                 <v-card class="my-card">

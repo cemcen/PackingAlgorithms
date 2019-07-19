@@ -6,9 +6,7 @@
         <v-content class="content-style">
             <v-layout class="all-height">
                 <v-flex sm12 pa-2>
-                    <v-card class="my-card">
-                        <packing-tab></packing-tab>
-                    </v-card>
+                    <packing-tab></packing-tab>
                 </v-flex>
             </v-layout>
         </v-content>
