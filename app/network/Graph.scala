@@ -321,6 +321,63 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
   }
 
   /**
+    * This algorithm looks for the minimum cycle that has the edge marked only once.
+    */
+  def lookForShortestRouteMarkedRoute(nodeA: Node, nodeB: Node,
+                                      edgesMarked: mutable.HashMap[Node, mutable.HashMap[Node, Boolean]]): ArrayBuffer[Node] = {
+    var currentNode: Node = nodeA
+    var nextNode: Node = nodeB
+    var routeList: ArrayBuffer[Node] = new ArrayBuffer[Node]()
+
+    while (routeList.distinct.size == routeList.size) {
+
+      val auxNode = nextNode
+
+      val possibleNextNodes: ArrayBuffer[Node] = links(nextNode).filter(node => !edgesMarked(nextNode)(node))
+
+      val compareVector: Vector = Vector(nextNode.value, currentNode.value)
+
+      if(possibleNextNodes.length == 1) {
+        nextNode = possibleNextNodes.head
+      } else if(possibleNextNodes.length == 2) {
+        possibleNextNodes.foreach(node => {
+          val maybeVector: Vector = Vector(nextNode.value, node.value)
+          val crossProductSign = compareVector x maybeVector
+          if(!(crossProductSign === 0.0 +- 1e-5))
+            nextNode = node
+        })
+      } else {
+        var chosenNode: Node = possibleNextNodes.head
+        var minimumAngle: Double = Double.MaxValue
+        possibleNextNodes.foreach(node => {
+          val maybeVector: Vector = Vector(nextNode.value, node.value)
+          var calculation: Double = (maybeVector * compareVector) / (maybeVector.magnitude() * compareVector.magnitude())
+          if(calculation === -1.0 +- 1e-8) calculation = -1.0
+          if(calculation === 1.0 +- 1e-8) calculation = 1.0
+          var angle: Double = Math.acos(calculation)
+          val crossProductSign = compareVector x maybeVector
+
+          if (angle.isNaN) angle = 0
+          // We order the angles counterclockwise.
+
+          if (angle < minimumAngle && (crossProductSign < 0 || crossProductSign === 0.0 +- 1e-8) && !(angle === 0.0 +- 1e-8)) {
+            minimumAngle = angle
+            chosenNode = node
+          }
+        })
+
+        nextNode = chosenNode
+      }
+
+      // Add current node of this iteration to the route List.
+      currentNode = auxNode
+      routeList += currentNode
+    }
+
+    routeList
+  }
+
+  /**
     * Looks for the node next to the end node given with minimum angle between them.
     * https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors
     */
@@ -378,16 +435,49 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     nodes.contains(node.value)
   }
 
+  /**
+    * Find all polygons in an undirected graph.
+    *
+    * The algorithm consists of drawing all minimum ccw cycles that we can find on this undirected graph.
+    *
+    * In each step we choose an edge that has not been marked (Edges that has not been processed yet).
+    * After we selected the edge we check how much degree the end node has.
+    * Depending on the degree we execute the following rules:
+    *
+    *    1. If the degree is 2.
+    *        When we have degree equals two we know that it can only be one route in ccw.
+    *        So using cross product we verify which route is ccw. Then we follow the route until it completes the cycle.
+    *    2. If the degree is greater than 2.
+    *        When the degree is greater than 2 we need to find the next node that completes a curve that is in ccw.
+    *        Then we follow the route until it completes the cycle.
+    *
+    * When finished this step we know that not all cycles are formed. The holes in between can be skipped.
+    * But we know that every edge must have been processed once.
+    *
+    * So the edges that only were processed once are the cycles that we have not found.
+    * So we reiterate over every edge to find those edges that had been marked only once.
+    * When found we follow the ccw route that has edges only marked once and add these cycles to the result.
+    *
+    * This algorithm is O(E), because we need to check all edges to find all the cycles.
+    *
+    * Computes 2E (Follow the cycles) + 2E (Check edges marked once) = 4E in total.
+    *
+    * */
   def getPolygonInGraph(drawRoutes: Boolean = false, route: String = "", width: Int = 0, height: Int = 0,
                         circle_size: (Double, Double) = (20,20)): ArrayBuffer[Polygon] = {
 
+    // Return list
+    var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+
     if(drawRoutes) {
-      val path = Path.string2path(route)
+      val path = Path.string2path(route + "allRoutes/")
       path.jfile.listFiles.foreach(f => {
         f.delete()
       })
     }
 
+
+    // Initialize structure that will mark the edges that we have already been.
     var edgesMarked: mutable.HashMap[Node, mutable.HashMap[Node, Boolean]] = new mutable.HashMap[Node, mutable.HashMap[Node, Boolean]]()
     links.foreach(link => {
       val nodeA = link._1
@@ -401,8 +491,8 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       })
     })
 
-    var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
 
+    // Follow the cycles
     nodes.toList.foreach(element => {
       val nodeA: Node = element._2
 
@@ -424,7 +514,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
               }
               if (drawRoutes) {
                 this.exportPNGRoute(width, height, route,
-                  nodeB.value.toString + "__" + nextNode.value.toString + ".png",
+                  "allRoutes/" + nodeB.value.toString + "__" + nextNode.value.toString + ".png",
                   nodeList, circle_size)
               }
               polygonList += nodeListToPolygon(nodeList)
@@ -450,7 +540,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
             }
             if (drawRoutes) {
               this.exportPNGRoute(width, height, route,
-                nodeB.value.toString + "__" + nodeA.value.toString + ".png",
+                "allRoutes/" + nodeB.value.toString + "__" + nodeA.value.toString + ".png",
                 nodeList, circle_size)
             }
             polygonList += nodeListToPolygon(nodeList)
@@ -466,15 +556,53 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
             }
             if (drawRoutes) {
               this.exportPNGRoute(width, height, route,
-                nodeC.value.toString + "__" + nodeA.value.toString + ".png",
+                "allRoutes/" + nodeC.value.toString + "__" + nodeA.value.toString + ".png",
                 nodeList, circle_size)
             }
             polygonList += nodeListToPolygon(nodeList)
           }
         }
       }
-
     })
+
+    // Find edges marked once.
+    edgesMarked.foreach(edge => {
+      edge._2.foreach(node_bool => {
+        if(node_bool._2 && !edgesMarked(node_bool._1)(edge._1)) {
+          val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(node_bool._1, edge._1, edgesMarked)
+          for( i <- nodeList.indices) {
+            val node1 = nodeList(i)
+            val node2 = nodeList((i + 1) % nodeList.length)
+            edgesMarked(node1)(node2) = true
+          }
+          if (drawRoutes) {
+            this.exportPNGRoute(width, height, route,
+              "allRoutes/" + node_bool._1.value.toString + "__" + edge._1.value.toString + ".png",
+              nodeList, circle_size)
+          }
+          polygonList += nodeListToPolygon(nodeList)
+        } else if (!node_bool._2 && edgesMarked(node_bool._1)(edge._1)) {
+          val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(edge._1, node_bool._1, edgesMarked)
+          for( i <- nodeList.indices) {
+            val node1 = nodeList(i)
+            val node2 = nodeList((i + 1) % nodeList.length)
+            edgesMarked(node1)(node2) = true
+          }
+          if (drawRoutes) {
+            this.exportPNGRoute(width, height, route,
+              "allRoutes/" + edge._1.value.toString + "__" + node_bool._1.value.toString + ".png",
+              nodeList, circle_size)
+          }
+          polygonList += nodeListToPolygon(nodeList)
+        }
+      })
+    })
+
+    if(drawRoutes) {
+      this.exportPNGMarkedRoutes(width, height, route,
+        "markedEdges.png",
+        edgesMarked, circle_size)
+    }
 
     polygonList
   }
@@ -522,6 +650,14 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     var drawG = this.drawGraph(width,height, circle_size)
     drawG = this.drawRoute(drawG._1, drawG._2, routeList, height, width, drawNumbers = true, circle_size)
     this.exportCanvas(drawG._1, drawG._2,route, filename)
+
+  }
+
+  def exportPNGMarkedRoutes(height: Int, width: Int, route: String, filename: String,
+                     edgesMarked: mutable.HashMap[Node, mutable.HashMap[Node, Boolean]], circle_size: (Double, Double) = (20,20)): Unit = {
+    var drawG = this.drawGraph(width,height, circle_size)
+    drawG = this.drawMarkedEdges(drawG._1, drawG._2, edgesMarked, height, width, circle_size)
+    this.exportCanvas(drawG._1, drawG._2, route, filename)
 
   }
 
@@ -573,6 +709,48 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
           (((height - NodeA.value.y) / height) * 500 + circle_size._2 / 2 + (h / 4)).toFloat)
       }
     }
+
+    (g, canvas)
+  }
+
+  private def drawMarkedEdges(g: Graphics2D, canvas: BufferedImage, edgesMarked: mutable.HashMap[Node, mutable.HashMap[Node, Boolean]],
+                        height: Int, width: Int, circle_size: (Double, Double)): (Graphics2D, BufferedImage) = {
+
+
+    // Color for the edges (BLACK)
+    g.setColor(new Color(0, 0, 0))
+
+    edgesMarked.foreach(edge => {
+      edge._2.foreach(node_bool => {
+        if(node_bool._2 && edgesMarked(node_bool._1)(edge._1)) {
+          g.setColor(new Color(0, 0, 0)) // black for ok edge
+        } else if(node_bool._2 || edgesMarked(node_bool._1)(edge._1)) {
+          g.setColor(new Color(255,167,38)) // one sided orange
+        } else {
+          g.setColor(new Color(239,83,80)) // never visited red
+        }
+
+        g.draw(new Line2D.Double(
+          (edge._1.value.x / width) * 500 + circle_size._1 / 2,
+          ((height - edge._1.value.y) / height) * 500 + circle_size._2 / 2,
+          (node_bool._1.value.x / width) * 500 + circle_size._1 / 2,
+          ((height - node_bool._1.value.y) / height) * 500 + circle_size._2 / 2))
+
+      })
+    })
+
+    // set color of the nodes
+    g.setColor(new Color(66,165,245))
+
+    // Draw the nodes.
+    links.toList.foreach(link => {
+      g.fill(new Ellipse2D.Double(
+        (link._1.value.x / width) * 500 ,
+        ((height - link._1.value.y) / height) * 500,
+        circle_size._1,
+        circle_size._2))
+    })
+
 
     (g, canvas)
   }
