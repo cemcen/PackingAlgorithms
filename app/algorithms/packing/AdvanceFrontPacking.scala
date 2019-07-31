@@ -4,6 +4,9 @@ import geometry.{Point, Polygon}
 import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
 
 /**
   *
@@ -59,25 +62,34 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       if(bestCenterPos != null) {
         insertingPolygon.movePolygon(bestCenterPos)
         polygonList += insertingPolygon
-        //println("Number Of Polygon: " + polygonList.length)
-        //println("Step: " + i + 1)
       }
     })
 
-//    println(" PACKING ")
-//    println()
-//    polygonList.foreach(pol => {
-//      print("new Polygon(List(")
-//      pol.points.foreach(pnt => {
-//        print("new Point")
-//        print(pnt)
-//        println(",")
-//      })
-//      print("))")
-//      println()
-//      println()
-//    })
-
     finalPolygonPosition = packingTechnique.getPolygonList
+
+    finalPolygonPosition.foreach(pol => {
+      var originalPolygon = false
+      polygonList.foreach(polygon => {
+        if((Math.abs(pol.getArea) - Math.abs(polygon.getArea)) === 0.0 +- 1e-3) {
+          var maybe = true
+          polygon.points.foreach(pnt => {
+            maybe = maybe && pol.points.contains(pnt)
+          })
+          originalPolygon = originalPolygon || maybe
+        }
+      })
+      if(!originalPolygon)
+        pol.setHole()
+      pol
+    })
+
+    // Filter container polygon found on routes.
+    finalPolygonPosition = finalPolygonPosition.filter(pol => {
+      var containsAll = true
+      container.getPolygon.points.foreach(pnt => {
+        containsAll = containsAll && pol.points.contains(pnt)
+      })
+      !containsAll
+    })
   }
 }

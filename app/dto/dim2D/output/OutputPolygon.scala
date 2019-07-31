@@ -2,7 +2,7 @@ package dto.dim2D.output
 
 import play.api.libs.json.{JsObject, Json, Reads, Writes}
 
-case class OutputPolygon(points: List[Point2D], label: String, radius: Double)
+case class OutputPolygon(points: List[Point2D], label: String, radius: Double, hole: Boolean)
 
 object OutputPolygon {
 
@@ -11,7 +11,8 @@ object OutputPolygon {
     def writes(u: OutputPolygon): JsObject = Json.obj(
       "label"  -> u.label,
       "radius" -> u.radius,
-      "points" -> u.points
+      "points" -> u.points,
+      "hole" -> u.hole,
     )
   }
 

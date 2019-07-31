@@ -9,9 +9,9 @@
                 </v-card-title>
                 <v-layout column>
                     <v-flex pl-3 pr-3 v-for="(property, index2) in item.properties" :key="index2">
-                        <v-text-field v-model="property.value" outline :background-color="property.color"
-                                      :type="property.typeOfValue === 'Number'? 'number': 'text'"
-                                      :label="property.label" clearable required>
+                        <v-text-field v-model="property.value" outline :background-color="properties[property.key].color"
+                                      :type="properties[property.key].typeOfValue === 'Number'? 'number': 'text'"
+                                      :label="properties[property.key].label" clearable required>
                         </v-text-field>
                     </v-flex>
                     <v-flex v-show="item.properties == null || item.properties.length === 0"
@@ -38,6 +38,14 @@
                     return []
                 }
             }
+        },
+        data() {
+            return {
+                properties: {}
+            }
+        },
+        created() {
+            this.properties = JSON.parse(localStorage.getItem('properties'));
         },
         methods: {
         }

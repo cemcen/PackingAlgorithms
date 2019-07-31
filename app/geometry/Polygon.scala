@@ -16,6 +16,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
   private var _centroid: Point = null
   private var _area: Double = -1
+  private var hole: Boolean = false
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
@@ -281,6 +282,19 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     }
 
     nearestPoints.toList
+  }
+
+  def isHole: Boolean = hole
+  def setHole(): Unit = hole = true
+
+  def getCopy: Polygon = {
+
+    var mPoints = new ArrayBuffer[Point]()
+    this.points.foreach(pnt => {
+      mPoints += new Point(pnt.x, pnt.y)
+    })
+
+    new Polygon(mPoints.toList, this.radius, this.label)
   }
 
 }

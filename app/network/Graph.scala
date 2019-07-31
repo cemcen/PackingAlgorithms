@@ -30,6 +30,7 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
       val newLinks = new ArrayBuffer[Node]() ++ links(node)
       myLinks += ((node, newLinks))
     })
+
     val newGraph: Graph = new Graph(myNodes, myLinks)
     newGraph.addIntersectingPolygonOneIntersection(polygon, interPolygon)
     newGraph
@@ -337,6 +338,10 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
       val compareVector: Vector = Vector(nextNode.value, currentNode.value)
 
+      if(possibleNextNodes.length == 0){
+        return routeList
+      }
+
       if(possibleNextNodes.length == 1) {
         nextNode = possibleNextNodes.head
       } else if(possibleNextNodes.length == 2) {
@@ -490,7 +495,6 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
         }
       })
     })
-
 
     // Follow the cycles
     nodes.toList.foreach(element => {
@@ -650,7 +654,6 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     var drawG = this.drawGraph(width,height, circle_size)
     drawG = this.drawRoute(drawG._1, drawG._2, routeList, height, width, drawNumbers = true, circle_size)
     this.exportCanvas(drawG._1, drawG._2,route, filename)
-
   }
 
   def exportPNGMarkedRoutes(height: Int, width: Int, route: String, filename: String,

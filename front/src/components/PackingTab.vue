@@ -23,35 +23,37 @@
                                 </v-card-title>
 
                                 <v-card-text>
-                                    <v-layout justify-center>
-                                        <v-flex>
+                                    <v-layout justify-center row>
+                                        <v-flex pr-3>
                                             <v-text-field v-validate="'required|min_value:1'"
                                                           :error-messages="errors.collect('width')"
                                                           v-model="width" type="number" label="Container Width"
                                                           data-vv-name="width" clearable required>
                                             </v-text-field>
+                                        </v-flex>
+                                        <v-flex>
                                             <v-text-field v-validate="'required|min_value:1'"
                                                           :error-messages="errors.collect('height')"
                                                           v-model="height" type="number" label="Container Height"
                                                           data-vv-name="height" clearable required>
                                             </v-text-field>
+                                        </v-flex>
+                                    </v-layout>
+                                    <v-layout justify-center column>
+                                        <v-flex>
                                             <v-checkbox color="teal lighten-2" v-model="randomShape"
                                                         label="Random shape polygons?"
                                                         required></v-checkbox>
-                                            <div v-if="!randomShape">
-                                                <v-text-field v-validate="'required|min_value:1'"
-                                                              :error-messages="errors.collect('regularity')"
-                                                              v-model="regularity" type="number"
-                                                              label="Container Regularity" data-vv-name="regularity"
-                                                              clearable>
-                                                </v-text-field>
-                                            </div>
-                                            <v-radio-group v-model="approachAlgorithm" row>
-                                                <v-radio color="teal lighten-2" label="Border Preference"
-                                                         value="0"></v-radio>
-                                                <v-radio color="teal lighten-2" label="Less Density"
-                                                         value="1"></v-radio>
-                                            </v-radio-group>
+                                        </v-flex>
+                                        <v-flex v-if="!randomShape">
+                                            <v-text-field v-validate="'required|min_value:1|max_value:100'"
+                                                          :error-messages="errors.collect('regularity')"
+                                                          v-model="regularity" type="number"
+                                                          label="Polygons Regularity"
+                                                          hint="Variability of an edge (5% of variability)"
+                                                          persistent-hint
+                                                          data-vv-name="regularity" clearable>
+                                            </v-text-field>
                                         </v-flex>
                                     </v-layout>
                                 </v-card-text>
@@ -153,6 +155,7 @@
     import PolygonsTab from "./PolygonsTab.vue";
     import InfoTab from "./InfoTab.vue";
     import api from "../services/api.services";
+    import * as poly2tri from 'poly2tri';
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -171,9 +174,8 @@
               timeout: 1200,
               width: 150,
               height: 75,
-              approachAlgorithm: "0",
               randomShape: false,
-              regularity: 36,
+              regularity: 5,
               dialog: false,
               polygons: [],
               show: false,
@@ -198,7 +200,8 @@
                           min_value: 'Width must be greater than 0'
                       },
                       regularity: {
-                          min_value: 'regularity must be greater than 0'
+                          min_value: 'Regularity must be at least 1',
+                          max_value: 'Regularity can not be greater than 100%'
                       }
                   }
               },
@@ -376,21 +379,34 @@
 
                 localStorage.setItem('packing', JSON.stringify(this.packing));
             },
-            assignProperties(){
-                this.$refs.propertiesTab.selectedProperties.forEach((pro, index) => {
-                    if (pro) {
-                        let property = this.$refs.propertiesTab.properties[index];
+            assignProperties() {
+                let properties = JSON.parse(localStorage.getItem('properties'));
 
-                        this.packing.polygons.forEach(polygon => {
+                this.packing.polygons.forEach(polygon => {
+                    if (polygon.selected) {
+                        if(polygon.triangulation == null) {
+                            polygon.triangulation = [];
+                            let contour = [];
+                            polygon.points.forEach(pnt => {
+                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                            });
+                            let swctx = new poly2tri.SweepContext(contour);
+                            swctx.triangulate();
+                            let triangles = swctx.getTriangles();
+                            triangles.forEach(function(t) {
+                                let triangle = [];
+                                t.getPoints().forEach(function(p) {
+                                    triangle.push({x: p.x, y: p.y});
+                                });
 
-                            if(polygon.selected) {
-                                let kproperty = polygon.properties.find(pro => pro.label === property.label);
+                                polygon.triangulation.push(triangle);
+                            });
+                        }
 
-                                if (kproperty == null) {
-                                    kproperty = Object.assign({}, property);
-                                    kproperty.value = kproperty.default;
-                                    polygon.properties.push(kproperty);
-                                }
+                        polygon.properties = [];
+                        Object.keys(properties).forEach(function(item) {
+                            if(properties[item].selected){
+                                polygon.properties.push({key: item, value: properties[item].default})
                             }
                         });
                     }
@@ -400,59 +416,47 @@
                 this.snackbarMessage = "Properties assigned successfully";
             },
             drawPolygon(polygon, width, height, p) {
-                p.stroke(33,33,33);
+                p.stroke(33, 33, 33);
                 if ((this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p))) {
                     // p.fill(77,182,172);
-                    p.strokeWeight(2);
+                    p.strokeWeight(4);
                     this.polygon = polygon;
                 } else if (polygon.selected) {
                     p.stroke(239,83,80);
-                    p.strokeWeight(2);
+                    p.strokeWeight(4);
                 } else {
-                    p.strokeWeight(1);
+                    p.strokeWeight(3);
                 }
                 p.noFill();
                 p.beginShape();
-                let centerX = 0;
-                let centerY = 0;
-                let pointA = polygon.points[0];
-                let sax = (pointA.x / width) * p.width;
-                let say = ((height - pointA.y) / height) * p.height;
-                let radius = 0;
                 polygon.points.forEach(pnt => {
                     let sx = (pnt.x / width) * p.width;
                     let sy = ((height - pnt.y) / height) * p.height;
-                    centerX += sx;
-                    centerY += sy;
 
-                    const pRadius = Math.sqrt(Math.pow(sax - sx,2) + Math.pow(say - sy,2));
-                    if(pRadius > radius) {
-                        radius = pRadius;
-                    }
                     p.vertex(sx, sy);
                 });
                 p.endShape(p.CLOSE);
 
                 p.stroke(33,33,33);
-                p.strokeWeight(1);
+                p.strokeWeight(0);
                 if(polygon.properties != null && polygon.properties.length > 0) {
+                    if(polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
+                        let properties = JSON.parse(localStorage.getItem('properties'));
+                        let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
+                        for(let i = 0; i < polygon.triangulation.length; i += 1) {
+                            p.fill(properties[polygon.properties[(Math.floor(i/painted_triangles_each_step)) % polygon.properties.length].key].color);
+                            p.beginShape();
+                            polygon.triangulation[i].forEach(pnt => {
+                                let sx = (pnt.x / width) * p.width;
+                                let sy = ((height - pnt.y) / height) * p.height;
 
-                    centerX = centerX/polygon.points.length;
-                    centerY = centerY/polygon.points.length;
-                    polygon.properties.forEach((proper, index) => {
-                        p.fill(proper.color);
-                        p.arc(centerX, centerY, radius/6, radius/6, index*p.TWO_PI/polygon.properties.length, (index + 1)*p.TWO_PI/polygon.properties.length);
-                    });
-
-                    if(polygon.properties.length === 1){
-                        p.fill(polygon.properties[0].color);
-                        p.circle(centerX, centerY, radius/12);
+                                p.vertex(sx, sy);
+                            });
+                            p.endShape(p.CLOSE);
+                        }
                     }
-
-
-
-
                 }
+                //p.noFill();
             },
             execute(){
                 this.$validator.validateAll().then(result => {
@@ -472,13 +476,13 @@
                                 'width': parseFloat(this.width),
                                 'height': parseFloat(this.height),
                                 'randomShape': this.randomShape,
-                                'regularity': parseInt(this.regularity),
-                                'approachAlgorithm': parseInt(this.approachAlgorithm)
+                                'regularity': parseInt(180 / parseInt(this.regularity)),
+                                'approachAlgorithm': 1
                             };
                             this.executing = true;
                             api.sendMesh(data).then(resp => {
                                 this.executing = false;
-                                console.log(resp);
+                                //console.log(resp);
                                 this.packing = resp.body.mesh;
                             }).catch(error => {
                                 this.executing = false;
