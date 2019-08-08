@@ -48,6 +48,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     packingTechnique.updateGraph(graph)
 
     polygonList += firstPolygon
+    packingTechnique.addedPolygon()
 
     // Iterate over nextPolygon array to pack every polygon in the array.
     nextPolygon.tail.indices.foreach(i => {
@@ -62,6 +63,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       if(bestCenterPos != null) {
         insertingPolygon.movePolygon(bestCenterPos)
         polygonList += insertingPolygon
+        packingTechnique.addedPolygon()
       }
     })
 

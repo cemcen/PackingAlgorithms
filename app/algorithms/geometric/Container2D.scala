@@ -64,6 +64,26 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
     * Transform the container in a Polygon.
     */
   def getPolygon: Polygon = containerPolygon
+
+  def minimumDistance(polygon: Polygon): Double = {
+    var distance: Double = Double.MaxValue
+
+    var minX: Double = polygon.points.head.x
+    var minY: Double = polygon.points.head.x
+    var maxX: Double = polygon.points.head.y
+    var maxY: Double = polygon.points.head.y
+
+    polygon.points.foreach(p => {
+      if(p.x > maxX) maxX = p.x
+      if(p.y > maxY) maxY = p.y
+      if(p.x < minX) minX = p.x
+      if(p.y < minY) minY = p.x
+    })
+
+    distance = Math.min(Math.min(minX, minY), Math.min(height - maxY, width - maxX))
+
+    distance
+  }
 }
 
 object Container2D {

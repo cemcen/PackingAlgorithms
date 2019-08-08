@@ -5,6 +5,9 @@ import geometry.{Point, Polygon}
 import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
 
 class SpaceReducePacking extends PackingApproach {
 
@@ -23,25 +26,33 @@ class SpaceReducePacking extends PackingApproach {
     // We need the container locus to choose if a polygon may be attached to him.
     val containerLocus: Polygon = container.getInnerLocus(insertingPolygon)
 
-    // Check every polygon for possible insertion.
+    // Check every polygon for possible insertion. Polygon vs Container.
     polygonList.indices.foreach(i => {
 
       // Current polygon
       val polygon: Polygon = polygonList(i)
 
-      // Get locus from polygon inserted.
-      val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
-      val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
+      if(!(distanceToContainer contains i)) {
+        val distance: Double = container.minimumDistance(polygon)
+        distanceToContainer += ((i, distance))
+      }
 
-      // If they intersect it means that the polygon can be placed there.
-      intersectionPoints.foreach(pnt => {
+      if(distanceToContainer(i) < insertingPolygon.maximumDiagonalLength
+        || distanceToContainer(i) === insertingPolygon.maximumDiagonalLength +- 1e-8) {
+        // Get locus from polygon inserted.
+        val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
+        val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
 
-        val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, container.getPolygon, polygon)
+        // If they intersect it means that the polygon can be placed there.
+        intersectionPoints.foreach(pnt => {
 
-        if (insertingPoint != null) {
-          bestCenterPos = insertingPoint
-        }
-      })
+          val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, container.getPolygon, polygon)
+
+          if (insertingPoint != null) {
+            bestCenterPos = insertingPoint
+          }
+        })
+      }
     })
 
     // Second case Polygons vs Polygons.
@@ -52,21 +63,32 @@ class SpaceReducePacking extends PackingApproach {
 
 
       polygonList.indices.filter(j => j > i).foreach(j => {
+
         // Second Polygon
         val polygonB: Polygon = polygonList(j)
 
-        // Get locus from the two polygons.
-        val polygonALocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonA, insertingPolygon)
-        val polygonBLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonB, insertingPolygon)
-        val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
+        if(!(distanceBetweenPolygons(i) contains j)) {
+          val distance: Double = polygonA.minimumDistance(polygonB)
+          distanceBetweenPolygons(i) += ((j, distance))
+        }
 
-        intersectionPoints.foreach(pnt => {
-          val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
+        if(distanceBetweenPolygons(i)(j) < insertingPolygon.maximumDiagonalLength
+          || distanceBetweenPolygons(i)(j) === insertingPolygon.maximumDiagonalLength +- 1e-8) {
 
-          if (insertingPoint != null) {
-            bestCenterPos = insertingPoint
-          }
-        })
+          // Get locus from the two polygons.
+          val polygonALocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonA, insertingPolygon)
+          val polygonBLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonB, insertingPolygon)
+          val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
+
+          intersectionPoints.foreach(pnt => {
+            val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
+
+            if (insertingPoint != null) {
+              bestCenterPos = insertingPoint
+            }
+          })
+
+        }
       })
     })
 
@@ -92,8 +114,16 @@ class SpaceReducePacking extends PackingApproach {
     // Check if intersection.
     var intersects = false
 
+    // Only checks the polygons that are near.
+    // We do not intersect the polygons that are far away from the inserting polygon.
     polygonList.foreach(pol => {
-      if (insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
+      val centroidDistance: Double = Math.sqrt(pol.centroid.distance(centroid))
+      val longestDistance: Double = pol.centroidEdgeLongest + insertingPolygon.centroidEdgeLongest
+
+      if (centroidDistance < longestDistance || centroidDistance === longestDistance +- 1e-8) {
+        if (insertingPolygon.intersectPolygon(pol).size > 1) intersects = true
+      }
+
     })
 
     val containerIntersections: Int = container.getPolygon.intersectPolygon(insertingPolygon).size

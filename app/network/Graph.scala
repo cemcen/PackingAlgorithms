@@ -572,32 +572,34 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
     // Find edges marked once.
     edgesMarked.foreach(edge => {
       edge._2.foreach(node_bool => {
-        if(node_bool._2 && !edgesMarked(node_bool._1)(edge._1)) {
-          val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(node_bool._1, edge._1, edgesMarked)
-          for( i <- nodeList.indices) {
-            val node1 = nodeList(i)
-            val node2 = nodeList((i + 1) % nodeList.length)
-            edgesMarked(node1)(node2) = true
+        if((edgesMarked contains node_bool._1) && (edgesMarked(node_bool._1) contains edge._1)) {
+          if (node_bool._2 && !edgesMarked(node_bool._1)(edge._1)) {
+            val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(node_bool._1, edge._1, edgesMarked)
+            for (i <- nodeList.indices) {
+              val node1 = nodeList(i)
+              val node2 = nodeList((i + 1) % nodeList.length)
+              edgesMarked(node1)(node2) = true
+            }
+            if (drawRoutes) {
+              this.exportPNGRoute(width, height, route,
+                "allRoutes/" + node_bool._1.value.toString + "__" + edge._1.value.toString + ".png",
+                nodeList, circle_size)
+            }
+            polygonList += nodeListToPolygon(nodeList)
+          } else if (!node_bool._2 && edgesMarked(node_bool._1)(edge._1)) {
+            val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(edge._1, node_bool._1, edgesMarked)
+            for (i <- nodeList.indices) {
+              val node1 = nodeList(i)
+              val node2 = nodeList((i + 1) % nodeList.length)
+              edgesMarked(node1)(node2) = true
+            }
+            if (drawRoutes) {
+              this.exportPNGRoute(width, height, route,
+                "allRoutes/" + edge._1.value.toString + "__" + node_bool._1.value.toString + ".png",
+                nodeList, circle_size)
+            }
+            polygonList += nodeListToPolygon(nodeList)
           }
-          if (drawRoutes) {
-            this.exportPNGRoute(width, height, route,
-              "allRoutes/" + node_bool._1.value.toString + "__" + edge._1.value.toString + ".png",
-              nodeList, circle_size)
-          }
-          polygonList += nodeListToPolygon(nodeList)
-        } else if (!node_bool._2 && edgesMarked(node_bool._1)(edge._1)) {
-          val nodeList: ArrayBuffer[Node] = lookForShortestRouteMarkedRoute(edge._1, node_bool._1, edgesMarked)
-          for( i <- nodeList.indices) {
-            val node1 = nodeList(i)
-            val node2 = nodeList((i + 1) % nodeList.length)
-            edgesMarked(node1)(node2) = true
-          }
-          if (drawRoutes) {
-            this.exportPNGRoute(width, height, route,
-              "allRoutes/" + edge._1.value.toString + "__" + node_bool._1.value.toString + ".png",
-              nodeList, circle_size)
-          }
-          polygonList += nodeListToPolygon(nodeList)
         }
       })
     })

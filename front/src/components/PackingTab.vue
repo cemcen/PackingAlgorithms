@@ -417,6 +417,24 @@
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(33, 33, 33);
+                p.strokeWeight(0);
+                if(polygon.properties != null && polygon.properties.length > 0) {
+                    if(polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
+                        let properties = JSON.parse(localStorage.getItem('properties'));
+                        let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
+                        for(let i = 0; i < polygon.triangulation.length; i += 1) {
+                            p.fill(properties[polygon.properties[(Math.floor(i/painted_triangles_each_step)) % polygon.properties.length].key].color);
+                            p.beginShape();
+                            polygon.triangulation[i].forEach(pnt => {
+                                let sx = (pnt.x / width) * p.width;
+                                let sy = ((height - pnt.y) / height) * p.height;
+
+                                p.vertex(sx, sy);
+                            });
+                            p.endShape(p.CLOSE);
+                        }
+                    }
+                }
                 if ((this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p))) {
                     // p.fill(77,182,172);
                     p.strokeWeight(4);
@@ -438,24 +456,6 @@
                 p.endShape(p.CLOSE);
 
                 p.stroke(33,33,33);
-                p.strokeWeight(0);
-                if(polygon.properties != null && polygon.properties.length > 0) {
-                    if(polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
-                        let properties = JSON.parse(localStorage.getItem('properties'));
-                        let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
-                        for(let i = 0; i < polygon.triangulation.length; i += 1) {
-                            p.fill(properties[polygon.properties[(Math.floor(i/painted_triangles_each_step)) % polygon.properties.length].key].color);
-                            p.beginShape();
-                            polygon.triangulation[i].forEach(pnt => {
-                                let sx = (pnt.x / width) * p.width;
-                                let sy = ((height - pnt.y) / height) * p.height;
-
-                                p.vertex(sx, sy);
-                            });
-                            p.endShape(p.CLOSE);
-                        }
-                    }
-                }
                 //p.noFill();
             },
             execute(){

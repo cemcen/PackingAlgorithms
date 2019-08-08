@@ -15,6 +15,8 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   def this(points: List[Point]) = this(points, -1.0, "")
 
   private var _centroid: Point = null
+  private var _centroidEdgeLongest: Double = -1
+  private var _maxDiagonalLength: Double = -1
   private var _area: Double = -1
   private var hole: Boolean = false
 
@@ -189,6 +191,54 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   }
 
   /**
+    * Gets the longest distance between a point a its centroid. REMEMBER IS THE SQUARED DISTANCE.
+    */
+  def centroidEdgeLongest: Double = {
+
+    if(_centroidEdgeLongest == -1) {
+      val centroid: Point = this.centroid
+      var distance: Double = Double.MaxValue
+
+      this.points.foreach(p => {
+        val dist: Double = p.distance(centroid)
+
+        if(dist < distance) distance = dist
+      })
+
+      _centroidEdgeLongest = Math.sqrt(distance)
+    }
+
+    _centroidEdgeLongest
+  }
+
+  /**
+    * Gets the longest distance between two points of this polygon.
+    */
+  def maximumDiagonalLength: Double = {
+
+    if(_maxDiagonalLength == -1) {
+
+      var distance: Double = Double.MaxValue
+
+      for (i <- points.indices) {
+        for (j <- points.indices.filter(k => k != i)) {
+          val pointA = points(i)
+          val pointB = points(j)
+
+          val dist = pointA.distance(pointB)
+          if(dist < distance) {
+            distance = dist
+          }
+        }
+      }
+
+      _maxDiagonalLength = Math.sqrt(distance)
+    }
+
+    _maxDiagonalLength
+  }
+
+  /**
     * Moves center to the given Points. Also translate the other points of the polygon.
     */
   def movePolygon(move: Point): Unit = {
@@ -295,6 +345,23 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     })
 
     new Polygon(mPoints.toList, this.radius, this.label)
+  }
+
+  /**
+    * Returns the minimum distance between this two polygons.
+    */
+  def minimumDistance(polygon: Polygon): Double = {
+
+    var distance: Double = points.head.distance(polygon.points.head)
+
+    points.foreach(pntA => {
+      polygon.points.foreach(pntB => {
+        val dist: Double = pntA.distance(pntB)
+        if(dist < distance) distance = dist
+      })
+    })
+
+    Math.sqrt(distance)
   }
 
 }
