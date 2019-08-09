@@ -22,6 +22,9 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
   def this() = this(new mutable.HashMap[Point, Node](), new mutable.HashMap[Node, ArrayBuffer[Node]]())
 
+  def getNodes: mutable.HashMap[Point, Node] = nodes
+  def getEdges: mutable.HashMap[Node, ArrayBuffer[Node]] = links
+
   def addPolygon1Intersection(polygon: Polygon, interPolygon: Polygon): Graph = {
 
     val myNodes: mutable.HashMap[Point, Node] = new mutable.HashMap[Point, Node]() ++ this.nodes

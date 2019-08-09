@@ -41,11 +41,6 @@
                                     </v-layout>
                                     <v-layout justify-center column>
                                         <v-flex>
-                                            <v-checkbox color="teal lighten-2" v-model="randomShape"
-                                                        label="Random shape polygons?"
-                                                        required></v-checkbox>
-                                        </v-flex>
-                                        <v-flex v-if="!randomShape">
                                             <v-text-field v-validate="'required|min_value:1|max_value:100'"
                                                           :error-messages="errors.collect('regularity')"
                                                           v-model="regularity" type="number"
@@ -54,6 +49,16 @@
                                                           persistent-hint
                                                           data-vv-name="regularity" clearable>
                                             </v-text-field>
+                                        </v-flex>
+                                    </v-layout>
+                                    <v-layout justify-center column>
+                                        <v-flex>
+                                            <v-radio-group v-validate="'required'" label="Choose approach"
+                                                           :error-messages="errors.collect('approach')" v-model="approach"
+                                                           data-vv-name="regularity" row>
+                                                <v-radio color="teal lighten-2" label="Dense packing" :value="1"></v-radio>
+                                                <v-radio color="teal lighten-2" label="Fall simulation" :value="0"></v-radio>
+                                            </v-radio-group>
                                         </v-flex>
                                     </v-layout>
                                 </v-card-text>
@@ -176,6 +181,7 @@
               height: 75,
               randomShape: false,
               regularity: 5,
+              approach: 1,
               dialog: false,
               polygons: [],
               show: false,
@@ -202,6 +208,9 @@
                       regularity: {
                           min_value: 'Regularity must be at least 1',
                           max_value: 'Regularity can not be greater than 100%'
+                      },
+                      approach: {
+                          required: 'Must select an approach.',
                       }
                   }
               },
@@ -461,9 +470,11 @@
             execute(){
                 this.$validator.validateAll().then(result => {
                     if(result) {
+                        if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
                         if(this.polygons.length === 0) {
                             alert('Must insert at least one polygon')
                         } else {
+
                             let data = {
                                 'polygons': this.polygons.map(x => {
                                     return {
@@ -477,7 +488,7 @@
                                 'height': parseFloat(this.height),
                                 'randomShape': this.randomShape,
                                 'regularity': parseInt(180 / parseInt(this.regularity)),
-                                'approachAlgorithm': 1
+                                'approachAlgorithm': this.approach
                             };
                             this.executing = true;
                             api.sendMesh(data).then(resp => {

@@ -3,12 +3,14 @@ package algorithms
 import algorithms.packing.PackingAlgorithm
 import dto.dim2D.input.InputPolygon
 import geometry.{Polygon, PolygonFactory}
+import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
 
 class Packing2D {
   private var packingAlgorithm: PackingAlgorithm = _
   private var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+  private var graphResult: Graph = new Graph()
 
   /**
     * Executes the packing algorithm.
@@ -25,12 +27,18 @@ class Packing2D {
 
     // Finally get the result of the algorithm.
     polygonList = packingAlgorithm.getPolygonPositions
+    graphResult = packingAlgorithm.getGraph
   }
 
   /**
     * Getter for polygon list.
     */
   def getPolygonList: ArrayBuffer[Polygon] = polygonList
+
+  /**
+    * Getter for graph.
+    */
+  def getGraph: Graph = graphResult
 
   /**
     * Creates new container
@@ -55,6 +63,11 @@ object Packing2D {
   def setPackingAlgorithm(packingAlgorithm: PackingAlgorithm): Unit = {
     packing2d.setPackingAlgorithm(packingAlgorithm)
   }
+
+  /**
+    * Get graph result.
+    */
+  def getGraph: Graph = packing2d.getGraph
 
   /**
     * Interface to create a polygon mesh with geometric packing algorithm.

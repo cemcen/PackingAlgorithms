@@ -1,9 +1,9 @@
 package controllers
 
 import algorithms.Packing2D
-import algorithms.packing.{AdvanceFrontPacking, NaivePacking, PackingAlgorithm, SpaceReducePacking}
+import algorithms.packing._
 import dto.dim2D.input.Input2DMesh
-import dto.dim2D.output.{Output2DMesh, OutputPolygon, Point2D}
+import dto.dim2D.output.{Output2DMesh, OutputGraph, OutputPolygon, Point2D}
 import geometry.Polygon
 import javax.inject.Inject
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
@@ -35,7 +35,7 @@ class MeshController @Inject()(components: ControllerComponents)
           height = mesh.height.get
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           if(mesh.approachAlgorithm.get == 0) {
-            packingAlgorithm.setPackingTechnique(new NaivePacking)
+            packingAlgorithm.setPackingTechnique(new RockFallingPacking)
           } else if (mesh.approachAlgorithm.get == 1) {
             packingAlgorithm.setPackingTechnique(new SpaceReducePacking)
           }
@@ -44,6 +44,7 @@ class MeshController @Inject()(components: ControllerComponents)
 
         }
 
+        // Create packing output
         var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
         polygonMesh.foreach(pol => {
           var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
@@ -52,10 +53,23 @@ class MeshController @Inject()(components: ControllerComponents)
             pointList += new Point2D(pnt.x, pnt.y)
           })
 
-          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius, pol.isHole)
+          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius, pol.isHole, pol.getArea)
         })
 
-        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
+        // Create Graph output
+        var nodes: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
+        Packing2D.getGraph.getNodes.foreach(node => {
+          nodes += new Point2D(node._1.x, node._1.y)
+        })
+        var edges: ArrayBuffer[(Point2D, Point2D)] = new ArrayBuffer[(Point2D, Point2D)]()
+        Packing2D.getGraph.getEdges.foreach(links => {
+          links._2.foreach(node => {
+            edges += ((new Point2D(links._1.value.x, links._1.value.y), new Point2D(node.value.x, node.value.y)))
+          })
+        })
+        val graphOutput: OutputGraph = new OutputGraph(nodes.toList, edges.toList)
+
+        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, graphOutput, width, height)
 
         Ok(Json.obj("mesh" -> output))
       case _: JsError =>

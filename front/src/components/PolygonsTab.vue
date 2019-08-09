@@ -146,17 +146,17 @@
                 dictionary: {
                     custom: {
                         label: {
-                            required: () => 'Must enter a label.',
+                            required: 'Must enter a label.',
                         },
                         vertex: {
-                            required: () => 'Must enter the number of vertex.',
-                            min_value: () => 'The polygon must have at least 3 vertex'
+                            required: 'Must enter the number of vertex.',
+                            min_value: 'The polygon must have at least 3 vertex'
                         },
                         percentage: {
-                            required: () => 'Must enter the probability of appearance.'
+                            required: 'Must enter the probability of appearance.'
                         },
                         radius: {
-                            required: () => 'Must enter the radius.'
+                            required: 'Must enter the radius.'
                         }
                     }
                 },
@@ -169,7 +169,7 @@
         },
         mounted() {
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
-            this.$validator.localize('en', this.dictionary);
+            this.$validator.localize('es', this.dictionary);
         },
         watch: {
             polygons: {
@@ -200,20 +200,14 @@
                 }, 300)
             },
             save() {
-                let array = [
-                    this.$validator.validate('label'),
-                    this.$validator.validate('vertex'),
-                    this.$validator.validate('percentage'),
-                    this.$validator.validate('radius'),
-                ];
-                Promise.all(array).then(res => {
-                    const areValid = res.every(isValid => isValid);
-                    if (areValid) {
+                this.$validator.validateAll().then(result => {
+                    if (result) {
                         if (this.editedIndex !== -1) {
                             Object.assign(this.polygons[this.editedIndex], this.editedItem);
                         } else {
                             this.polygons.push(this.editedItem);
                         }
+                        localStorage.setItem('polygons', JSON.stringify(this.properties));
                         this.close();
                     }
                 });

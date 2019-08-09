@@ -19,6 +19,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   private var _maxDiagonalLength: Double = -1
   private var _area: Double = -1
   private var hole: Boolean = false
+  private var container: Boolean = false
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
@@ -197,12 +198,12 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
     if(_centroidEdgeLongest == -1) {
       val centroid: Point = this.centroid
-      var distance: Double = Double.MaxValue
+      var distance: Double = Double.MinValue
 
       this.points.foreach(p => {
         val dist: Double = p.distance(centroid)
 
-        if(dist < distance) distance = dist
+        if(dist > distance) distance = dist
       })
 
       _centroidEdgeLongest = Math.sqrt(distance)
@@ -218,7 +219,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
     if(_maxDiagonalLength == -1) {
 
-      var distance: Double = Double.MaxValue
+      var distance: Double = Double.MinValue
 
       for (i <- points.indices) {
         for (j <- points.indices.filter(k => k != i)) {
@@ -226,7 +227,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
           val pointB = points(j)
 
           val dist = pointA.distance(pointB)
-          if(dist < distance) {
+          if(dist > distance) {
             distance = dist
           }
         }
@@ -336,6 +337,9 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
   def isHole: Boolean = hole
   def setHole(): Unit = hole = true
+
+  def isContainer: Boolean = container
+  def setContainer(): Unit = container = true
 
   def getCopy: Polygon = {
 

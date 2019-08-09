@@ -73,23 +73,37 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
     var maxX: Double = polygon.points.head.y
     var maxY: Double = polygon.points.head.y
 
+//    println("Calculate Distance")
+//    println("Polygon: ")
+//    println()
     polygon.points.foreach(p => {
+//      println(p)
       if(p.x > maxX) maxX = p.x
       if(p.y > maxY) maxY = p.y
       if(p.x < minX) minX = p.x
-      if(p.y < minY) minY = p.x
+      if(p.y < minY) minY = p.y
     })
+
+//    println("Distance: ")
+//    println(minX)
+//    println(minY)
+//    println(height - maxY)
+//    println(width - maxX)
 
     distance = Math.min(Math.min(minX, minY), Math.min(height - maxY, width - maxX))
 
     distance
   }
+
+  def getWidth: Double = width
+  def getHeight: Double = height
 }
 
 object Container2D {
 
   def apply(width: Double, height: Double): Container2D = {
     val container: Container2D = new Container2D(width, height)
+    container.containerPolygon.setContainer()
     container
   }
 

@@ -24,11 +24,17 @@ abstract class PackingAlgorithm {
     */
   def getPolygonPositions: ArrayBuffer[Polygon] = finalPolygonPosition
 
+
+  /**
+    * Get packing graph.
+    */
+  def getGraph: Graph = graph
+
   /**
     * Creates a new container.
     */
   def createContainer(width: Double, height: Double): Unit = {
-    container = new Container2D(width, height)
+    container = Container2D(width, height)
   }
 
   /**
