@@ -57,7 +57,7 @@
                                                            :error-messages="errors.collect('approach')" v-model="approach"
                                                            data-vv-name="regularity" row>
                                                 <v-radio color="teal lighten-2" label="Dense packing" :value="1"></v-radio>
-                                                <v-radio color="teal lighten-2" label="Fall simulation" :value="0"></v-radio>
+                                                <v-radio color="teal lighten-2" label="Gravity simulation" :value="0"></v-radio>
                                             </v-radio-group>
                                         </v-flex>
                                     </v-layout>
@@ -122,9 +122,9 @@
                     <v-tabs show-arrows grow color="#eeeeee">
                         <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
 
-                        <v-tab id="tab-info" @click="selectTab(2)">
+                        <!--<v-tab id="tab-info" @click="selectTab(2)">
                             <v-icon>info</v-icon> Info
-                        </v-tab>
+                        </v-tab>-->
 
                         <v-tab id="tab-polygon" @click="selectTab(1)">
                             <v-icon>category</v-icon> Polygons
@@ -172,7 +172,7 @@
         name: "packing",
         data() {
           return {
-              selectedTab: 2,
+              selectedTab: 1,
               ps: null,
               snackbar: false,
               snackbarMessage: '',
@@ -193,7 +193,13 @@
               packing: {
                   height: 0,
                   width: 0,
-                  polygons: []
+                  polygons: [],
+                  graph: {},
+                  draw: {
+                      points: {},
+                      edges: {},
+                      polygons: {},
+                  }
               },
               dictionary: {
                   custom: {
@@ -244,12 +250,120 @@
                     }
                 };
 
+                let locked = false;
+                let xInit = 0;
+                let yInit = 0;
+                let bx = 0;
+                let by = 0;
+                p.mousePressed = () => {
+                    locked = true;
+                    xInit = p.mouseX;
+                    yInit = p.mouseY;
+                    bx = p.mouseX;
+                    by = p.mouseY;
+                };
+
+                p.mouseDragged = () => {
+                    if(locked) {
+                        bx = p.mouseX;
+                        by = p.mouseY;
+                    }
+                };
+
+                p.mouseReleased = () => {
+                    locked = false;
+                    let box = {
+                        points: [
+                            {
+                                x: Math.min(bx, xInit),
+                                y: Math.min(by, yInit)
+                            },
+                            {
+                                x: Math.max(bx, xInit),
+                                y: Math.min(by, yInit)
+                            },
+                            {
+                                x: Math.max(bx, xInit),
+                                y: Math.max(by, yInit)
+                            },
+                            {
+                                x: Math.min(bx, xInit),
+                                y: Math.max(by, yInit)
+                            },
+                        ]
+                    };
+
+                    let height = this.packing.height;
+                    let width = this.packing.width;
+                    this.packing.polygons.forEach(pol => {
+                        pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                    });
+
+                    xInit = 0;
+                    yInit = 0;
+                    bx = 0;
+                    by = 0;
+                };
+
                 // What's been drawn on the canvas
                 p.draw = () => {
                     p.background(255,255,255);
                     p.noFill();
                     p.push();
+                    this.packing.polygons.forEach(pol => {
+                        for(let i = 0; i < pol.points.length; i++) {
+                            let pntA = pol.points[i];
+                            let pntB = pol.points[(i + 1) % pol.points.length];
+
+                            if([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                                this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                                    selected: false,
+                                    hover: false,
+                                }
+                            } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                                this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                                    selected: false,
+                                    hover: false,
+                                }
+                            }
+                        }
+                    });
                     this.packing.polygons.forEach(pol => {this.drawPolygon(pol, this.packing.width, this.packing.height, p)});
+                    let graph = this.packing.graph;
+                    let height = this.packing.height;
+                    let width = this.packing.width;
+                    Object.keys(graph).forEach(function(pointA) {
+                        Object.keys(graph[pointA]).forEach(function(pointB) {
+                            const pntA = JSON.parse("[" + pointA + "]");
+                            const pntB = JSON.parse("[" + pointB + "]");
+
+                            if(graph[pointA][pointB].selected) {
+                                p.stroke(239,83,80);
+                            } else {
+                                p.stroke(33, 33, 33);
+                            }
+
+                            if(graph[pointA][pointB].hover) {
+                                p.strokeWeight(4);
+                            } else {
+                                p.strokeWeight(3);
+                            }
+
+                            p.line(
+                                (pntA[0] / width) * p.width,
+                                ((height - pntA[1]) / height) * p.height,
+                                (pntB[0] / width) * p.width,
+                                ((height - pntB[1]) / height) * p.height
+                            );
+                        });
+                    });
+                    if(locked) {
+                        p.strokeWeight(3);
+                        p.stroke(239,83,80);
+                        let x = Math.min(bx, xInit);
+                        let y = Math.min(by, yInit);
+                        p.rect(x,y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                    }
                     p.pop();
                 };
             };
@@ -293,43 +407,9 @@
             exportPacking(){
 
                 let file = '';
-                let points = {};
-                let edges = {};
-                let polygons = {};
-                let p = 1;
-                let e = 1;
-                let polCount = 1;
-
-                this.packing.polygons.forEach(pol => {
-
-                    let polygonPoints = [];
-
-                    for(let i = 0; i < pol.points.length; i++) {
-
-                        let pointA = pol.points[i];
-                        let pointB = pol.points[(i + 1) % pol.points.length];
-                        if(!([pointA.x,pointA.y] in points)) {
-                            points[[pointA.x,pointA.y]] = p;
-                            p += 1;
-                        }
-
-                        if(!([pointB.x,pointB.y] in points)) {
-                            points[[pointB.x,pointB.y]] = p;
-                            p += 1;
-                        }
-
-                        if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
-                            edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
-                            e += 1;
-                        }
-                        polygonPoints.push(points[[pointA.x,pointA.y]]);
-                    }
-
-                    if(!(polygonPoints in polygons)) {
-                        polygons[polygonPoints] = polCount;
-                        polCount += 1;
-                    }
-                });
+                let points = this.packing.draw.points;
+                let edges = this.packing.draw.edges;
+                let polygons = this.packing.draw.polygons;
 
                 let sortedPoints = this.sortDictionary(points);
                 let sortedEdges = this.sortDictionary(edges);
@@ -381,7 +461,7 @@
             },
             showPolygonData(){
                 this.selectedPolygon = this.polygon;
-                this.selectedPolygon.selected = !this.selectedPolygon.selected ;
+                //this.selectedPolygon.selected = !this.selectedPolygon.selected ;
                 if(this.polygon.properties == null) {
                     this.polygon.properties = [];
                 }
@@ -444,28 +524,33 @@
                         }
                     }
                 }
+                let hover = false;
                 if ((this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p))) {
-                    // p.fill(77,182,172);
-                    p.strokeWeight(4);
                     this.polygon = polygon;
-                } else if (polygon.selected) {
-                    p.stroke(239,83,80);
-                    p.strokeWeight(4);
-                } else {
-                    p.strokeWeight(3);
+                    hover = true;
                 }
-                p.noFill();
-                p.beginShape();
-                polygon.points.forEach(pnt => {
-                    let sx = (pnt.x / width) * p.width;
-                    let sy = ((height - pnt.y) / height) * p.height;
 
-                    p.vertex(sx, sy);
-                });
-                p.endShape(p.CLOSE);
+                let selected = false;
+                if (polygon.selected) {
+                    selected = true;
+                }
 
-                p.stroke(33,33,33);
-                //p.noFill();
+                for(let i = 0; i < polygon.points.length; i++) {
+                    let pntA = polygon.points[i];
+                    let pntB = polygon.points[(i + 1) % polygon.points.length];
+
+                    if([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                            selected: selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected,
+                            hover: hover || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].hover,
+                        }
+                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                            selected: selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected,
+                            hover: hover || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].hover,
+                        }
+                    }
+                }
             },
             execute(){
                 this.$validator.validateAll().then(result => {
@@ -495,6 +580,61 @@
                                 this.executing = false;
                                 //console.log(resp);
                                 this.packing = resp.body.mesh;
+
+                                let points = {};
+                                let edges = {};
+                                let polygons = {};
+                                let edgesG = {};
+                                let p = 1;
+                                let e = 1;
+                                let polCount = 1;
+
+                                this.packing.polygons.forEach(pol => {
+
+                                    let polygonPoints = [];
+
+                                    for(let i = 0; i < pol.points.length; i++) {
+
+                                        let pointA = pol.points[i];
+                                        let pointB = pol.points[(i + 1) % pol.points.length];
+                                        if(!([pointA.x,pointA.y] in points)) {
+                                            points[[pointA.x,pointA.y]] = p;
+                                            p += 1;
+                                        }
+
+                                        if(!([pointB.x,pointB.y] in points)) {
+                                            points[[pointB.x,pointB.y]] = p;
+                                            p += 1;
+                                        }
+
+                                        if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
+                                            edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
+                                            e += 1;
+
+                                            if(pol.hole) {
+                                                if (!([pointA.x, pointA.y] in edgesG)) {
+                                                    edgesG[[pointA.x, pointA.y]] = {};
+                                                }
+                                                edgesG[[pointA.x, pointA.y]][[pointB.x, pointB.y]] = {
+                                                    selected: false,
+                                                    hover: false,
+                                                };
+                                            }
+                                        }
+                                        polygonPoints.push(points[[pointA.x,pointA.y]]);
+                                    }
+
+                                    if(!(polygonPoints in polygons)) {
+                                        polygons[polygonPoints] = polCount;
+                                        polCount += 1;
+                                    }
+                                });
+
+                                this.packing.draw = {};
+                                this.packing.draw.points = points;
+                                this.packing.draw.edges = edges;
+                                this.packing.draw.polygons = polygons;
+                                this.packing.graph = edgesG;
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -504,6 +644,54 @@
                         this.dialog = false;
                     }
                 });
+            },
+            polygonIntersection(polygon, box, width, height, p) {
+                let intersects = false;
+                for(let i = 0; i < polygon.points.length; i++) {
+
+                    let pntA = polygon.points[i];
+                    let pntB = polygon.points[(i + 1) % polygon.points.length];
+                    let xi = (pntA.x/ width) * p.width,
+                        yi = ((height - pntA.y) / height) * p.height;
+                    let xj = (pntB.x / width) * p.width,
+                        yj = ((height - pntB.y) / height) * p.height;
+                    for(let j = 0; j < box.points.length; j++) {
+                        let pntC = box.points[j];
+                        let pntD = box.points[(j + 1) % box.points.length];
+                        intersects = intersects || this.vectorIntersection(xi,yi,xj,yj, pntC.x, pntC.y, pntD.x, pntD.y);
+                    }
+                }
+
+                if(!intersects) {
+                    let pntA = polygon.points[0];
+                    let x = (pntA.x/ width) * p.width,
+                        y = ((height - pntA.y) / height) * p.height;
+                    let inside = false;
+                    for(let i = 0; i < box.points.length; i++) {
+                        let xi = box.points[i].x,
+                            yi = box.points[i].y;
+                        let xj = box.points[(i + 1) % box.points.length].x,
+                            yj = box.points[(i + 1) % box.points.length].y;
+
+                        let intersect = ((yi > y) !== (yj > y))
+                            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                        if (intersect) inside = !inside;
+                    }
+                    if(inside) intersects = true;
+                }
+                return intersects;
+            },
+            vectorIntersection(a,b,c,d,p,q,r,s) {
+                let det, gamma, lambda;
+
+                det = (c - a) * (s - q) - (r - p) * (d - b);
+                if (det === 0) {
+                    return false;
+                } else {
+                    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+                    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+                    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+                }
             }
         },
     }

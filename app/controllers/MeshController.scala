@@ -56,20 +56,7 @@ class MeshController @Inject()(components: ControllerComponents)
           polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius, pol.isHole, pol.getArea)
         })
 
-        // Create Graph output
-        var nodes: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
-        Packing2D.getGraph.getNodes.foreach(node => {
-          nodes += new Point2D(node._1.x, node._1.y)
-        })
-        var edges: ArrayBuffer[(Point2D, Point2D)] = new ArrayBuffer[(Point2D, Point2D)]()
-        Packing2D.getGraph.getEdges.foreach(links => {
-          links._2.foreach(node => {
-            edges += ((new Point2D(links._1.value.x, links._1.value.y), new Point2D(node.value.x, node.value.y)))
-          })
-        })
-        val graphOutput: OutputGraph = new OutputGraph(nodes.toList, edges.toList)
-
-        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, graphOutput, width, height)
+        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
 
         Ok(Json.obj("mesh" -> output))
       case _: JsError =>
