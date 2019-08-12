@@ -50,7 +50,7 @@
             <v-btn fixed dark fab bottom right color="teal lighten-2" @click="openDialog">
                 <v-icon>add</v-icon>
             </v-btn>
-            <v-layout class="right-layout" align-end>
+            <!--<v-layout class="right-layout" align-end>
                 <v-flex>
                     <v-btn :dark="Object.entries(properties).some(prop => prop[1].selected)" depressed
                            :disabled="!Object.entries(properties).some(prop => prop[1].selected)" color="teal lighten-2"
@@ -58,7 +58,7 @@
                         Assign Properties
                     </v-btn>
                 </v-flex>
-            </v-layout>
+            </v-layout>-->
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
                 No properties registered.
             </div>
@@ -66,9 +66,9 @@
 
                 <v-list-tile :key="key[1].label" avatar @click="">
 
-                    <v-list-tile-action class="checkbox-width">
+                    <!--<v-list-tile-action class="checkbox-width">
                         <v-checkbox color="teal lighten-2" v-model="key[1].selected"></v-checkbox>
-                    </v-list-tile-action>
+                    </v-list-tile-action>-->
 
                     <v-list-tile-avatar>
                         <swatches v-model="key[1].color" disabled colors="material-basic"/>
@@ -82,7 +82,7 @@
                         </v-list-tile-sub-title>
                     </v-list-tile-content>
                     <v-list-tile-action class="checkbox-width">
-                        <v-layout column>
+                        <v-layout row>
                             <v-flex>
                                 <v-btn icon ripple @click="editItem(key[0])">
                                     <v-icon color="teal lighten-2">edit</v-icon>
@@ -196,6 +196,7 @@
                             this.properties[this.editedItem.label].selected = false;
                         }
                         localStorage.setItem('properties', JSON.stringify(this.properties));
+                        this.$emit('assign', true);
                         this.close();
                     }
                 });

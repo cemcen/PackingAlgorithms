@@ -6,14 +6,30 @@
                     <v-toolbar color="#eeeeee">
                         <v-toolbar-title>Packing</v-toolbar-title>
                         <v-divider class="mx-2" inset vertical></v-divider>
+
+                        <v-tooltip top>
+                            <v-btn slot="activator" icon flat color="teal lighten-2" :disabled="executing" @click="dialog = true" dark class="mb-2">
+                                <v-icon>add_circle_outline</v-icon>
+                            </v-btn>
+                            <span>Create New Packing</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <v-btn slot="activator" icon flat color="teal lighten-2" @click="dialog2 = true" dark class="mb-2">
+                                <v-icon>color_lens</v-icon>
+                            </v-btn>
+                            <span>Assign Properties</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <v-btn icon flat color="teal lighten-2" dark slot="activator" @click="exportPacking" class="mb-2">
+                                <v-icon>save_alt</v-icon>
+                            </v-btn>
+                            <span>Export</span>
+                        </v-tooltip>
+
                         <v-spacer></v-spacer>
-                        <v-btn color="teal lighten-2" dark @click="exportPacking" class="mb-2">
-                            <v-icon>save_alt</v-icon>
-                            Export
-                        </v-btn>
-                        <v-btn color="teal lighten-2" :disabled="executing" @click="dialog = true" dark class="mb-2">
-                            Create New Packing
-                        </v-btn>
+
+
+
                         <v-progress-circular v-show="executing" indeterminate
                                              color="teal lighten-2"></v-progress-circular>
                         <v-dialog v-model="dialog" persistent max-width="500px">
@@ -67,6 +83,70 @@
                                     <v-spacer></v-spacer>
                                     <v-btn color="teal lighten-2" flat @click.native="dialog = false">Close</v-btn>
                                     <v-btn dark color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-dialog>
+
+                        <v-dialog v-model="dialog2" persistent max-width="500px">
+                            <v-card color="#ffffff">
+                                <v-card-title>
+                                    <span class="headline">Assign Properties</span>
+                                </v-card-title>
+
+                                <v-card-text>
+                                    <v-layout justify-center column>
+                                        <v-flex>
+                                            <v-select v-validate="'required'" label="Choose which polygons should have these properties"
+                                                      :error-messages="errors.collect('selectedOptionProperties')" item-text="name"
+                                                      v-model="selectedOptionProperties" :items="optionProperties" return-object
+                                                      data-vv-name="selectedOptionProperties">
+                                            </v-select>
+                                        </v-flex>
+                                    </v-layout>
+                                    <v-layout justify-center column>
+                                        <v-flex>
+                                            <v-select v-validate="'required'" label="Choose which type of polygon should have these properties"
+                                                      :error-messages="errors.collect('selectedOptionType')" item-text="name"
+                                                      v-model="selectedOptionType" :items="optionType" return-object
+                                                      data-vv-name="selectedOptionType">
+                                            </v-select>
+                                        </v-flex>
+                                    </v-layout>
+                                    <v-list two-line>
+                                        <div class="text-centered font-weight-light grey--text title mb-2"
+                                             v-show="properties.length === 0">
+                                            No properties registered.
+                                        </div>
+                                        <template v-for="(key, value) in Object.entries(properties)">
+
+                                            <v-list-tile :key="key[1].label" avatar @click="">
+
+                                                <v-list-tile-action class="checkbox-width">
+                                                    <v-checkbox color="teal lighten-2"
+                                                                v-model="key[1].selected"></v-checkbox>
+                                                </v-list-tile-action>
+
+                                                <v-list-tile-avatar>
+                                                    <swatches v-model="key[1].color" disabled colors="material-basic"/>
+                                                </v-list-tile-avatar>
+
+                                                <v-list-tile-content>
+                                                    <v-list-tile-title v-html="key[1].label"></v-list-tile-title>
+                                                    <v-list-tile-sub-title>
+                                                        <span>Type of value: {{ key[1].typeOfValue }}</span> <br/>
+                                                        <span>Default value: {{ key[1].default? key[1].default : 'Not Defined' }}</span>
+                                                    </v-list-tile-sub-title>
+                                                </v-list-tile-content>
+                                            </v-list-tile>
+                                            <v-divider></v-divider>
+                                        </template>
+                                    </v-list>
+                                </v-card-text>
+
+                                <v-card-actions>
+                                    <v-spacer></v-spacer>
+                                    <v-btn color="teal lighten-2" flat @click.native="dialog2 = false">Close</v-btn>
+                                    <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign Properties</v-btn>
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
@@ -161,6 +241,10 @@
     import InfoTab from "./InfoTab.vue";
     import api from "../services/api.services";
     import * as poly2tri from 'poly2tri';
+    import Swatches from 'vue-swatches'
+
+    // Import the styles too, globally
+    import "vue-swatches/dist/vue-swatches.min.css"
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -168,7 +252,7 @@
         $_veeValidate: {
             validator: 'new'
         },
-        components: {InfoTab, PolygonsTab, PropertiesTab},
+        components: {InfoTab, PolygonsTab, PropertiesTab, Swatches},
         name: "packing",
         data() {
           return {
@@ -183,7 +267,40 @@
               regularity: 5,
               approach: 1,
               dialog: false,
+              dialog2: false,
               polygons: [],
+              optionProperties: [
+                  {
+                      value: 0,
+                      name: "Selected Polygons"
+                  },
+                  {
+                      value: 1,
+                      name: "All Polygons"
+                  }
+              ],
+              optionType: [
+                  {
+                      value: 0,
+                      name: "All Polygons"
+                  },
+                  {
+                      value: 1,
+                      name: "Only polygons"
+                  },
+                  {
+                      value: 2,
+                      name: "Only holes"
+                  }
+              ],
+              selectedOptionProperties: {
+                  value: 0,
+                  name: "Selected Polygons"
+              },
+              selectedOptionType: {
+                  value: 0,
+                  name: "All Polygons"
+              },
               show: false,
               dialogInfo: false,
               executing: false,
@@ -201,6 +318,7 @@
                       polygons: {},
                   }
               },
+              properties: {},
               dictionary: {
                   custom: {
                       width: {
@@ -240,7 +358,7 @@
                     canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(60);
+                    p.frameRate(1);
                     //console.log(canvas);
                 };
 
@@ -251,20 +369,25 @@
                 };
 
                 let locked = false;
+                let dragged = false;
                 let xInit = 0;
                 let yInit = 0;
                 let bx = 0;
                 let by = 0;
                 p.mousePressed = () => {
-                    locked = true;
-                    xInit = p.mouseX;
-                    yInit = p.mouseY;
-                    bx = p.mouseX;
-                    by = p.mouseY;
+                    if(p.mouseX > -10 && p.mouseY > -10 && p.mouseX < p.width + 10 && p.mouseY < p.height + 10 && !this.dialog2) {
+                        locked = true;
+                        xInit = p.mouseX;
+                        yInit = p.mouseY;
+                        bx = p.mouseX;
+                        by = p.mouseY;
+                    }
                 };
 
                 p.mouseDragged = () => {
                     if(locked) {
+                        dragged = true;
+                        p.draw();
                         bx = p.mouseX;
                         by = p.mouseY;
                     }
@@ -272,32 +395,65 @@
 
                 p.mouseReleased = () => {
                     locked = false;
-                    let box = {
-                        points: [
-                            {
-                                x: Math.min(bx, xInit),
-                                y: Math.min(by, yInit)
-                            },
-                            {
-                                x: Math.max(bx, xInit),
-                                y: Math.min(by, yInit)
-                            },
-                            {
-                                x: Math.max(bx, xInit),
-                                y: Math.max(by, yInit)
-                            },
-                            {
-                                x: Math.min(bx, xInit),
-                                y: Math.max(by, yInit)
-                            },
-                        ]
-                    };
+                    if(dragged) {
+                        let box = {
+                            points: [
+                                {
+                                    x: Math.min(bx, xInit),
+                                    y: Math.min(by, yInit)
+                                },
+                                {
+                                    x: Math.max(bx, xInit),
+                                    y: Math.min(by, yInit)
+                                },
+                                {
+                                    x: Math.max(bx, xInit),
+                                    y: Math.max(by, yInit)
+                                },
+                                {
+                                    x: Math.min(bx, xInit),
+                                    y: Math.max(by, yInit)
+                                },
+                            ]
+                        };
+                        let height = this.packing.height;
+                        let width = this.packing.width;
+                        this.packing.polygons.forEach(pol => {
+                            for (let i = 0; i < pol.points.length; i++) {
+                                let pntA = pol.points[i];
+                                let pntB = pol.points[(i + 1) % pol.points.length];
 
-                    let height = this.packing.height;
-                    let width = this.packing.width;
-                    this.packing.polygons.forEach(pol => {
-                        pol.selected = this.polygonIntersection(pol, box, width, height, p);
-                    });
+                                if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                                    this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                                        selected: false
+                                    }
+                                } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                                    this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                                        selected: false
+                                    }
+                                }
+                            }
+                        });
+                        this.packing.polygons.forEach(pol => {
+                            pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                            for (let i = 0; i < pol.points.length; i++) {
+                                let pntA = pol.points[i];
+                                let pntB = pol.points[(i + 1) % pol.points.length];
+
+                                if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                                    this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                                        selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
+                                    }
+                                } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                                    this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                                        selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
+                                    }
+                                }
+                            }
+                        });
+                        dragged = false;
+                        p.draw();
+                    }
 
                     xInit = 0;
                     yInit = 0;
@@ -310,24 +466,6 @@
                     p.background(255,255,255);
                     p.noFill();
                     p.push();
-                    this.packing.polygons.forEach(pol => {
-                        for(let i = 0; i < pol.points.length; i++) {
-                            let pntA = pol.points[i];
-                            let pntB = pol.points[(i + 1) % pol.points.length];
-
-                            if([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                                this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                                    selected: false,
-                                    hover: false,
-                                }
-                            } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                                this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                                    selected: false,
-                                    hover: false,
-                                }
-                            }
-                        }
-                    });
                     this.packing.polygons.forEach(pol => {this.drawPolygon(pol, this.packing.width, this.packing.height, p)});
                     let graph = this.packing.graph;
                     let height = this.packing.height;
@@ -338,12 +476,12 @@
                             const pntB = JSON.parse("[" + pointB + "]");
 
                             if(graph[pointA][pointB].selected) {
-                                p.stroke(239,83,80);
+                                p.stroke(189,189,189);
                             } else {
                                 p.stroke(33, 33, 33);
                             }
 
-                            if(graph[pointA][pointB].hover) {
+                            if(graph[pointA][pointB].selected) {
                                 p.strokeWeight(4);
                             } else {
                                 p.strokeWeight(3);
@@ -360,6 +498,7 @@
                     if(locked) {
                         p.strokeWeight(3);
                         p.stroke(239,83,80);
+                        p.noFill();
                         let x = Math.min(bx, xInit);
                         let y = Math.min(by, yInit);
                         p.rect(x,y, Math.abs(bx - xInit), Math.abs(by - yInit))
@@ -370,6 +509,7 @@
             const P5 = require('p5');
             this.ps = new P5(this.script, 'myContainer');
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
+            if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
             if (localStorage.getItem('packing')) {
                 this.packing = JSON.parse(localStorage.getItem('packing'));
                 this.packing.polygons.map(pol => pol.selected = false);
@@ -413,9 +553,11 @@
 
                 let sortedPoints = this.sortDictionary(points);
                 let sortedEdges = this.sortDictionary(edges);
-                let sortedPolygons = this.sortDictionary(polygons);
+                let sortedPolygons = this.sortPolygons(polygons);
+                let properties = JSON.parse(localStorage.getItem('properties'));
+                let propertiesArray = Object.keys(properties);
 
-                file += Object.keys(points).length + ' ' + Object.keys(edges).length + ' ' + Object.keys(polygons).length +'\n';
+                file += Object.keys(points).length + ' ' + Object.keys(edges).length + ' ' + propertiesArray.length + ' ' + Object.keys(polygons).length + '\n';
 
                 sortedPoints.forEach(point => {
                     let splitted = point[0].split(",");
@@ -427,11 +569,25 @@
                     file += splitted[0] + ' ' + splitted[1] + '\n';
                 });
 
+                propertiesArray.forEach(prop => {
+                    file += prop + '\n';
+                });
+
                 sortedPolygons.forEach(polygon => {
                     let splitted = polygon[0].split(",");
+                    file += (splitted.length + ' ');
                     splitted.forEach(s => {
                         file += (s + ' ');
                     });
+                    file += (polygon[2].area + ' ');
+                    file += ((polygon[2].hole? 1: 0) + ' ');
+                    file += (polygon[2].properties.length + ' ');
+
+                    if(polygon[2].properties && polygon[2].properties.length > 0){
+                        polygon[2].properties.forEach(prop => {
+                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                        })
+                    }
                     file = file.slice(0,-1);
                     file += '\n';
                 });
@@ -459,9 +615,22 @@
 
                 return sorted;
             },
+            sortPolygons(dict){
+                // Create items array
+                let sorted = Object.keys(dict).map(function(key) {
+                    return [key, dict[key].count, dict[key].polygon];
+                });
+
+                // Sort the array based on the second element
+                sorted.sort(function(first, second) {
+                    return first[1] - second[1];
+                });
+
+                return sorted;
+            },
             showPolygonData(){
                 this.selectedPolygon = this.polygon;
-                //this.selectedPolygon.selected = !this.selectedPolygon.selected ;
+                //this.selectedPolygon.selected = !this.selectedPolygon.selected;
                 if(this.polygon.properties == null) {
                     this.polygon.properties = [];
                 }
@@ -469,40 +638,54 @@
                 localStorage.setItem('packing', JSON.stringify(this.packing));
             },
             assignProperties() {
-                let properties = JSON.parse(localStorage.getItem('properties'));
-
                 this.packing.polygons.forEach(polygon => {
-                    if (polygon.selected) {
-                        if(polygon.triangulation == null) {
-                            polygon.triangulation = [];
-                            let contour = [];
-                            polygon.points.forEach(pnt => {
-                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
-                            });
-                            let swctx = new poly2tri.SweepContext(contour);
-                            swctx.triangulate();
-                            let triangles = swctx.getTriangles();
-                            triangles.forEach(function(t) {
-                                let triangle = [];
-                                t.getPoints().forEach(function(p) {
-                                    triangle.push({x: p.x, y: p.y});
+                    if ((this.selectedOptionProperties.value === 0 && polygon.selected) || this.selectedOptionProperties.value === 1) {
+                        if(this.selectedOptionType.value === 0
+                            || (this.selectedOptionType.value === 1 && !polygon.hole)
+                            || (this.selectedOptionType.value === 2 && polygon.hole)) {
+                            if (polygon.triangulation == null) {
+                                polygon.triangulation = [];
+                                let contour = [];
+                                polygon.points.forEach(pnt => {
+                                    contour.push(new poly2tri.Point(pnt.x, pnt.y))
                                 });
+                                let swctx = new poly2tri.SweepContext(contour);
+                                swctx.triangulate();
+                                let triangles = swctx.getTriangles();
+                                triangles.forEach(function (t) {
+                                    let triangle = [];
+                                    t.getPoints().forEach(function (p) {
+                                        triangle.push({x: p.x, y: p.y});
+                                    });
 
-                                polygon.triangulation.push(triangle);
-                            });
-                        }
-
-                        polygon.properties = [];
-                        Object.keys(properties).forEach(function(item) {
-                            if(properties[item].selected){
-                                polygon.properties.push({key: item, value: properties[item].default})
+                                    polygon.triangulation.push(triangle);
+                                });
                             }
-                        });
+
+                            polygon.properties = [];
+                            let properties = this.properties;
+                            Object.keys(properties).forEach(function (item) {
+                                if (properties[item].selected) {
+                                    polygon.properties.push({key: item, value: properties[item].default})
+                                }
+                            });
+
+                            let polygonPoints = [];
+                            for (let i = 0; i < polygon.points.length; i++) {
+                                let pointA = polygon.points[i];
+                                polygonPoints.push(this.packing.draw.points[[pointA.x, pointA.y]]);
+                            }
+
+                            this.packing.draw.polygons[polygonPoints].polygon.properties = polygon.properties;
+                        }
                     }
                 });
 
-                this.snackbar = true;
-                this.snackbarMessage = "Properties assigned successfully";
+                this.ps.draw();
+                this.dialog2 = false;
+
+                //this.snackbar = true;
+                //this.snackbarMessage = "Properties assigned successfully";
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(33, 33, 33);
@@ -521,33 +704,6 @@
                                 p.vertex(sx, sy);
                             });
                             p.endShape(p.CLOSE);
-                        }
-                    }
-                }
-                let hover = false;
-                if ((this.mouseInsidePolygon(polygon, p.mouseX, p.mouseY, width, height, p))) {
-                    this.polygon = polygon;
-                    hover = true;
-                }
-
-                let selected = false;
-                if (polygon.selected) {
-                    selected = true;
-                }
-
-                for(let i = 0; i < polygon.points.length; i++) {
-                    let pntA = polygon.points[i];
-                    let pntB = polygon.points[(i + 1) % polygon.points.length];
-
-                    if([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                            selected: selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected,
-                            hover: hover || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].hover,
-                        }
-                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                            selected: selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected,
-                            hover: hover || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].hover,
                         }
                     }
                 }
@@ -625,7 +781,10 @@
                                     }
 
                                     if(!(polygonPoints in polygons)) {
-                                        polygons[polygonPoints] = polCount;
+                                        polygons[polygonPoints] = {
+                                            count: polCount,
+                                            polygon: pol
+                                        };
                                         polCount += 1;
                                     }
                                 });
