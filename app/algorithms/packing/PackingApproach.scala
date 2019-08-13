@@ -54,6 +54,7 @@ abstract class PackingApproach {
   }
 
   def printGraph(width: Int, height: Int): Unit = {
+
     graph.exportPNGGraph(height, width, route = "debug/graphs/", filename = "graph.png", circle_size = (10,10))
     polygonGraph.exportPNGGraph(height, width, route = "debug/graphs/", filename ="polygons_graph.png", circle_size = (10,10))
     polygonGraph.exportPNGGraph(height, width,

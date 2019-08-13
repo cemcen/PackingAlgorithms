@@ -13,6 +13,7 @@ import util.control.Breaks._
 import java.awt.image.BufferedImage
 import java.awt.{BasicStroke, Color, Font, Graphics2D}
 import java.awt.geom._
+import java.io.File
 
 import scala.reflect.io.Path
 
@@ -814,6 +815,20 @@ class Graph(private val nodes: mutable.HashMap[Point, Node], private val links: 
 
     // done with drawing
     g.dispose()
+
+    // If directory does not exists, we create the directory
+    val PATH: String = route
+    val paths: Array[String] = PATH.split("/")
+    var directoryPath: String = ""
+
+    paths.foreach(path => {
+      directoryPath += path
+      val directory: File = new File(directoryPath)
+      if (!directory.exists()) {
+        directory.mkdir()
+      }
+      directoryPath += "/"
+    })
 
     // write image to a file
     javax.imageio.ImageIO.write(canvas, "png", new java.io.File(route + filename))
