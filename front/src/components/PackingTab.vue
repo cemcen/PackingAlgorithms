@@ -14,7 +14,7 @@
                             <span>Create New Packing</span>
                         </v-tooltip>
                         <v-tooltip top>
-                            <v-btn slot="activator" icon flat color="teal lighten-2" @click="dialog2 = true" dark class="mb-2">
+                            <v-btn slot="activator" icon flat color="teal lighten-2" @click="openAssignProp" dark class="mb-2">
                                 <v-icon>color_lens</v-icon>
                             </v-btn>
                             <span>Assign Properties</span>
@@ -24,6 +24,12 @@
                                 <v-icon>save_alt</v-icon>
                             </v-btn>
                             <span>Export</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <v-btn icon flat color="teal lighten-2" dark slot="activator" @click="downloadImage" class="mb-2">
+                                <v-icon>image</v-icon>
+                            </v-btn>
+                            <span>Download Image</span>
                         </v-tooltip>
 
                         <v-spacer></v-spacer>
@@ -689,21 +695,26 @@
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(33, 33, 33);
-                p.strokeWeight(0);
+                p.strokeWeight(1);
                 if(polygon.properties != null && polygon.properties.length > 0) {
                     if(polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
                         let properties = JSON.parse(localStorage.getItem('properties'));
-                        let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
-                        for(let i = 0; i < polygon.triangulation.length; i += 1) {
-                            p.fill(properties[polygon.properties[(Math.floor(i/painted_triangles_each_step)) % polygon.properties.length].key].color);
-                            p.beginShape();
-                            polygon.triangulation[i].forEach(pnt => {
-                                let sx = (pnt.x / width) * p.width;
-                                let sy = ((height - pnt.y) / height) * p.height;
+                        polygon.properties = polygon.properties.filter(prop => Object.keys(properties).includes(prop.key));
 
-                                p.vertex(sx, sy);
-                            });
-                            p.endShape(p.CLOSE);
+                        if(polygon.properties.length > 0) {
+                            let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
+                            for (let i = 0; i < polygon.triangulation.length; i += 1) {
+                                p.fill(properties[polygon.properties[(Math.floor(i / painted_triangles_each_step)) % polygon.properties.length].key].color);
+                                p.stroke(properties[polygon.properties[(Math.floor(i / painted_triangles_each_step)) % polygon.properties.length].key].color);
+                                p.beginShape();
+                                polygon.triangulation[i].forEach(pnt => {
+                                    let sx = (pnt.x / width) * p.width;
+                                    let sy = ((height - pnt.y) / height) * p.height;
+
+                                    p.vertex(sx, sy);
+                                });
+                                p.endShape(p.CLOSE);
+                            }
                         }
                     }
                 }
@@ -804,6 +815,10 @@
                     }
                 });
             },
+            downloadImage() {
+                let filename = 'packing.png';
+                this.ps.save(filename);
+            },
             polygonIntersection(polygon, box, width, height, p) {
                 let intersects = false;
                 for(let i = 0; i < polygon.points.length; i++) {
@@ -851,6 +866,10 @@
                     gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
                     return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
                 }
+            },
+            openAssignProp() {
+                if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
+                this.dialog2 = true;
             }
         },
     }

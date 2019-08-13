@@ -57,12 +57,17 @@
         </v-dialog>
 
         <v-list two-line>
-            <v-btn fixed fab bottom dark right color="teal lighten-2" @click="openDialog">
-                <v-icon>add</v-icon>
-            </v-btn>
+            <v-layout class="right-layout" align-end>
+                <v-flex pt-3>
+                    <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
+                        New Polygon
+                    </v-btn>
+                </v-flex>
+            </v-layout>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="polygons.length === 0">
                 No polygons registered.
             </div>
+            <v-divider></v-divider>
             <template v-for="(item, index) in polygons">
 
                 <v-list-tile :key="item.label" avatar @click="">
@@ -229,5 +234,10 @@
 
     .text-centered{
         text-align: center;
+    }
+
+    .right-layout{
+        display: grid;
+        justify-content: flex-end;
     }
 </style>

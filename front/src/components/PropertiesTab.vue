@@ -9,7 +9,7 @@
                 <v-card-text>
                     <v-layout justify-center>
                         <v-flex>
-                            <v-text-field v-validate="'required'" :error-messages="errors.collect('label')"
+                            <v-text-field :disabled="isEditing" v-validate="'required'" :error-messages="errors.collect('label')"
                                           v-model="editedItem.label" label="Label" data-vv-name="label"
                                           clearable required>
                             </v-text-field>
@@ -47,21 +47,17 @@
         </v-dialog>
 
         <v-list two-line>
-            <v-btn fixed dark fab bottom right color="teal lighten-2" @click="openDialog">
-                <v-icon>add</v-icon>
-            </v-btn>
-            <!--<v-layout class="right-layout" align-end>
-                <v-flex>
-                    <v-btn :dark="Object.entries(properties).some(prop => prop[1].selected)" depressed
-                           :disabled="!Object.entries(properties).some(prop => prop[1].selected)" color="teal lighten-2"
-                           @click="assignProperties">
-                        Assign Properties
+            <v-layout class="right-layout" align-end>
+                <v-flex pt-3>
+                    <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
+                        New Property
                     </v-btn>
                 </v-flex>
-            </v-layout>-->
+            </v-layout>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
                 No properties registered.
             </div>
+            <v-divider></v-divider>
             <template v-for="(key, value) in Object.entries(properties)">
 
                 <v-list-tile :key="key[1].label" avatar @click="">
@@ -180,6 +176,8 @@
             deleteItem(item) {
                 if(confirm('Are you sure you want to delete this property?')) {
                     delete this.properties[item];
+                    localStorage.setItem('properties', JSON.stringify(this.properties));
+                    this.$forceUpdate()
                 }
             },
             close() {
@@ -206,6 +204,11 @@
             },
             openDialog() {
                 this.dialog = true;
+                this.editedItem = {
+                    label: '',
+                    typeOfValue: '',
+                    color: "#F44336"
+                };
                 this.errors.clear();
             }
         }
