@@ -21,6 +21,24 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   private var hole: Boolean = false
   private var container: Boolean = false
 
+  def intersectPolygonCuadratic(polygon: Polygon): List[Point] = {
+    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    for(i <- points.indices) {
+      val pntA = points(i)
+      val pntB = points((i + 1) % points.length)
+      val vectorA: Vector = Vector(pntA, pntB)
+
+      for (j <- polygon.points.indices) {
+        val pntC = polygon.points(j)
+        val pntD = polygon.points((j + 1) % polygon.points.length)
+        val vectorB: Vector = Vector(pntC, pntD)
+        val vIntersectionPoints: List[Point] = vectorA.intersectVector(vectorB)
+        intersectionPoints ++= vIntersectionPoints
+      }
+    }
+    intersectionPoints.toList.distinct
+  }
+
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
     * Returns a list of points that are the intersection points between them.
@@ -123,6 +141,21 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     }
 
     isInside
+  }
+
+  /**
+    * Checks if the point given is inside this polygon. Ray Casting algorithm.
+    */
+  def pointInsidePolygonRayCasting(point: Point): Boolean = {
+    // If the number of intersections are odd the point is inside.
+    val ray: Vector = Vector(new Point(-50, -50), point)
+    var count: Int = 0
+    for (i <- points.indices) {
+      val vectorA: Vector = Vector(points((i + 1) % points.size), points(i))
+      if(vectorA.intersectVector(ray).nonEmpty) count += 1
+    }
+
+    count % 2 == 1
   }
 
   /**
@@ -366,6 +399,44 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     })
 
     Math.sqrt(distance)
+  }
+
+  def routeFromTo(pointA: Point, pointB: Point): ArrayBuffer[Point] = {
+    var route: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    if(this.points.contains(pointA) && this.points.contains(pointB)) {
+      val indexA: Int = this.points.indexOf(pointA)
+      val indexB: Int = this.points.indexOf(pointB)
+
+      var range: Int = 0
+      if(indexA > indexB) range = this.points.length - indexA + indexB
+      else range = indexB - indexA
+
+      for (i <- 0 to range) {
+        route += this.points((i + indexA) % this.points.length)
+      }
+    }
+
+    route
+  }
+
+  def simplePolygon: Boolean = {
+    var simplePolygon: Boolean = true
+    for(i <- points.indices) {
+      val pntA = points(i)
+      val pntB = points((i + 1) % points.length)
+      val vectorA: Vector = Vector(pntA, pntB)
+
+      for (j <- points.indices) {
+        val pntC = points(j)
+        val pntD = points((j + 1) % points.length)
+        val vectorB: Vector = Vector(pntC, pntD)
+        val vIntersectionPoints: List[Point] = vectorA.intersectVector(vectorB)
+        vIntersectionPoints.foreach(pnt => {
+          simplePolygon = simplePolygon && points.contains(pnt)
+        })
+      }
+    }
+    simplePolygon
   }
 
 }

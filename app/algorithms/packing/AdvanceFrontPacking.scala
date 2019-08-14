@@ -49,7 +49,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     packingTechnique.updateGraph(graph)
 
     // Update the graph with the polygons connexions.
-    packingTechnique.addPolygonToGraph(container.getPolygon)
+    packingTechnique.addContainerToGraph(container)
     packingTechnique.addPolygonToGraph(firstPolygon)
     val interPolygon: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
     interPolygon += container.getPolygon
@@ -75,11 +75,10 @@ class AdvanceFrontPacking extends PackingAlgorithm {
       }
     })
 
-    packingTechnique.printGraph(container.getWidth.toInt, container.getHeight.toInt)
     finalPolygonPosition = packingTechnique.getPolygonList
-    graph = packingTechnique.getGraph
+    //graph = packingTechnique.getGraph
 
-    finalPolygonPosition.foreach(pol => {
+    /*finalPolygonPosition.foreach(pol => {
       var originalPolygon = false
       polygonList.foreach(polygon => {
         if((Math.abs(pol.getArea) - Math.abs(polygon.getArea)) === 0.0 +- 1e-3) {
@@ -102,6 +101,6 @@ class AdvanceFrontPacking extends PackingAlgorithm {
         containsAll = containsAll && pol.points.contains(pnt)
       })
       !containsAll
-    })
+    })*/
   }
 }

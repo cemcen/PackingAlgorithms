@@ -23,7 +23,7 @@ abstract class PackingApproach {
                        container: Container2D, polygonList: ArrayBuffer[Polygon],
                        polygonIntersectionA: Polygon, polygonIntersectionB: Polygon): Point
 
-  def getPolygonList: ArrayBuffer[Polygon] = this.graph.getPolygonInGraph()
+  def getPolygonList: ArrayBuffer[Polygon] = this.polygonGraph.getPolygonInGraph
 
   def updateGraph(graph: Graph): Unit = {
     this.graph = graph
@@ -35,7 +35,7 @@ abstract class PackingApproach {
     distanceBetweenPolygons += new mutable.HashMap[Int, Double]()
 
     if(interPolygons.nonEmpty) {
-      polygonGraph.addPolygonLinks(polygon, interPolygons)
+      polygonGraph.addPolygonLinksAndUpdateHoles(polygon, interPolygons)
 
       // Check if neighbourhood is completed.
       // If its surrounded by polygons there cannot be
@@ -49,8 +49,12 @@ abstract class PackingApproach {
     polygonGraph.addPolygon(polygon)
   }
 
+  def addContainerToGraph(container: Container2D): Unit = {
+    polygonGraph.addContainer(container)
+  }
+
   def addLinksToGraph(polygon: Polygon, interPolygons: ArrayBuffer[Polygon]): Unit = {
-    polygonGraph.addPolygonLinks(polygon, interPolygons)
+    polygonGraph.firstPolygonLink(polygon, interPolygons.head)
   }
 
   def printGraph(width: Int, height: Int): Unit = {

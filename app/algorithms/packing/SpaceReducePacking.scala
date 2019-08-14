@@ -92,9 +92,9 @@ class SpaceReducePacking extends PackingApproach {
       })
     })
 
-    if(bestCenterPos != null) {
-      this.graph = bestGraph
-    }
+//    if(bestCenterPos != null) {
+//      this.graph = bestGraph
+//    }
 
     bestCenterPos
   }
@@ -130,14 +130,12 @@ class SpaceReducePacking extends PackingApproach {
 
     if (!intersects && container.isInside(pointAnalyzed) && containerIntersections < 2) {
 
-      val maybeBestGraph : Graph = graph.addPolygon2Intersections(insertingPolygon, polygonIntersectionA, polygonIntersectionB)
-      val maybeBestMinimumValue: Double = maybeBestGraph.calculateHoleArea(insertingPolygon, polygonIntersectionA)
+      val maybeBestMinimumValue: Double = polygonGraph.getMinimumArea(insertingPolygon)
 
       if(maybeBestMinimumValue < minimumArea) {
         interPolygons.clear()
         interPolygons += polygonIntersectionA
         interPolygons += polygonIntersectionB
-        bestGraph = maybeBestGraph
         minimumArea = maybeBestMinimumValue
         bestPosition = pointAnalyzed
       }
