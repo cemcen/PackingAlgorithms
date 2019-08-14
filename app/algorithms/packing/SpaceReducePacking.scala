@@ -37,8 +37,9 @@ class SpaceReducePacking extends PackingApproach {
         distanceToContainer += ((i, distance))
       }
 
-      if(distanceToContainer(i) < insertingPolygon.maximumDiagonalLength
-        || distanceToContainer(i) === insertingPolygon.maximumDiagonalLength +- 1e-8) {
+      if((distanceToContainer(i) < insertingPolygon.maximumDiagonalLength
+        || distanceToContainer(i) === insertingPolygon.maximumDiagonalLength +- 1e-8)
+        && !completedExterior(polygon.centroid)) {
         // Get locus from polygon inserted.
         val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
         val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
@@ -72,8 +73,9 @@ class SpaceReducePacking extends PackingApproach {
           distanceBetweenPolygons(i) += ((j, distance))
         }
 
-        if(distanceBetweenPolygons(i)(j) < insertingPolygon.maximumDiagonalLength
-          || distanceBetweenPolygons(i)(j) === insertingPolygon.maximumDiagonalLength +- 1e-8) {
+        if((distanceBetweenPolygons(i)(j) < insertingPolygon.maximumDiagonalLength
+          || distanceBetweenPolygons(i)(j) === insertingPolygon.maximumDiagonalLength +- 1e-8)
+          && !completedExterior(polygonA.centroid) && !completedExterior(polygonB.centroid)) {
 
           // Get locus from the two polygons.
           val polygonALocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygonA, insertingPolygon)

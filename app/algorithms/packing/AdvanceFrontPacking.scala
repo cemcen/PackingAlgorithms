@@ -47,6 +47,7 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     firstPolygon.movePolygon(leftBottomPoint)
     graph = graph.addPolygon1Intersection(firstPolygon, container.getPolygon)
     packingTechnique.updateGraph(graph)
+    packingTechnique.polygonListInsert(nextPolygon)
 
     // Update the graph with the polygons connexions.
     packingTechnique.addContainerToGraph(container)
@@ -76,31 +77,5 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     })
 
     finalPolygonPosition = packingTechnique.getPolygonList
-    //graph = packingTechnique.getGraph
-
-    /*finalPolygonPosition.foreach(pol => {
-      var originalPolygon = false
-      polygonList.foreach(polygon => {
-        if((Math.abs(pol.getArea) - Math.abs(polygon.getArea)) === 0.0 +- 1e-3) {
-          var maybe = true
-          polygon.points.foreach(pnt => {
-            maybe = maybe && pol.points.contains(pnt)
-          })
-          originalPolygon = originalPolygon || maybe
-        }
-      })
-      if(!originalPolygon)
-        pol.setHole()
-      pol
-    })
-
-    // Filter container polygon found on routes.
-    finalPolygonPosition = finalPolygonPosition.filter(pol => {
-      var containsAll = true
-      container.getPolygon.points.foreach(pnt => {
-        containsAll = containsAll && pol.points.contains(pnt)
-      })
-      !containsAll
-    })*/
   }
 }

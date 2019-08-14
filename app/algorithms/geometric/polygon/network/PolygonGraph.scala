@@ -10,6 +10,7 @@ import geometry.{Point, Polygon}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.io.Path
 
 class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], private val links: mutable.HashMap[PolygonNode, ArrayBuffer[PolygonNode]]) {
 
@@ -34,6 +35,38 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     addNode(polygon, node)
   }
 
+  def getPolygon(point: Point): Polygon = {
+    nodes(point).value
+  }
+
+  def checkNeighbourhood(polygon: Polygon, polygonLessArea: Polygon): Boolean = {
+    var completed: Boolean = true
+    links(nodes(polygon.centroid)).foreach(pol_node => {
+      if(pol_node.value.isHole) {
+        completed = completed && polygonLessArea.getArea > pol_node.value.getArea
+      }
+    })
+    completed
+  }
+
+  def getNeighbours(polygon: Polygon): ArrayBuffer[Polygon] = {
+    val neighbours: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+    links(nodes(polygon.centroid)).foreach(pol_node => {
+      if(!pol_node.value.isHole) neighbours += pol_node.value
+    })
+    neighbours
+  }
+
+  private def delegateLinks(polygon: Polygon, holes: ArrayBuffer[Polygon]): Unit = {
+      links(nodes(polygon.centroid)).foreach(p_node => {
+        holes.foreach(hole => {
+          if(p_node.value.intersectPolygonCuadratic(hole).nonEmpty) {
+            addLink(p_node, nodes(hole.centroid))
+          }
+        })
+      })
+  }
+
   private def deletePolygon(polygon: Polygon): Unit = {
     links.foreach(link => {
       link._2 -= nodes(polygon.centroid)
@@ -44,6 +77,15 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
   }
 
   def addContainer(container: Container2D): Unit = {
+
+    val path = Path.string2path("debug/packing/")
+    val directory: File = new File("debug/packing")
+    if (!directory.exists()) {
+      directory.mkdir()
+    }
+    path.jfile.listFiles.foreach(f => {
+      f.delete()
+    })
 
     height = container.getHeight.toInt
     width = container.getWidth.toInt
@@ -196,14 +238,21 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
 
     addPolygon(polygon)
     holeLinks.foreach(hole => {
-      //        println("Hole: ")
-      //        hole.points.foreach(pnt => println(pnt))
       addPolygon(hole)
     })
 
+    interPolygons.foreach(pol => {
+      addLink(nodes(polygon.centroid), nodes(pol.centroid))
+    })
+
+    delegateLinks(holeCovering.value, holeLinks)
+    holeLinks.foreach(hole => {
+      addLink(nodes(hole.centroid), nodes(polygon.centroid))
+    })
     deletePolygon(holeCovering.value)
-    exportPNGGraph(height, width, route = "debug/packing/step_" + step + "/", filename = "polygon_graph.png", circle_size = (10, 10))
-    exportPNGGraphPacking(height, width, route = "debug/packing/step_" + step + "/", filename = "graph.png", circle_size = (10, 10))
+
+    exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+    exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
     //}
 
     step += 1
@@ -259,8 +308,8 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       addPolygon(hole)
     })
     addPolygonLinks(polygon, holeLinks)
-    exportPNGGraph(height, width, route = "debug/packing/step_" + step + "/", filename = "polygon_graph.png", circle_size = (10, 10))
-    exportPNGGraphPacking(height, width, route = "debug/packing/step_" + step + "/", filename = "graph.png", circle_size = (10, 10))
+    exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+    exportPNGGraphPacking(height, width, route = "debug/packing/", filename ="step_" + step +  "graph.png", circle_size = (10, 10))
     step += 1
   }
 
@@ -270,13 +319,22 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     this.exportCanvas(drawG._1, drawG._2, route, filename)
   }
 
-  def exportPNGGraphPacking(height: Int, width: Int, route: String, filename: String, circle_size: (Double, Double) = (20, 20)): Unit = {
+  def exportPNGGraphPacking(height: Int, width: Int, route: String, filename: String,
+                            circle_size: (Double, Double) = (20, 20)): Unit = {
     val drawG = this.drawGraph(width, height, circle_size)
     this.exportCanvas(drawG._1, drawG._2, route, filename)
   }
 
+  def exportPNGGraphPackingCompleted(route: String, filename: String,
+                                     circle_size: (Double, Double) = (20, 20),
+                                     completedPolygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()): Unit = {
+    val drawG = this.drawGraph(width, height, circle_size, drawContainer = false, completedPolygons)
+    this.exportCanvas(drawG._1, drawG._2, route, "step_" + (step - 1) + "_" + filename)
+  }
+
   private def drawGraph(width: Int, height: Int, circle_size: (Double, Double),
-                        drawContainer: Boolean = false): (Graphics2D, BufferedImage) = {
+                        drawContainer: Boolean = false,
+                        completedPolygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()): (Graphics2D, BufferedImage) = {
 
     // create an image
     val canvas = new BufferedImage(size._1, size._2, BufferedImage.TYPE_INT_RGB)
@@ -294,10 +352,21 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
 
     g.setStroke(new BasicStroke())
-    g.setColor(new Color(0, 0, 0)) // same as Color.BLUE
+
+    completedPolygons.foreach(pol => {
+      if (!pol.isContainer) {
+        g.setColor(new Color(229, 115, 115))
+        g.fillPolygon(
+          pol.points.map(pnt => ((pnt.x / width) * 500 + circle_size._1 / 2).toInt).toArray,
+          pol.points.map(pnt => (((height - pnt.y) / height) * 500 + circle_size._2 / 2).toInt).toArray,
+          pol.points.length
+        )
+      }
+    })
 
     links.toList.foreach(link => {
       if (drawContainer || !link._1.value.isContainer) {
+        g.setColor(new Color(0, 0, 0))
         for (i <- link._1.value.points.indices) {
           val pntA = link._1.value.points(i)
           val pntB = link._1.value.points((i + 1) % link._1.value.points.length)

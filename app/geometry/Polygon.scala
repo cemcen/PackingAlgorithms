@@ -17,6 +17,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   private var _centroid: Point = null
   private var _centroidEdgeLongest: Double = -1
   private var _maxDiagonalLength: Double = -1
+  private var _minDistanceVert: Double = -1
   private var _area: Double = -1
   private var hole: Boolean = false
   private var container: Boolean = false
@@ -270,6 +271,30 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     }
 
     _maxDiagonalLength
+  }
+
+  def minimumDistanceBetweenVertices: Double = {
+
+    if(_minDistanceVert == -1) {
+
+      var distance: Double = Double.MaxValue
+
+      for (i <- points.indices) {
+        for (j <- points.indices.filter(k => k != i)) {
+          val pointA = points(i)
+          val pointB = points(j)
+
+          val dist = pointA.distance(pointB)
+          if(dist < distance) {
+            distance = dist
+          }
+        }
+      }
+
+      _minDistanceVert = Math.sqrt(distance)
+    }
+
+    _minDistanceVert
   }
 
   /**

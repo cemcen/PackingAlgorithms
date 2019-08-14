@@ -8,49 +8,88 @@ import network.Graph
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
+
 abstract class PackingApproach {
 
   var graph: Graph = new Graph()
   var polygonGraph: PolygonGraph = new PolygonGraph()
   var interPolygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+  var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+  var polygonListInserted: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+  var polygonLessArea: Polygon = new Polygon(List())
 
   protected var distanceBetweenPolygons: ArrayBuffer[mutable.HashMap[Int, Double]] = new ArrayBuffer[mutable.HashMap[Int, Double]]()
   protected var distanceToContainer: mutable.HashMap[Int, Double] = new mutable.HashMap[Int, Double]()
-  protected var completedExterior: mutable.HashMap[Int, Boolean] = new mutable.HashMap[Int, Boolean]()
+  protected var completedExterior: mutable.HashMap[Point, Boolean] = new mutable.HashMap[Point, Boolean]()
 
   def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point
   def executeAlgorithm(insertingPolygon: Polygon, pointAnalyzed: Point,
                        container: Container2D, polygonList: ArrayBuffer[Polygon],
                        polygonIntersectionA: Polygon, polygonIntersectionB: Polygon): Point
 
-  def getPolygonList: ArrayBuffer[Polygon] = this.polygonGraph.getPolygonInGraph
+  def getPolygonList: ArrayBuffer[Polygon] = {
+    this.polygonGraph.getPolygonInGraph
+  }
 
   def updateGraph(graph: Graph): Unit = {
     this.graph = graph
+  }
+
+  def polygonListInsert(list: List[Polygon]): Unit = {
+    polygonList ++= list
+    setPolygonWithLessArea()
+  }
+
+  private def setPolygonWithLessArea(): Unit = {
+    var area: Double = Double.MaxValue
+
+    polygonList.foreach(pol => {
+      if(pol.getArea < area) {
+        area = pol.getArea
+        polygonLessArea = pol
+      }
+    })
   }
 
   def getGraph: Graph = graph
 
   def addedPolygon(polygon: Polygon): Unit = {
     distanceBetweenPolygons += new mutable.HashMap[Int, Double]()
+    polygonListInserted += polygon
+
+    if(!completedExterior.contains(polygon.centroid)) {
+      completedExterior += ((polygon.centroid, false))
+    }
 
     if(interPolygons.nonEmpty) {
       polygonGraph.addPolygonLinksAndUpdateHoles(polygon, interPolygons)
 
       // Check if neighbourhood is completed.
-      // If its surrounded by polygons there cannot be
-      interPolygons.foreach(pol => {
-        checkNeighbourhood(pol)
-      })
+      checkNeighbourhood()
+      printCompletedPolygons()
+    }
+    polygonList = polygonList.tail
+    if(polygon.getArea === polygonLessArea.getArea +- 1e-8) {
+      setPolygonWithLessArea()
     }
   }
 
   def addPolygonToGraph(polygon: Polygon): Unit = {
     polygonGraph.addPolygon(polygon)
+    polygonListInserted += polygon
+    if(!completedExterior.contains(polygon.centroid)) {
+      completedExterior += ((polygon.centroid, false))
+    }
   }
 
   def addContainerToGraph(container: Container2D): Unit = {
     polygonGraph.addContainer(container)
+    if(!completedExterior.contains(container.getPolygon.centroid)) {
+      completedExterior += ((container.getPolygon.centroid, false))
+    }
   }
 
   def addLinksToGraph(polygon: Polygon, interPolygons: ArrayBuffer[Polygon]): Unit = {
@@ -58,19 +97,33 @@ abstract class PackingApproach {
   }
 
   def printGraph(width: Int, height: Int): Unit = {
-
     graph.exportPNGGraph(height, width, route = "debug/graphs/", filename = "graph.png", circle_size = (10,10))
     polygonGraph.exportPNGGraph(height, width, route = "debug/graphs/", filename ="polygons_graph.png", circle_size = (10,10))
-    polygonGraph.exportPNGGraph(height, width,
-      route = "debug/graphs/", filename ="polygons_container_graph.png",
-      circle_size = (10,10), drawContainer = true)
+    polygonGraph.exportPNGGraph(height, width, route = "debug/graphs/", filename ="polygons_container_graph.png", circle_size = (10,10), drawContainer = true)
+  }
+
+  def printCompletedPolygons(): Unit = {
+    var completePolygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+    completedExterior.foreach(pnt_bol => {
+      if(pnt_bol._2) completePolygons += polygonGraph.getPolygon(pnt_bol._1)
+    })
+
+    polygonGraph.exportPNGGraphPackingCompleted(route = "debug/packing/",
+      filename ="polygons_graph_completed.png", circle_size = (10,10),
+      completePolygons)
   }
 
   /**
     * Check if we can pack more polygons around this polygon.
     * In case it does not we mark this polygon.
     */
-  def checkNeighbourhood(polygon: Polygon): Unit = {
-
+  def checkNeighbourhood(): Unit = {
+    polygonListInserted.foreach(pol => {
+      if(!completedExterior(pol.centroid)) {
+        if(!pol.isContainer) {
+          completedExterior(pol.centroid) = polygonGraph.checkNeighbourhood(pol, polygonLessArea)
+        }
+      }
+    })
   }
 }
