@@ -14,7 +14,6 @@ import Tolerance._
 
 abstract class PackingApproach {
 
-  var graph: Graph = new Graph()
   var polygonGraph: PolygonGraph = new PolygonGraph()
   var interPolygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
   var polygonList: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
@@ -34,10 +33,6 @@ abstract class PackingApproach {
     this.polygonGraph.getPolygonInGraph
   }
 
-  def updateGraph(graph: Graph): Unit = {
-    this.graph = graph
-  }
-
   def polygonListInsert(list: List[Polygon]): Unit = {
     polygonList ++= list
     setPolygonWithLessArea()
@@ -53,8 +48,6 @@ abstract class PackingApproach {
       }
     })
   }
-
-  def getGraph: Graph = graph
 
   def addedPolygon(polygon: Polygon): Unit = {
     distanceBetweenPolygons += new mutable.HashMap[Int, Double]()
@@ -97,7 +90,6 @@ abstract class PackingApproach {
   }
 
   def printGraph(width: Int, height: Int): Unit = {
-    graph.exportPNGGraph(height, width, route = "debug/graphs/", filename = "graph.png", circle_size = (10,10))
     polygonGraph.exportPNGGraph(height, width, route = "debug/graphs/", filename ="polygons_graph.png", circle_size = (10,10))
     polygonGraph.exportPNGGraph(height, width, route = "debug/graphs/", filename ="polygons_container_graph.png", circle_size = (10,10), drawContainer = true)
   }

@@ -12,7 +12,6 @@ abstract class PackingAlgorithm {
   protected var finalPolygonPosition: ArrayBuffer[Polygon]
   protected var container: Container2D
   protected var packingTechnique: PackingApproach
-  protected var graph: Graph
 
   /**
     * Sets the order of the insertion of the polygon.
@@ -24,11 +23,6 @@ abstract class PackingAlgorithm {
     */
   def getPolygonPositions: ArrayBuffer[Polygon] = finalPolygonPosition
 
-
-  /**
-    * Get packing graph.
-    */
-  def getGraph: Graph = graph
 
   /**
     * Creates a new container.

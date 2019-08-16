@@ -12,13 +12,11 @@ import Tolerance._
 class SpaceReducePacking extends PackingApproach {
 
   var minimumArea: Double = _
-  var bestGraph: Graph = _
 
   override def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
 
     // Reinitialize the two values to be considered, minimum area and the graph that contains that possibility.
     minimumArea = Double.MaxValue
-    bestGraph = this.graph
 
     // We want to find the best position for the polygon to be inserted. In this approach we choose the one that has less area.
     var bestCenterPos: Point = null

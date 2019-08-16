@@ -34,8 +34,6 @@
 
                         <v-spacer></v-spacer>
 
-
-
                         <v-progress-circular v-show="executing" indeterminate
                                              color="teal lighten-2"></v-progress-circular>
                         <v-dialog v-model="dialog" persistent max-width="500px">

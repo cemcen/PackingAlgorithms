@@ -12,13 +12,11 @@ import Tolerance._
 class RockFallingPacking extends PackingApproach {
 
   var minimumY: Double = _
-  var bestGraph: Graph = _
 
   override def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
 
     // Reinitialize the two values to be considered, minimum area and the graph that contains that possibility.
     minimumY = Double.MaxValue
-    bestGraph = this.graph
 
     // We want to find the best position for the polygon to be inserted. In this approach we choose the one that has less area.
     var bestCenterPos: Point = null
@@ -98,10 +96,6 @@ class RockFallingPacking extends PackingApproach {
       })
     })
 
-    if(bestCenterPos != null) {
-      this.graph = bestGraph
-    }
-
     bestCenterPos
   }
 
@@ -136,13 +130,10 @@ class RockFallingPacking extends PackingApproach {
 
     if (!intersects && container.isInside(pointAnalyzed) && containerIntersections < 2) {
 
-      val maybeBestGraph : Graph = graph.addPolygon2Intersections(insertingPolygon, polygonIntersectionA, polygonIntersectionB)
-
       if(pointAnalyzed.y < minimumY) {
         interPolygons.clear()
         interPolygons += polygonIntersectionA
         interPolygons += polygonIntersectionB
-        bestGraph = maybeBestGraph
         minimumY = pointAnalyzed.y
         bestPosition = pointAnalyzed
       }
