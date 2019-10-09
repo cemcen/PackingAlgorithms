@@ -6,12 +6,12 @@ import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
 
-class PiledPacking extends PackingAlgorithm {
+class PiledPacking(val piles: List[Double]) extends PackingAlgorithm {
 
-  override var nextPolygon: List[Polygon] = _
-  override var finalPolygonPosition: ArrayBuffer[Polygon] = _
-  override protected var container: Container2D = _
-  override var packingTechnique: PackingApproach = _
+  override var nextPolygon: List[Polygon] = List()
+  override var finalPolygonPosition: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+  override protected var container: Container2D = new Container2D(100,100)
+  override protected var packingTechnique: PackingApproach = _
 
   /**
     * Executes the packing algorithm. Classes that extends this abstract class must implement this method.
@@ -59,5 +59,4 @@ class PiledPacking extends PackingAlgorithm {
 
     finalPolygonPosition = packingTechnique.getPolygonList
   }
-
 }

@@ -1,7 +1,7 @@
 package algorithms
 
 import algorithms.packing.PackingAlgorithm
-import dto.dim2D.input.InputPolygon
+import dto.dim2D.input.{InputLayer, InputPolygon}
 import geometry.{Polygon, PolygonFactory}
 import network.Graph
 
@@ -74,6 +74,31 @@ object Packing2D {
 
     // We execute the algorithm.
     packing2d.executeAlgorithm(nextPolygon)
+
+    // Finally retrieve the result.
+    packing2d.getPolygonList
+  }
+
+  /**
+    * Interface to create a polygon mesh with geometric packing algorithm. This is a multilayer packing algorithm.
+    * @param layers List with the properties of each layer.
+    * @param width width of the container.
+    * @return The list of polygons with local coordinates.
+    */
+  def createMultiLayerMesh(layers: List[InputLayer], width: Double, randomShape: Boolean): ArrayBuffer[Polygon] = {
+
+    // For each layer we need to have the polygon list with the distribution given.
+    var layersNextPolygons: ArrayBuffer[List[Polygon]] = new ArrayBuffer[List[Polygon]]()
+    layers.foreach(lay => {
+      val layerNextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(lay.polygons, lay.height.get, width, randomShape, lay.regularity.get)
+      layersNextPolygons += layerNextPolygon
+    })
+
+    // We need to tell the algorithm on which container we will pack.
+    packing2d.setContainerDimensions(width, layers.head.height.get)
+
+    // We execute the algorithm.
+    packing2d.executeAlgorithm(layersNextPolygons.head)
 
     // Finally retrieve the result.
     packing2d.getPolygonList

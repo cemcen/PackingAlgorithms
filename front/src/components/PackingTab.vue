@@ -36,57 +36,132 @@
 
                         <v-progress-circular v-show="executing" indeterminate
                                              color="teal lighten-2"></v-progress-circular>
-                        <v-dialog v-model="dialog" persistent max-width="500px">
+                        <v-dialog v-model="dialog" persistent max-width="700px" lazy>
                             <v-card color="#ffffff">
                                 <v-card-title>
                                     <span class="headline">New Packing</span>
                                 </v-card-title>
 
+                                <v-tabs v-model="tab" slider-color="teal lighten-2" background-color="transparent" grow>
+                                    <v-tab v-for="item in piledOption" :key="item">
+                                        {{ item }}
+                                    </v-tab>
+                                </v-tabs>
                                 <v-card-text>
-                                    <v-layout justify-center row>
-                                        <v-flex pr-3>
-                                            <v-text-field v-validate="'required|min_value:1'"
-                                                          :error-messages="errors.collect('width')"
-                                                          v-model="width" type="number" label="Container Width"
-                                                          data-vv-name="width" clearable required>
-                                            </v-text-field>
-                                        </v-flex>
-                                        <v-flex>
-                                            <v-text-field v-validate="'required|min_value:1'"
-                                                          :error-messages="errors.collect('height')"
-                                                          v-model="height" type="number" label="Container Height"
-                                                          data-vv-name="height" clearable required>
-                                            </v-text-field>
-                                        </v-flex>
-                                    </v-layout>
-                                    <v-layout justify-center column>
-                                        <v-flex>
-                                            <v-text-field v-validate="'required|min_value:1|max_value:100'"
-                                                          :error-messages="errors.collect('regularity')"
-                                                          v-model="regularity" type="number"
-                                                          label="Polygons Regularity"
-                                                          hint="Variability of an edge (5% of variability)"
-                                                          persistent-hint
-                                                          data-vv-name="regularity" clearable>
-                                            </v-text-field>
-                                        </v-flex>
-                                    </v-layout>
-                                    <v-layout justify-center column>
-                                        <v-flex>
-                                            <v-radio-group v-validate="'required'" label="Choose approach"
-                                                           :error-messages="errors.collect('approach')" v-model="approach"
-                                                           data-vv-name="regularity" row>
-                                                <v-radio color="teal lighten-2" label="Dense packing" :value="1"></v-radio>
-                                                <v-radio color="teal lighten-2" label="Gravity simulation" :value="0"></v-radio>
-                                            </v-radio-group>
-                                        </v-flex>
-                                    </v-layout>
+                                    <div v-show="tab === 0">
+                                        <v-layout justify-center row>
+                                            <v-flex pr-3>
+                                                <v-text-field v-validate="'required|min_value:1'"
+                                                              :error-messages="errors.collect('width')"
+                                                              v-model="width" type="number" label="Container Width"
+                                                              data-vv-name="width" clearable required>
+                                                </v-text-field>
+                                            </v-flex>
+                                            <v-flex>
+                                                <v-text-field v-validate="'required|min_value:1'"
+                                                              :error-messages="errors.collect('height')"
+                                                              v-model="height" type="number" label="Container Height"
+                                                              data-vv-name="height" clearable required>
+                                                </v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout justify-center column>
+                                            <v-flex>
+                                                <v-text-field v-validate="'required|min_value:1|max_value:100'"
+                                                              :error-messages="errors.collect('regularity')"
+                                                              v-model="regularity" type="number"
+                                                              label="Polygons Regularity"
+                                                              hint="Variability of an edge (5% of variability)"
+                                                              persistent-hint
+                                                              data-vv-name="regularity" clearable>
+                                                </v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout justify-center column>
+                                            <v-flex>
+                                                <v-radio-group v-validate="'required'" label="Choose approach"
+                                                               :error-messages="errors.collect('approach')"
+                                                               v-model="approach"
+                                                               data-vv-name="regularity" row>
+                                                    <v-radio color="teal lighten-2" label="Dense packing"
+                                                             :value="1"></v-radio>
+                                                    <v-radio color="teal lighten-2" label="Gravity simulation"
+                                                             :value="0"></v-radio>
+                                                </v-radio-group>
+                                            </v-flex>
+                                        </v-layout>
+                                    </div>
+                                    <div v-show="tab === 1">
+                                        <v-layout justify-end>
+                                            <v-btn color="teal lighten-2" dark @click="addLayer">
+                                                Add Layer
+                                            </v-btn>
+                                            <v-btn :disabled="layers.length === 1" :dark="layers.length !== 1" color="teal lighten-2"
+                                                   @click="deleteLayer">
+                                                Remove Layer
+                                            </v-btn>
+                                        </v-layout>
+                                        <v-layout justify-center row>
+                                            <v-flex>
+                                                <v-text-field v-validate="'required|min_value:1'"
+                                                              :error-messages="errors.collect('width')"
+                                                              v-model="width" type="number" label="Container Width"
+                                                              data-vv-name="width" clearable required>
+                                                </v-text-field>
+                                            </v-flex>
+                                        </v-layout>
+                                        <v-layout v-for="(item, index) in layers" :key="index" column>
+                                            <v-layout row>
+                                                <v-flex pr-3>
+                                                    <v-text-field v-validate="'required|min_value:1'"
+                                                                  :error-messages="errors.collect(`height${index}`)"
+                                                                  v-model="layers[index].height" type="number"
+                                                                  label="Container Height"
+                                                                  :data-vv-name="`height${index}`" clearable required>
+                                                    </v-text-field>
+                                                </v-flex>
+                                                <v-flex>
+                                                    <v-text-field v-validate="'required|min_value:1|max_value:100'"
+                                                                  :error-messages="errors.collect(`regularity${index}`)"
+                                                                  v-model="layers[index].regularity" type="number"
+                                                                  label="Polygons Regularity"
+                                                                  hint="Variability of an edge (5% of variability)"
+                                                                  persistent-hint
+                                                                  :data-vv-name="`regularity${index}`" clearable>
+                                                    </v-text-field>
+                                                </v-flex>
+                                            </v-layout>
+                                            <v-layout>
+                                                <v-flex>
+                                                    <v-select v-validate="'required'" :error-messages="errors.collect(`polygons${index}`)"
+                                                              v-model="layers[index].polygons" :items="polygons" item-text="label"
+                                                              :data-vv-name="`polygons${index}`" filled chips return-object
+                                                            label="Layer Polygons" multiple>
+                                                    </v-select>
+                                                </v-flex>
+                                            </v-layout>
+                                        </v-layout>
+                                        <v-layout justify-center column>
+                                            <v-flex>
+                                                <v-radio-group v-validate="'required'" label="Choose approach"
+                                                               :error-messages="errors.collect('approach')"
+                                                               v-model="approach"
+                                                               data-vv-name="regularity" row>
+                                                    <v-radio color="teal lighten-2" label="Dense packing"
+                                                             :value="1"></v-radio>
+                                                    <v-radio color="teal lighten-2" label="Gravity simulation"
+                                                             :value="0"></v-radio>
+                                                </v-radio-group>
+                                            </v-flex>
+                                        </v-layout>
+                                    </div>
                                 </v-card-text>
 
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
                                     <v-btn color="teal lighten-2" flat @click.native="dialog = false">Close</v-btn>
-                                    <v-btn dark color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
+                                    <v-btn v-if="tab === 0" dark color="teal lighten-2" @click.native="execute">Execute Algorithm</v-btn>
+                                    <v-btn v-else dark color="teal lighten-2" @click.native="executeMultiLayer">Execute Algorithm</v-btn>
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
@@ -265,9 +340,15 @@
               snackbar: false,
               snackbarMessage: '',
               timeout: 1200,
+              layers: [{
+                  height: 75,
+                  regularity: 5
+              }],
               width: 150,
               height: 75,
               randomShape: false,
+              piledOption: ["Single Layer", "Multiple Layers"],
+              tab: 0,
               regularity: 5,
               approach: 1,
               dialog: false,
@@ -743,66 +824,7 @@
                             this.executing = true;
                             api.sendMesh(data).then(resp => {
                                 this.executing = false;
-                                //console.log(resp);
-                                this.packing = resp.body.mesh;
-
-                                let points = {};
-                                let edges = {};
-                                let polygons = {};
-                                let edgesG = {};
-                                let p = 1;
-                                let e = 1;
-                                let polCount = 1;
-
-                                this.packing.polygons.forEach(pol => {
-
-                                    let polygonPoints = [];
-
-                                    for(let i = 0; i < pol.points.length; i++) {
-
-                                        let pointA = pol.points[i];
-                                        let pointB = pol.points[(i + 1) % pol.points.length];
-                                        if(!([pointA.x,pointA.y] in points)) {
-                                            points[[pointA.x,pointA.y]] = p;
-                                            p += 1;
-                                        }
-
-                                        if(!([pointB.x,pointB.y] in points)) {
-                                            points[[pointB.x,pointB.y]] = p;
-                                            p += 1;
-                                        }
-
-                                        if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
-                                            edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
-                                            e += 1;
-
-                                            if(pol.hole) {
-                                                if (!([pointA.x, pointA.y] in edgesG)) {
-                                                    edgesG[[pointA.x, pointA.y]] = {};
-                                                }
-                                                edgesG[[pointA.x, pointA.y]][[pointB.x, pointB.y]] = {
-                                                    selected: false,
-                                                    hover: false,
-                                                };
-                                            }
-                                        }
-                                        polygonPoints.push(points[[pointA.x,pointA.y]]);
-                                    }
-
-                                    if(!(polygonPoints in polygons)) {
-                                        polygons[polygonPoints] = {
-                                            count: polCount,
-                                            polygon: pol
-                                        };
-                                        polCount += 1;
-                                    }
-                                });
-
-                                this.packing.draw = {};
-                                this.packing.draw.points = points;
-                                this.packing.draw.edges = edges;
-                                this.packing.draw.polygons = polygons;
-                                this.packing.graph = edgesG;
+                                this.parseMesh(resp);
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -812,6 +834,111 @@
                         this.dialog = false;
                     }
                 });
+            },
+            executeMultiLayer(){
+                this.$validator.validateAll().then(result => {
+                    if(result) {
+                        if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
+                        if(this.polygons.length === 0) {
+                            alert('Must insert at least one polygon')
+                        } else {
+
+                            let data = {
+                                'layers': this.layers.map(lay => {
+                                    return {
+                                        'height': parseFloat(lay.height),
+                                        'regularity': parseInt(180 / parseInt(lay.regularity)),
+                                        'polygons': lay.polygons.map(x => {
+                                            return {
+                                                'label': x.label,
+                                                'numberOfVertex': parseInt(x.numberOfVertex),
+                                                'percentage': parseInt(x.percentage),
+                                                'radius': parseFloat(x.radius)
+                                            };
+                                        }),
+                                    };
+                                }),
+                                'width': parseFloat(this.width),
+                                'randomShape': this.randomShape,
+                                'regularity': parseInt(180 / parseInt(this.regularity)),
+                                'approachAlgorithm': this.approach
+                            };
+
+                            this.executing = true;
+                            api.sendMeshMultiLayers(data).then(resp => {
+                                this.executing = false;
+                                this.parseMesh(resp);
+                            }).catch(error => {
+                                this.executing = false;
+                                //console.log(error);
+                                alert("Error executing algorithm.");
+                            });
+                        }
+                        this.dialog = false;
+                    }
+                });
+            },
+            parseMesh(resp) {
+                //console.log(resp);
+                this.packing = resp.body.mesh;
+
+                let points = {};
+                let edges = {};
+                let polygons = {};
+                let edgesG = {};
+                let p = 1;
+                let e = 1;
+                let polCount = 1;
+
+                this.packing.polygons.forEach(pol => {
+
+                    let polygonPoints = [];
+
+                    for(let i = 0; i < pol.points.length; i++) {
+
+                        let pointA = pol.points[i];
+                        let pointB = pol.points[(i + 1) % pol.points.length];
+                        if(!([pointA.x,pointA.y] in points)) {
+                            points[[pointA.x,pointA.y]] = p;
+                            p += 1;
+                        }
+
+                        if(!([pointB.x,pointB.y] in points)) {
+                            points[[pointB.x,pointB.y]] = p;
+                            p += 1;
+                        }
+
+                        if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
+                            edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
+                            e += 1;
+
+                            if(pol.hole) {
+                                if (!([pointA.x, pointA.y] in edgesG)) {
+                                    edgesG[[pointA.x, pointA.y]] = {};
+                                }
+                                edgesG[[pointA.x, pointA.y]][[pointB.x, pointB.y]] = {
+                                    selected: false,
+                                    hover: false,
+                                };
+                            }
+                        }
+                        polygonPoints.push(points[[pointA.x,pointA.y]]);
+                    }
+
+                    if(!(polygonPoints in polygons)) {
+                        polygons[polygonPoints] = {
+                            count: polCount,
+                            polygon: pol
+                        };
+                        polCount += 1;
+                    }
+                });
+
+                this.packing.draw = {};
+                this.packing.draw.points = points;
+                this.packing.draw.edges = edges;
+                this.packing.draw.polygons = polygons;
+                this.packing.graph = edgesG;
             },
             downloadImage() {
                 let filename = 'packing.png';
@@ -868,6 +995,15 @@
             openAssignProp() {
                 if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
                 this.dialog2 = true;
+            },
+            addLayer(){
+                this.layers.push({
+                    height: null,
+                    regularity: 5
+                });
+            },
+            deleteLayer(){
+                this.layers.pop();
             }
         },
     }

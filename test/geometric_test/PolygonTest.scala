@@ -189,13 +189,13 @@ class PolygonTest extends FlatSpec with Matchers {
     for (_ <- 1 to 100) {
       val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6, "hexagon", randomFigure = true, 18)
       val Rsquare = PolygonFactory.createNewPolygon(10.0, 4, "square", randomFigure = true, 18)
-      //println("HEXAGONO PRUEBA")
-      //Rhexagon.points.foreach(println(_))
-      //println("CUADRADO PRUEBA")
-      //Rsquare.points.foreach(println(_))
-      //println("RESULTA3")
+//      println("HEXAGONO PRUEBA")
+//      Rhexagon.points.foreach(println(_))
+//      println("CUADRADO PRUEBA")
+//      Rsquare.points.foreach(println(_))
+//      println("RESULTA3")
       result = LocusAlgorithm.getLocusOfTwoPolygons(Rhexagon, Rsquare)
-      //result.points.foreach(println(_))
+//      result.points.foreach(println(_))
       result.points.size should be (10)
     }
   }
