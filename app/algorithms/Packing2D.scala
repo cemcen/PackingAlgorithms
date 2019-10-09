@@ -1,6 +1,7 @@
 package algorithms
 
 import algorithms.packing.PackingAlgorithm
+import algorithms.util.Layer
 import dto.dim2D.input.{InputLayer, InputPolygon}
 import geometry.{Polygon, PolygonFactory}
 import network.Graph
@@ -27,6 +28,19 @@ class Packing2D {
     // Finally get the result of the algorithm.
     polygonList = packingAlgorithm.getPolygonPositions
   }
+
+  def executeMultiLayerAlgorithm(nextPolygons: List[Layer]): Unit = {
+
+    // First set the polygon list order.
+    packingAlgorithm.setLayersPolygonList(nextPolygons)
+
+    // Then execute the algorithm.
+    packingAlgorithm.executeAlgorithm()
+
+    // Finally get the result of the algorithm.
+    polygonList = packingAlgorithm.getPolygonPositions
+  }
+
 
   /**
     * Getter for polygon list.
@@ -88,17 +102,17 @@ object Packing2D {
   def createMultiLayerMesh(layers: List[InputLayer], width: Double, randomShape: Boolean): ArrayBuffer[Polygon] = {
 
     // For each layer we need to have the polygon list with the distribution given.
-    var layersNextPolygons: ArrayBuffer[List[Polygon]] = new ArrayBuffer[List[Polygon]]()
+    var layersNextPolygons: ArrayBuffer[Layer] = new ArrayBuffer[Layer]()
     layers.foreach(lay => {
       val layerNextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(lay.polygons, lay.height.get, width, randomShape, lay.regularity.get)
-      layersNextPolygons += layerNextPolygon
+      layersNextPolygons += Layer(layerNextPolygon, lay.height.get)
     })
 
     // We need to tell the algorithm on which container we will pack.
     packing2d.setContainerDimensions(width, layers.head.height.get)
 
     // We execute the algorithm.
-    packing2d.executeAlgorithm(layersNextPolygons.head)
+    packing2d.executeMultiLayerAlgorithm(layersNextPolygons.toList)
 
     // Finally retrieve the result.
     packing2d.getPolygonList

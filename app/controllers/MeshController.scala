@@ -33,7 +33,7 @@ class MeshController @Inject()(components: ControllerComponents)
           // If defined we only get the dimensions.
           width = mesh.width.get
           height = mesh.height.get
-          setPackingAlgorithm(mesh.approachAlgorithm.get)
+          setPackingAlgorithm(mesh.approachAlgorithm.get, 0)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 
         }
@@ -69,7 +69,7 @@ class MeshController @Inject()(components: ControllerComponents)
         var polygonMesh: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
 
         width = mesh.width.get
-        setPackingAlgorithm(mesh.approachAlgorithm.get)
+        setPackingAlgorithm(mesh.approachAlgorithm.get, 1)
         polygonMesh = Packing2D.createMultiLayerMesh(mesh.layers, width, mesh.randomShape.get)
 
         // Create packing output
@@ -98,8 +98,11 @@ class MeshController @Inject()(components: ControllerComponents)
     }
   }
 
-  def setPackingAlgorithm(approachAlgorithm: Int): Unit = {
-    val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
+  def setPackingAlgorithm(approachAlgorithm: Int, chosenAlgorithm: Int): Unit = {
+    var packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
+    if (chosenAlgorithm == 1) {
+      packingAlgorithm = new PiledPacking
+    }
 
     if (approachAlgorithm == 0) {
       packingAlgorithm.setPackingTechnique(new RockFallingPacking)

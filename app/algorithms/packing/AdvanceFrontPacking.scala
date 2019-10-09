@@ -7,6 +7,7 @@ import scala.collection.mutable.ArrayBuffer
 import org.scalactic._
 import org.scalactic.TripleEquals._
 import Tolerance._
+import algorithms.util.Layer
 
 /**
   *
@@ -21,6 +22,7 @@ import Tolerance._
 class AdvanceFrontPacking extends PackingAlgorithm {
 
   override var nextPolygon: List[Polygon] = _
+  override protected var layersNextPolygons: List[Layer] = _
   override var finalPolygonPosition: ArrayBuffer[Polygon] = _
   override protected var container: Container2D = _
   override var packingTechnique: PackingApproach = _
