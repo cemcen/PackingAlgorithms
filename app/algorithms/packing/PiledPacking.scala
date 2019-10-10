@@ -32,7 +32,7 @@ class PiledPacking extends PackingAlgorithm {
 
     // Update the graph representing the packing
     firstPolygon.movePolygon(leftBottomPoint)
-    packingTechnique.polygonListInsert(nextLayerPolygonList.toList)
+    packingTechnique.polygonListInsert(nextLayerPolygonList)
 
     // Update the graph with the polygons connexions.
     packingTechnique.addContainerToGraph(container)
@@ -47,9 +47,12 @@ class PiledPacking extends PackingAlgorithm {
     runIteration(nextLayerPolygonList.tail, polygonList)
     layersNextPolygons.tail.foreach(lay => {
       // TODO: Increase container height and run new layer iteration.
-      println(lay.height)
+      val oldHeight: Double = container.getHeight
+      container.addHeight(lay.height)
+      packingTechnique.changedHeightContainer(container, oldHeight, container.getHeight)
       nextLayerPolygonList = lay.nextPolygon
-      //runIteration(nextLayerPolygonList, polygonList)
+      packingTechnique.polygonListInsert(nextLayerPolygonList)
+      runIteration(nextLayerPolygonList, polygonList)
     })
 
     finalPolygonPosition = packingTechnique.getPolygonList

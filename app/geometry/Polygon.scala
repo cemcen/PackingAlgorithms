@@ -12,6 +12,8 @@ import Tolerance._
   */
 class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
+
+
   def this(points: List[Point]) = this(points, -1.0, "")
 
   private var _centroid: Point = null
@@ -462,6 +464,14 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       }
     }
     simplePolygon
+  }
+
+  def changePointIfHasPoint(width: Double, oldHeight: Double, nHeight: Double): Unit = {
+    points.foreach(pnt => {
+      if(pnt.y === oldHeight +- 1e-3 && (pnt.x === 0.0 +- 1e-3 || pnt.x === width +- 1e-3)) {
+          pnt.y = nHeight
+      }
+    })
   }
 
 }

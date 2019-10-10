@@ -85,6 +85,10 @@ abstract class PackingApproach {
     }
   }
 
+  def changedHeightContainer(container: Container2D, oldHeight: Double, nHeight: Double): Unit = {
+    polygonGraph.changedHeightContainer(container, oldHeight, nHeight)
+  }
+
   def addLinksToGraph(polygon: Polygon, interPolygons: ArrayBuffer[Polygon]): Unit = {
     polygonGraph.firstPolygonLink(polygon, interPolygons.head)
   }

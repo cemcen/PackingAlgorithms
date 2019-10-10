@@ -93,6 +93,24 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     addPolygon(polygon)
   }
 
+  def changedHeightContainer(container: Container2D, oldHeight: Double, nHeight: Double): Unit = {
+    nodes.foreach(pnt_node => {
+      if(pnt_node._2.value.isContainer) {
+
+        val nContainer: PolygonNode = PolygonNode(container.getPolygon)
+        val oldContainer: PolygonNode = nodes(pnt_node._1)
+
+        links(oldContainer).foreach(link => {
+          addLink(link, nContainer)
+        })
+        deletePolygon(oldContainer.value)
+      }
+      if(pnt_node._2.value.isHole) {
+        pnt_node._2.value.changePointIfHasPoint(container.getWidth, oldHeight, nHeight)
+      }
+    })
+  }
+
   def getPolygonInGraph: ArrayBuffer[Polygon] = {
     var polygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
     nodes.foreach(node => {
