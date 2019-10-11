@@ -31,6 +31,12 @@
                             </v-btn>
                             <span>Download Image</span>
                         </v-tooltip>
+                        <v-tooltip top>
+                            <v-btn icon flat color="teal lighten-2" dark slot="activator" @click="openAngleDialog()" class="mb-2">
+                                <v-icon>tune</v-icon>
+                            </v-btn>
+                            <span>Minimum Angle</span>
+                        </v-tooltip>
 
                         <v-spacer></v-spacer>
 
@@ -133,9 +139,9 @@
                                             </v-layout>
                                             <v-layout>
                                                 <v-flex>
-                                                    <v-select v-validate="'required'" :error-messages="errors.collect(`polygons${index}`)"
+                                                    <v-select
                                                               v-model="layers[index].polygons" :items="polygons" item-text="label"
-                                                              :data-vv-name="`polygons${index}`" filled chips return-object
+                                                              :data-vv-name="`polygons${index}`" color="teal lighten-2" filled chips return-object
                                                             label="Layer Polygons" multiple>
                                                     </v-select>
                                                 </v-flex>
@@ -230,34 +236,23 @@
                             </v-card>
                         </v-dialog>
 
-                        <!--<v-dialog v-model="dialogInfo" persistent max-width="500px">
-                            <v-card color="#ffffff" >
+                        <v-dialog v-model="dialogAngle" persistent max-width="500px">
+                            <v-card>
                                 <v-card-title>
-                                    <span class="headline">Polygon Properties</span>
+                                    <span class="headline">Minimum Layout Angle</span>
                                 </v-card-title>
 
                                 <v-card-text>
-                                    <v-layout column>
+                                    <v-layout justify-center>
                                         <v-flex>
-                                            <v-text-field disabled v-model="polygon.label"
-                                                          label="Label">
-                                            </v-text-field>
-                                        </v-flex>
-                                        <v-flex>
-                                            <v-text-field disabled v-model="polygon.points.length"
-                                                          label="Number of vertex">
-                                            </v-text-field>
-                                        </v-flex>
-                                    </v-layout>
-                                    <v-layout row v-for="property in polygon.properties" :key="property">
-                                        <v-flex>
-                                            <v-text-field disabled v-model="property.name"
-                                                          label="Property">
-                                            </v-text-field>
-                                        </v-flex>
-                                        <v-flex>
-                                            <v-text-field disabled v-model="property.value"
-                                                          label="Value">
+                                            <v-text-field v-validate="'required'"
+                                                          :error-messages="errors.collect('minimumAngle')"
+                                                          v-model="minimumAngle"
+                                                          label="Minimum Angle"
+                                                          type="number"
+                                                          data-vv-name="minimumAngle"
+                                                          clearable
+                                                          required>
                                             </v-text-field>
                                         </v-flex>
                                     </v-layout>
@@ -265,11 +260,12 @@
 
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
-                                    <v-btn color="teal lighten-2" flat @click.native="dialogInfo = false">Close</v-btn>
-                                    <v-btn color="teal lighten-2" @keyup.enter="" @click.native="">Save</v-btn>
+                                    <v-btn color="teal lighten-2" flat @click.native="dialogAngle = false">Cancel</v-btn>
+                                    <v-btn color="teal lighten-2" flat @click.native="loadOriginal">Load Original</v-btn>
+                                    <v-btn dark color="teal lighten-2" @keyup.enter="optimizeAngle" @click.native="optimizeAngle">Optimize</v-btn>
                                 </v-card-actions>
                             </v-card>
-                        </v-dialog> -->
+                        </v-dialog>
                     </v-toolbar>
                     <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
                         <div ref="polygonDrawer"></div>
@@ -320,7 +316,7 @@
     import InfoTab from "./InfoTab.vue";
     import api from "../services/api.services";
     import * as poly2tri from 'poly2tri';
-    import Swatches from 'vue-swatches'
+    import Swatches from 'vue-swatches';
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
@@ -353,6 +349,8 @@
               approach: 1,
               dialog: false,
               dialog2: false,
+              dialogAngle: false,
+              minimumAngle: 30,
               polygons: [],
               optionProperties: [
                   {
@@ -614,20 +612,89 @@
                 this.selectedTab = i;
                 this.$router.push(routes[i]);
             },
-            mouseInsidePolygon(polygon, x, y, width, height, p) {
-                // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-                let inside = false;
-                for(let i = 0; i < polygon.points.length; i++) {
-                    let xi = (polygon.points[i].x/ width) * p.width,
-                        yi = ((height - polygon.points[i].y) / height) * p.height;
-                    let xj = (polygon.points[(i + 1) % polygon.points.length].x / width) * p.width,
-                        yj = ((height - polygon.points[(i + 1) % polygon.points.length].y) / height) * p.height;
+            openAngleDialog(){
+              this.dialogAngle = true;
+            },
+            optimizeAngle() {
+                let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
+                let changed = false;
+                this.packing.polygons.map(pol => {
+                    if(pol.hole) {
+                        let deletedPoints = [];
+                        for(let i = 0; i < pol.points.length; i+=1){
+                            let p1 = pol.points[i];
+                            let p2 = pol.points[(i + 1) % pol.points.length];
+                            let p3 = pol.points[(i + 2) % pol.points.length];
 
-                    let intersect = ((yi > y) !== (yj > y))
-                        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-                    if (intersect) inside = !inside;
+                            let p21 = [p1.x - p2.x, p1.y - p2.y];
+                            let p23 = [p3.x - p2.x, p3.y - p2.y];
+
+                            let angle = Math.acos(
+                                (p21[0]*p23[0] + p21[1]*p23[1])
+                                /
+                                (
+                                    Math.sqrt(p21[0]*p21[0] + p21[1]*p21[1])
+                                    * Math.sqrt(p23[0]*p23[0] + p23[1]*p23[1])
+                                )
+                            );
+
+                            if(angle < minimumRadianAngle){
+                                pol.triangulation = null;
+
+                                if(Object.keys(this.packing.rGraph[[p1.x, p1.y]]).length < Object.keys(this.packing.rGraph[[p3.x, p3.y]]).length){
+                                    deletedPoints.push(p1);
+                                } else {
+                                    deletedPoints.push(p3);
+                                }
+                                changed = true;
+                            }
+                        }
+
+                        deletedPoints.forEach(point => {
+                            this.packing.polygons.map(pol => {
+                                pol.points = pol.points.filter(pnt => !(pnt.x === point.x && pnt.y === point.y));
+                            });
+                        })
+                    }
+                });
+
+                if(changed) {
+                    this.triangulateMesh();
                 }
-                return inside;
+
+                this.parseMesh(this.packing);
+                this.dialogAngle = false;
+            },
+            loadOriginal(){
+                this.packing.polygons = JSON.parse(JSON.stringify(this.packing.originalPacking.polygons));
+                this.triangulateMesh();
+                this.parseMesh(this.packing);
+                this.dialogAngle = false;
+            },
+            triangulateMesh(){
+                this.packing.polygons.forEach(pol => {
+                    pol.triangulation = [];
+                    let contour = [];
+                    pol.points.forEach(pnt => {
+                        contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                    });
+                    let swctx = new poly2tri.SweepContext(contour);
+                    try {
+                        swctx.triangulate();
+                    } catch(error) {
+                        console.error(error);
+                    }
+
+                    let triangles = swctx.getTriangles();
+                    triangles.forEach(function (t) {
+                        let triangle = [];
+                        t.getPoints().forEach(function (p) {
+                            triangle.push({x: p.x, y: p.y});
+                        });
+
+                        pol.triangulation.push(triangle);
+                    });
+                })
             },
             exportPacking(){
 
@@ -824,7 +891,9 @@
                             this.executing = true;
                             api.sendMesh(data).then(resp => {
                                 this.executing = false;
-                                this.parseMesh(resp);
+                                this.packing = resp.body.mesh;
+                                this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
+                                this.parseMesh(resp.body.mesh);
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -867,7 +936,9 @@
                             this.executing = true;
                             api.sendMeshMultiLayers(data).then(resp => {
                                 this.executing = false;
-                                this.parseMesh(resp);
+                                this.packing = resp.body.mesh;
+                                this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
+                                this.parseMesh(resp.body.mesh);
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -878,19 +949,19 @@
                     }
                 });
             },
-            parseMesh(resp) {
+            parseMesh(mesh) {
                 //console.log(resp);
-                this.packing = resp.body.mesh;
 
                 let points = {};
                 let edges = {};
                 let polygons = {};
                 let edgesG = {};
+                let cEdgesG = {};
                 let p = 1;
                 let e = 1;
                 let polCount = 1;
 
-                this.packing.polygons.forEach(pol => {
+                mesh.polygons.forEach(pol => {
 
                     let polygonPoints = [];
 
@@ -911,6 +982,16 @@
                         if(!([points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]] in edges)) {
                             edges[[points[[pointA.x,pointA.y]],points[[pointB.x,pointB.y]]]] = e;
                             e += 1;
+
+                            if (!([pointA.x, pointA.y] in cEdgesG)) {
+                                cEdgesG[[pointA.x, pointA.y]] = {};
+                            }
+                            if (!([pointB.x, pointB.y] in cEdgesG)) {
+                                cEdgesG[[pointB.x, pointB.y]] = {};
+                            }
+
+                            cEdgesG[[pointA.x, pointA.y]][[pointB.x, pointB.y]] = {};
+                            cEdgesG[[pointB.x, pointB.y]][[pointA.x, pointA.y]] = {};
 
                             if(pol.hole) {
                                 if (!([pointA.x, pointA.y] in edgesG)) {
@@ -939,6 +1020,7 @@
                 this.packing.draw.edges = edges;
                 this.packing.draw.polygons = polygons;
                 this.packing.graph = edgesG;
+                this.packing.rGraph = cEdgesG;
             },
             downloadImage() {
                 let filename = 'packing.png';

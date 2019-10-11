@@ -114,7 +114,9 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
   def getPolygonInGraph: ArrayBuffer[Polygon] = {
     var polygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
     nodes.foreach(node => {
-      polygons += node._2.value
+      if(!node._2.value.isContainer) {
+        polygons += node._2.value
+      }
     })
     polygons
   }
