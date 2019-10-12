@@ -18,7 +18,9 @@ abstract class PackingAlgorithm {
   /**
     * Sets the order of the insertion of the polygon.
     */
-  def setNextPolygonList(nextPolygon: List[Polygon]): Unit = this.nextPolygon = nextPolygon
+  def setNextPolygonList(nextPolygon: List[Polygon]): Unit = {
+    this.nextPolygon = nextPolygon
+  }
 
   /**
     * Sets the order of the insertion of the polygon.

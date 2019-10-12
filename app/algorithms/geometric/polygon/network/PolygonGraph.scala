@@ -271,8 +271,8 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     })
     deletePolygon(holeCovering.value)
 
-    exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
-    exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
+    //exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+    //exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
     //}
 
     step += 1
@@ -328,8 +328,8 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       addPolygon(hole)
     })
     addPolygonLinks(polygon, holeLinks)
-    exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
-    exportPNGGraphPacking(height, width, route = "debug/packing/", filename ="step_" + step +  "graph.png", circle_size = (10, 10))
+    //exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+    //exportPNGGraphPacking(height, width, route = "debug/packing/", filename ="step_" + step +  "graph.png", circle_size = (10, 10))
     step += 1
   }
 

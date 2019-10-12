@@ -8,6 +8,9 @@ import org.scalactic._
 import org.scalactic.TripleEquals._
 import Tolerance._
 import algorithms.util.Layer
+import experiments.Experiment
+
+import scala.collection.mutable
 
 /**
   *
@@ -40,6 +43,10 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
 
+    if(Experiment.DEBUG_MODE) {
+      Experiment.startTest(nextPolygon)
+    }
+
     // Update the graph representing the packing
     firstPolygon.movePolygon(leftBottomPoint)
     packingTechnique.polygonListInsert(nextPolygon)
@@ -65,11 +72,28 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
       // Save polygon Position in the array.
       if(bestCenterPos != null) {
+        if(Experiment.DEBUG_MODE) {
+          Experiment.addedPolygon(insertingPolygon)
+        }
         insertingPolygon.movePolygon(bestCenterPos)
         polygonList += insertingPolygon
         packingTechnique.addedPolygon(insertingPolygon)
       }
     })
+
+    if(Experiment.DEBUG_MODE) {
+      val timeElapsed = Experiment.endTest()
+      val polygons = packingTechnique.getPolygonList
+      var area: Double = 0
+
+      polygons.foreach(pol => {
+        if(!pol.isHole) {
+          area += pol.getArea
+        }
+      })
+
+      Experiment.addExperiment(container.getHeight, container.getWidth, timeElapsed, area/(container.getWidth*container.getHeight))
+    }
 
     finalPolygonPosition = packingTechnique.getPolygonList
   }
