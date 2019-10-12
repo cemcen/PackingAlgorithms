@@ -12,11 +12,11 @@ class DensePackingTest extends FlatSpec with Matchers {
 
   val widths: List[Double] = List(50.0, 100.0, 150.0, 200.0, 300.0, 500.0, 1000.0)
   val heights: List[Double] = List(50.0, 100.0, 150.0, 200.0, 300.0, 500.0, 1000.0)
-  val repetitions: Int = 20
+  val repetitions: Int = 30
 
   "Dense Packing" should "Test same polygon bigger container" in {
     Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_same_polygon_bigger_container")
+    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_1")
 
     widths.foreach(width => {
       heights.foreach(height => {
@@ -35,7 +35,7 @@ class DensePackingTest extends FlatSpec with Matchers {
 
   it should "Test two polygon different vertex bigger container" in {
     Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_same_polygon_bigger_container")
+    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_2")
 
     widths.foreach(width => {
       heights.foreach(height => {
@@ -57,7 +57,7 @@ class DensePackingTest extends FlatSpec with Matchers {
 
   it should "Test two polygon different size bigger container" in {
     Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_same_polygon_bigger_container")
+    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_3")
 
     widths.foreach(width => {
       heights.foreach(height => {
@@ -79,7 +79,7 @@ class DensePackingTest extends FlatSpec with Matchers {
 
   it should "Test almost circle polygons bigger container" in {
     Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_same_polygon_bigger_container")
+    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_4")
 
     widths.foreach(width => {
       heights.foreach(height => {
@@ -100,7 +100,7 @@ class DensePackingTest extends FlatSpec with Matchers {
 
   it should "Test almost circle polygons different size bigger container" in {
     Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_same_polygon_bigger_container")
+    Experiment.startNewExperiment("debug/experiments/dense_packing/", "test_5")
 
     widths.foreach(width => {
       heights.foreach(height => {
