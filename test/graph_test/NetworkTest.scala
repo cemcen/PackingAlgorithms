@@ -46,7 +46,7 @@ class NetworkTest extends FlatSpec with Matchers {
     graph = graph.addPolygon1Intersection(polygonA, container.getPolygon)
     graph = graph.addPolygon2Intersections(polygonB, container.getPolygon, polygonA)
 
-    graph.exportPNGGraph(50, 100, "debug/test/graph_test/test_2/", "graph.png")
+    //graph.exportPNGGraph(50, 100, "debug/test/graph_test/test_2/", "graph.png")
 
     val areaHole: Double = graph.calculateHoleArea(polygonB, container.getPolygon)
     areaHole should === (42.8935 +- 1e-4)
@@ -76,7 +76,7 @@ class NetworkTest extends FlatSpec with Matchers {
     graph = graph.addPolygon1Intersection(polygonA, container.getPolygon)
     graph = graph.addPolygon2Intersections(polygonB, container.getPolygon, polygonA)
 
-    graph.exportPNGGraph(20, 40, "debug/test/graph_test/test_3/", "graph.png")
+    //graph.exportPNGGraph(20, 40, "debug/test/graph_test/test_3/", "graph.png")
 
     val route = graph.lookForShortestRoute(
       graph.getNodeByPoint(new Point(0.0,13.429938314738614)),
@@ -88,7 +88,7 @@ class NetworkTest extends FlatSpec with Matchers {
       graph.getNodeByPoint(new Point(0.0,13.429938314738614))
     )
 
-    graph.exportPNGRoute(20, 40, "debug/test/graph_test/test_3/", "route2.png", route2)
+    //graph.exportPNGRoute(20, 40, "debug/test/graph_test/test_3/", "route2.png", route2)
 
     route.distinct.length should === (11)
     route2.distinct.length should === (5)
@@ -140,14 +140,14 @@ class NetworkTest extends FlatSpec with Matchers {
     graph = graph.addPolygon2Intersections(polygonD, container.getPolygon, polygonC)
     graph = graph.addPolygon2Intersections(polygonE, container.getPolygon, polygonB)
 
-    graph.exportPNGGraph(50, 50, "debug/test/graph_test/test_4/", "graph.png")
+    //graph.exportPNGGraph(50, 50, "debug/test/graph_test/test_4/", "graph.png")
 
     val route = graph.lookForShortestRoute(
       graph.getNodeByPoint(new Point(47.349850599115264,9.804331423452119)),
       graph.getNodeByPoint(new Point(38.05488497660717,0.0))
     )
 
-    graph.exportPNGRoute(50, 50, "debug/test/graph_test/test_4/", "route1.png", route)
+    //graph.exportPNGRoute(50, 50, "debug/test/graph_test/test_4/", "route1.png", route)
 
     val route2 = graph.lookForShortestRoute(
       graph.getNodeByPoint(new Point(18.930703370051607,36.06421421376885)),
@@ -172,7 +172,7 @@ class NetworkTest extends FlatSpec with Matchers {
     graph.getNumberOfEdges should === (36)
     graph.getNumberOfNodes should === (26)
 
-    val routes = graph.getPolygonInGraph(drawRoutes = true, "debug/test/graph_test/test_4/", 50, 50)
+    val routes = graph.getPolygonInGraph(drawRoutes = false, "debug/test/graph_test/test_4/", 50, 50)
     routes.length should === (12)
   }
 
@@ -252,9 +252,9 @@ class NetworkTest extends FlatSpec with Matchers {
     graph = graph.addPolygon2Intersections(polygon8, polygon5, polygon6)
     graph = graph.addPolygon2Intersections(polygon9, polygon5, polygon7)
 
-    graph.exportPNGGraph(70, 70, "debug/test/graph_test/test_5/", "graph.png", circle_size = (15,15))
+    //graph.exportPNGGraph(70, 70, "debug/test/graph_test/test_5/", "graph.png", circle_size = (15,15))
 
-    val routes = graph.getPolygonInGraph(drawRoutes = true, "debug/test/graph_test/test_5/", 70, 70, circle_size = (15,15))
+    val routes = graph.getPolygonInGraph(drawRoutes = false, "debug/test/graph_test/test_5/", 70, 70, circle_size = (15,15))
 
     routes.length should === (20)
   }
@@ -610,8 +610,8 @@ class NetworkTest extends FlatSpec with Matchers {
     graph = graph.addPolygon2Intersections(polygon43, polygon23, polygon39)
     graph = graph.addPolygon2Intersections(polygon44, polygon30, polygon38)
 
-    graph.exportPNGGraph(150, 150, "debug/test/graph_test/test_6/", "graph.png", circle_size = (10,10))
+    //graph.exportPNGGraph(150, 150, "debug/test/graph_test/test_6/", "graph.png", circle_size = (10,10))
 
-    graph.getPolygonInGraph(drawRoutes = true, "debug/test/graph_test/test_6/", 150, 150, circle_size = (10,10))
+    graph.getPolygonInGraph(drawRoutes = false, "debug/test/graph_test/test_6/", 150, 150, circle_size = (10,10))
   }
 }

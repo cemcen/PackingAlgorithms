@@ -20,7 +20,7 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(i <- 1 to repetitions) {
+        for(_ <- 1 to repetitions) {
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
           packingAlgorithm.setPackingTechnique(new RockFallingPacking)
@@ -39,7 +39,7 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(i <- 1 to repetitions) {
+        for(_ <- 1 to repetitions) {
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("5_10", 5, 100, 10),
@@ -61,7 +61,7 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(i <- 1 to repetitions) {
+        for(_ <- 1 to repetitions) {
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("5_10", 5, 100, 10),
@@ -83,7 +83,7 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(i <- 1 to repetitions) {
+        for(_ <- 1 to repetitions) {
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("20_10", 20, 100, 10)
@@ -104,7 +104,7 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(i <- 1 to repetitions) {
+        for(_ <- 1 to repetitions) {
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("20_10", 20, 100, 10),
