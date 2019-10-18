@@ -162,16 +162,16 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     //      println("Step: " + step)
     val holeCovering: PolygonNode = getCoveringHole(polygon)
 
-    //      println("Polygon: ")
-    //      polygon.points.foreach(pnt => println(pnt))
-    //      println("Covering Hole: ")
-    //      holeCovering.value.points.foreach(pnt => println(pnt))
+    println("Polygon: ")
+    polygon.points.foreach(pnt => println(pnt))
+    println("Covering Hole: ")
+    holeCovering.value.points.foreach(pnt => println(pnt))
 
     // Intersection points
     val pInterHole: List[Point] = polygon.intersectPolygonCuadratic(holeCovering.value)
 
-    //      println("Intersections: ")
-    //      pInterHole.foreach(pnt => println(pnt))
+    println("Intersections: ")
+    pInterHole.foreach(pnt => println(pnt))
 
     var contPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
     var contPoints2: ArrayBuffer[Point] = new ArrayBuffer[Point]()
@@ -183,11 +183,20 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       contPoints ++= holeCovering.value.getNearestPointsFromPoint(pInterHole.head)
     }
 
-    if (holeCovering.value.points.contains(pInterHole.tail.head)) {
-      contPoints2 += pInterHole.tail.head
-      contPoints2 += pInterHole.tail.head
+    if(pInterHole.length > 1) {
+      if (holeCovering.value.points.contains(pInterHole.tail.head)) {
+        contPoints2 += pInterHole.tail.head
+        contPoints2 += pInterHole.tail.head
+      } else {
+        contPoints2 ++= holeCovering.value.getNearestPointsFromPoint(pInterHole.tail.head)
+      }
     } else {
-      contPoints2 ++= holeCovering.value.getNearestPointsFromPoint(pInterHole.tail.head)
+      if (holeCovering.value.points.contains(pInterHole.head)) {
+        contPoints2 += pInterHole.head
+        contPoints2 += pInterHole.head
+      } else {
+        contPoints2 ++= holeCovering.value.getNearestPointsFromPoint(pInterHole.head)
+      }
     }
 
     var polygonContPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
@@ -200,11 +209,20 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       polygonContPoints ++= polygon.getNearestPointsFromPoint(pInterHole.head)
     }
 
-    if (polygon.points.contains(pInterHole.tail.head)) {
-      polygonContPoints2 += pInterHole.tail.head
-      polygonContPoints2 += pInterHole.tail.head
+    if(pInterHole.length > 1) {
+      if (polygon.points.contains(pInterHole.tail.head)) {
+        polygonContPoints2 += pInterHole.tail.head
+        polygonContPoints2 += pInterHole.tail.head
+      } else {
+        polygonContPoints2 ++= polygon.getNearestPointsFromPoint(pInterHole.tail.head)
+      }
     } else {
-      polygonContPoints2 ++= polygon.getNearestPointsFromPoint(pInterHole.tail.head)
+      if (polygon.points.contains(pInterHole.head)) {
+        polygonContPoints2 += pInterHole.head
+        polygonContPoints2 += pInterHole.head
+      } else {
+        polygonContPoints2 ++= polygon.getNearestPointsFromPoint(pInterHole.head)
+      }
     }
 
     val routeA: ArrayBuffer[Point] = polygon.routeFromTo(polygonContPoints.tail.head, polygonContPoints2.head)

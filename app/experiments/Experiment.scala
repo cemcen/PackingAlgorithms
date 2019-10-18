@@ -2,6 +2,7 @@ package experiments
 
 import java.io.File
 
+import algorithms.util.Layer
 import com.github.tototoshi.csv._
 import geometry.Polygon
 
@@ -97,6 +98,24 @@ object Experiment {
         pTypeNumberOfVertex += ((pol.label, pol.points.length))
       }
       pTypeTotal(pol.label) += 1
+    })
+    timer = System.nanoTime
+  }
+
+  def startPiledTest(layers: List[Layer]): Unit = {
+    pTypeCount = new mutable.HashMap[String, Int]()
+    pTypeSize = new mutable.HashMap[String, Double]()
+    pTypeNumberOfVertex = new mutable.HashMap[String, Int]()
+    layers.foreach(lay => {
+      lay.nextPolygon.foreach(pol => {
+        if(!pTypeCount.contains(pol.label)) {
+          pTypeCount += ((pol.label, 0))
+          pTypeTotal += ((pol.label, 0))
+          pTypeSize += ((pol.label, pol.radius))
+          pTypeNumberOfVertex += ((pol.label, pol.points.length))
+        }
+        pTypeTotal(pol.label) += 1
+      })
     })
     timer = System.nanoTime
   }

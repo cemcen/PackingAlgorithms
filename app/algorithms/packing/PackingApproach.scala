@@ -62,7 +62,7 @@ abstract class PackingApproach {
 
       // Check if neighbourhood is completed.
       checkNeighbourhood()
-      printCompletedPolygons()
+      //printCompletedPolygons()
     }
     polygonList = polygonList.tail
     if(polygon.getArea === polygonLessArea.getArea +- 1e-8) {

@@ -10,9 +10,14 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GravityPackingTest extends FlatSpec with Matchers {
 
-  val widths: List[Double] = List(50.0, 100.0, 150.0, 200.0, 300.0, 500.0, 1000.0)
-  val heights: List[Double] = List(50.0, 100.0, 150.0, 200.0, 300.0, 500.0, 1000.0)
-  val repetitions: Int = 30
+  //val widths: List[Double] = List(50.0, 100.0, 150.0, 200.0)
+  //val heights: List[Double] = List(50.0, 100.0, 150.0, 200.0)
+  //val widths: List[Double] = List(75.0, 150.0, 225.0)
+  //val heights: List[Double] = List(75.0, 150.0, 225.0)
+  val widths: List[Double] = List(300.0, 500.0)
+  val heights: List[Double] = List(300.0, 500.0)
+
+  val repetitions: Int = 10
 
   "Gravity Packing" should "Test same polygon bigger container" in {
     Experiment.debugModeOn()
@@ -20,7 +25,11 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(_ <- 1 to repetitions) {
+        for(i <- 1 to repetitions) {
+          println("----------------------------------------------")
+          println("Repetition: " + i)
+          println("Width: " + width)
+          println("Height: " + height)
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
           packingAlgorithm.setPackingTechnique(new RockFallingPacking)
@@ -39,7 +48,11 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(_ <- 1 to repetitions) {
+        for(i <- 1 to repetitions) {
+          println("----------------------------------------------")
+          println("Repetition: " + i)
+          println("Width: " + width)
+          println("Height: " + height)
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("5_10", 5, 100, 10),
@@ -61,7 +74,11 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(_ <- 1 to repetitions) {
+        for(i <- 1 to repetitions) {
+          println("----------------------------------------------")
+          println("Repetition: " + i)
+          println("Width: " + width)
+          println("Height: " + height)
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("5_10", 5, 100, 10),
@@ -83,7 +100,11 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(_ <- 1 to repetitions) {
+        for(i <- 1 to repetitions) {
+          println("----------------------------------------------")
+          println("Repetition: " + i)
+          println("Width: " + width)
+          println("Height: " + height)
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("20_10", 20, 100, 10)
@@ -104,7 +125,11 @@ class GravityPackingTest extends FlatSpec with Matchers {
 
     widths.foreach(width => {
       heights.foreach(height => {
-        for(_ <- 1 to repetitions) {
+        for(i <- 1 to repetitions) {
+          println("----------------------------------------------")
+          println("Repetition: " + i)
+          println("Width: " + width)
+          println("Height: " + height)
           val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
           val polygons: List[InputPolygon] = List(
             new InputPolygon("20_10", 20, 100, 10),
