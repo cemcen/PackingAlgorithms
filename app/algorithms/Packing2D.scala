@@ -78,10 +78,10 @@ object Packing2D {
     * @param height height of the container.
     * @return The list of polygons with local coordinates.
     */
-  def createMesh(data: List[InputPolygon], width: Double, height: Double, randomShape: Boolean, regularity: Int): ArrayBuffer[Polygon] = {
+  def createMesh(data: List[InputPolygon], width: Double, height: Double, randomShape: Boolean, regularity: Int, polygonLimit: Int = Int.MaxValue): ArrayBuffer[Polygon] = {
 
     // The first step of this algorithm is to choose the order of insertion of the polygons.
-    val nextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(data, height, width, randomShape, regularity)
+    val nextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(data, height, width, randomShape, regularity, polygonLimit)
 
     // We need to tell the algorithm on which container we will pack.
     packing2d.setContainerDimensions(width, height)
@@ -99,12 +99,12 @@ object Packing2D {
     * @param width width of the container.
     * @return The list of polygons with local coordinates.
     */
-  def createMultiLayerMesh(layers: List[InputLayer], width: Double, randomShape: Boolean): ArrayBuffer[Polygon] = {
+  def createMultiLayerMesh(layers: List[InputLayer], width: Double, randomShape: Boolean, polygonLimit: Int = Int.MaxValue): ArrayBuffer[Polygon] = {
 
     // For each layer we need to have the polygon list with the distribution given.
     var layersNextPolygons: ArrayBuffer[Layer] = new ArrayBuffer[Layer]()
     layers.foreach(lay => {
-      val layerNextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(lay.polygons, lay.height.get, width, randomShape, lay.regularity.get)
+      val layerNextPolygon: List[Polygon] = PolygonFactory.createPolygonArrayInsertion(lay.polygons, lay.height.get, width, randomShape, lay.regularity.get, polygonLimit)
       layersNextPolygons += Layer(layerNextPolygon, lay.height.get)
     })
 

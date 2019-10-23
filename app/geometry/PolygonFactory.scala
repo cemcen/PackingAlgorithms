@@ -76,10 +76,11 @@ object PolygonFactory {
     * @return a list with the order of the polygons that will be inserted.
     */
   def createPolygonArrayInsertion(polygonData: List[InputPolygon], height: Double, width: Double,
-                                  randomFigure: Boolean, regularity: Int) : List[Polygon] = {
+                                  randomFigure: Boolean, regularity: Int, polygonLimit: Int = Int.MaxValue) : List[Polygon] = {
 
     // Output list with the order of the polygons.
     val polygonList = new ArrayBuffer[Polygon]()
+    var polygonCount: Int = 0
 
     // We need the total area of the container.
     var totalArea: Double = height*width
@@ -102,7 +103,7 @@ object PolygonFactory {
     })
 
     // Know we need to choose polygons until we have covered the total area of the container.
-    while(totalArea > coveredArea) {
+    while(totalArea > coveredArea && polygonCount < polygonLimit) {
       var randomPolygon: Double =  r.nextFloat() * totalProbability
       var indexOfPolygon = 0
       var localSum = 0
@@ -127,6 +128,7 @@ object PolygonFactory {
       // Finally we add the polygon to the list and add the area to the covered area variable.
       polygonList += newPolygon
       coveredArea += newPolygon.getArea
+      polygonCount += 1
     }
 
     polygonList.toList

@@ -164,16 +164,16 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     //      println("Step: " + step)
     val holeCovering: PolygonNode = getCoveringHole(polygon)
 
-    println("Polygon: ")
-    polygon.points.foreach(pnt => println(pnt))
-    println("Covering Hole: ")
-    holeCovering.value.points.foreach(pnt => println(pnt))
+//    println("Polygon: ")
+//    polygon.points.foreach(pnt => println(pnt))
+//    println("Covering Hole: ")
+//    holeCovering.value.points.foreach(pnt => println(pnt))
 
     // Intersection points
     val pInterHole: List[Point] = polygon.intersectPolygonCuadratic(holeCovering.value)
 
-    println("Intersections: ")
-    pInterHole.foreach(pnt => println(pnt))
+//    println("Intersections: ")
+//    pInterHole.foreach(pnt => println(pnt))
 
     var contPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
     var contPoints2: ArrayBuffer[Point] = new ArrayBuffer[Point]()

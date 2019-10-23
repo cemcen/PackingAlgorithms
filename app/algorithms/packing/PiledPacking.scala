@@ -48,6 +48,9 @@ class PiledPacking extends PackingAlgorithm {
 
     polygonList += firstPolygon
     packingTechnique.addedPolygon(firstPolygon)
+    if(Experiment.DEBUG_MODE) {
+      Experiment.addedPolygon(firstPolygon)
+    }
 
     runIteration(nextLayerPolygonList.tail, polygonList)
     layersNextPolygons.tail.foreach(lay => {

@@ -60,6 +60,9 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
     polygonList += firstPolygon
     packingTechnique.addedPolygon(firstPolygon)
+    if(Experiment.DEBUG_MODE) {
+      Experiment.addedPolygon(firstPolygon)
+    }
 
     // Iterate over nextPolygon array to pack every polygon in the array.
     nextPolygon.tail.indices.foreach(i => {
