@@ -51,7 +51,6 @@ class PiledPacking extends PackingAlgorithm {
 
     runIteration(nextLayerPolygonList.tail, polygonList)
     layersNextPolygons.tail.foreach(lay => {
-      // TODO: Increase container height and run new layer iteration.
       val oldHeight: Double = container.getHeight
       container.addHeight(lay.height)
       packingTechnique.changedHeightContainer(container, oldHeight, container.getHeight)

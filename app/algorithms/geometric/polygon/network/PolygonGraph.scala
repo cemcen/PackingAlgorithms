@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 
 import algorithms.geometric.Container2D
+import experiments.Experiment
 import geometry.{Point, Polygon}
 
 import scala.collection.mutable
@@ -94,6 +95,7 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
   }
 
   def changedHeightContainer(container: Container2D, oldHeight: Double, nHeight: Double): Unit = {
+    height = nHeight.toInt
     nodes.foreach(pnt_node => {
       if(pnt_node._2.value.isContainer) {
 
@@ -289,8 +291,8 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     })
     deletePolygon(holeCovering.value)
 
-    //exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
-    //exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
+    exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+    exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
     //}
 
     step += 1
@@ -346,8 +348,10 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
       addPolygon(hole)
     })
     addPolygonLinks(polygon, holeLinks)
-    //exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
-    //exportPNGGraphPacking(height, width, route = "debug/packing/", filename ="step_" + step +  "graph.png", circle_size = (10, 10))
+    if(Experiment.EXPORT_STEPS) {
+      exportPNGGraph(height, width, route = "debug/packing/", filename = "step_" + step + "polygon_graph.png", circle_size = (10, 10))
+      exportPNGGraphPacking(height, width, route = "debug/packing/", filename = "step_" + step + "graph.png", circle_size = (10, 10))
+    }
     step += 1
   }
 

@@ -7,10 +7,10 @@ import network.Graph
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-
 import org.scalactic._
 import org.scalactic.TripleEquals._
 import Tolerance._
+import experiments.Experiment
 
 abstract class PackingApproach {
 
@@ -62,7 +62,9 @@ abstract class PackingApproach {
 
       // Check if neighbourhood is completed.
       checkNeighbourhood()
-      //printCompletedPolygons()
+      if(Experiment.EXPORT_STEPS) {
+        printCompletedPolygons()
+      }
     }
     polygonList = polygonList.tail
     if(polygon.getArea === polygonLessArea.getArea +- 1e-8) {
