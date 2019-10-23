@@ -28,7 +28,7 @@ class OrderAlgorithmTest extends FlatSpec with Matchers {
         val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
         packingAlgorithm.setPackingTechnique(new RockFallingPacking)
         Packing2D.setPackingAlgorithm(packingAlgorithm)
-        Packing2D.createMesh(polygons, 1000, 1000, randomShape = false, 36, nPol)
+        Packing2D.createMesh(polygons, 100000, 100000, randomShape = false, 36, nPol)
       }
     })
 
@@ -52,7 +52,7 @@ class OrderAlgorithmTest extends FlatSpec with Matchers {
         packingAlgorithm.setPackingTechnique(new RockFallingPacking)
         Packing2D.setPackingAlgorithm(packingAlgorithm)
         try {
-          Packing2D.createMultiLayerMesh(layers, 1000, randomShape = false, nPol/2)
+          Packing2D.createMultiLayerMesh(layers, 100000, randomShape = false, nPol/2)
         } catch {
           case x: NoSuchElementException => println("Error")
         }
@@ -75,7 +75,7 @@ class OrderAlgorithmTest extends FlatSpec with Matchers {
         val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
         packingAlgorithm.setPackingTechnique(new SpaceReducePacking)
         Packing2D.setPackingAlgorithm(packingAlgorithm)
-        Packing2D.createMesh(polygons, 1000, 1000, randomShape = false, 36, nPol)
+        Packing2D.createMesh(polygons, 100000, 100000, randomShape = false, 36, nPol)
       }
     })
 
