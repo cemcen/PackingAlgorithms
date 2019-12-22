@@ -12,10 +12,35 @@ import Tolerance._
   */
 class Polygon(var points: List[Point], val radius: Double, val label: String) {
 
+
+
   def this(points: List[Point]) = this(points, -1.0, "")
 
   private var _centroid: Point = null
+  private var _centroidEdgeLongest: Double = -1
+  private var _maxDiagonalLength: Double = -1
+  private var _minDistanceVert: Double = -1
   private var _area: Double = -1
+  private var hole: Boolean = false
+  private var container: Boolean = false
+
+  def intersectPolygonCuadratic(polygon: Polygon): List[Point] = {
+    val intersectionPoints: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    for(i <- points.indices) {
+      val pntA = points(i)
+      val pntB = points((i + 1) % points.length)
+      val vectorA: Vector = Vector(pntA, pntB)
+
+      for (j <- polygon.points.indices) {
+        val pntC = polygon.points(j)
+        val pntD = polygon.points((j + 1) % polygon.points.length)
+        val vectorB: Vector = Vector(pntC, pntD)
+        val vIntersectionPoints: List[Point] = vectorA.intersectVector(vectorB)
+        intersectionPoints ++= vIntersectionPoints
+      }
+    }
+    intersectionPoints.toList.distinct
+  }
 
   /**
     * Checks if the received polygon intersects with the actual polygon and return the intersection points.
@@ -122,6 +147,21 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
   }
 
   /**
+    * Checks if the point given is inside this polygon. Ray Casting algorithm.
+    */
+  def pointInsidePolygonRayCasting(point: Point): Boolean = {
+    // If the number of intersections are odd the point is inside.
+    val ray: Vector = Vector(new Point(-50, -50), point)
+    var count: Int = 0
+    for (i <- points.indices) {
+      val vectorA: Vector = Vector(points((i + 1) % points.size), points(i))
+      if(vectorA.intersectVector(ray).nonEmpty) count += 1
+    }
+
+    count % 2 == 1
+  }
+
+  /**
     * Returns true if the points are oriented ccw.
     */
   def ccw(): Boolean = {
@@ -130,7 +170,7 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     for (i <- 1 to points.size) {
       val pointA = points(Math.floorMod(i, points.size))
       val pointB = points(Math.floorMod(i + 1, points.size))
-      sum = (pointB.x - pointA.x) * (pointB.y + pointA.y)
+      sum += (pointB.x - pointA.x) * (pointB.y + pointA.y)
     }
 
     sum < 0
@@ -185,6 +225,78 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
       _centroid = new Point(xCoordinate, yCoordinate)
     }
     _centroid
+  }
+
+  /**
+    * Gets the longest distance between a point a its centroid. REMEMBER IS THE SQUARED DISTANCE.
+    */
+  def centroidEdgeLongest: Double = {
+
+    if(_centroidEdgeLongest == -1) {
+      val centroid: Point = this.centroid
+      var distance: Double = Double.MinValue
+
+      this.points.foreach(p => {
+        val dist: Double = p.distance(centroid)
+
+        if(dist > distance) distance = dist
+      })
+
+      _centroidEdgeLongest = Math.sqrt(distance)
+    }
+
+    _centroidEdgeLongest
+  }
+
+  /**
+    * Gets the longest distance between two points of this polygon.
+    */
+  def maximumDiagonalLength: Double = {
+
+    if(_maxDiagonalLength == -1) {
+
+      var distance: Double = Double.MinValue
+
+      for (i <- points.indices) {
+        for (j <- points.indices.filter(k => k != i)) {
+          val pointA = points(i)
+          val pointB = points(j)
+
+          val dist = pointA.distance(pointB)
+          if(dist > distance) {
+            distance = dist
+          }
+        }
+      }
+
+      _maxDiagonalLength = Math.sqrt(distance)
+    }
+
+    _maxDiagonalLength
+  }
+
+  def minimumDistanceBetweenVertices: Double = {
+
+    if(_minDistanceVert == -1) {
+
+      var distance: Double = Double.MaxValue
+
+      for (i <- points.indices) {
+        for (j <- points.indices.filter(k => k != i)) {
+          val pointA = points(i)
+          val pointB = points(j)
+
+          val dist = pointA.distance(pointB)
+          if(dist < distance) {
+            distance = dist
+          }
+        }
+      }
+
+      _minDistanceVert = Math.sqrt(distance)
+    }
+
+    _minDistanceVert
   }
 
   /**
@@ -281,6 +393,85 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     }
 
     nearestPoints.toList
+  }
+
+  def isHole: Boolean = hole
+  def setHole(): Unit = hole = true
+
+  def isContainer: Boolean = container
+  def setContainer(): Unit = container = true
+
+  def getCopy: Polygon = {
+
+    var mPoints = new ArrayBuffer[Point]()
+    this.points.foreach(pnt => {
+      mPoints += new Point(pnt.x, pnt.y)
+    })
+
+    new Polygon(mPoints.toList, this.radius, this.label)
+  }
+
+  /**
+    * Returns the minimum distance between this two polygons.
+    */
+  def minimumDistance(polygon: Polygon): Double = {
+
+    var distance: Double = points.head.distance(polygon.points.head)
+
+    points.foreach(pntA => {
+      polygon.points.foreach(pntB => {
+        val dist: Double = pntA.distance(pntB)
+        if(dist < distance) distance = dist
+      })
+    })
+
+    Math.sqrt(distance)
+  }
+
+  def routeFromTo(pointA: Point, pointB: Point): ArrayBuffer[Point] = {
+    var route: ArrayBuffer[Point] = new ArrayBuffer[Point]()
+    if(this.points.contains(pointA) && this.points.contains(pointB)) {
+      val indexA: Int = this.points.indexOf(pointA)
+      val indexB: Int = this.points.indexOf(pointB)
+
+      var range: Int = 0
+      if(indexA > indexB) range = this.points.length - indexA + indexB
+      else range = indexB - indexA
+
+      for (i <- 0 to range) {
+        route += this.points((i + indexA) % this.points.length)
+      }
+    }
+
+    route
+  }
+
+  def simplePolygon: Boolean = {
+    var simplePolygon: Boolean = true
+    for(i <- points.indices) {
+      val pntA = points(i)
+      val pntB = points((i + 1) % points.length)
+      val vectorA: Vector = Vector(pntA, pntB)
+
+      for (j <- points.indices) {
+        val pntC = points(j)
+        val pntD = points((j + 1) % points.length)
+        val vectorB: Vector = Vector(pntC, pntD)
+        val vIntersectionPoints: List[Point] = vectorA.intersectVector(vectorB)
+        vIntersectionPoints.foreach(pnt => {
+          simplePolygon = simplePolygon && points.contains(pnt)
+        })
+      }
+    }
+    simplePolygon
+  }
+
+  def changePointIfHasPoint(width: Double, oldHeight: Double, nHeight: Double): Unit = {
+    points.foreach(pnt => {
+      if(pnt.y === oldHeight +- 1e-3 && (pnt.x === 0.0 +- 1e-3 || pnt.x === width +- 1e-3)) {
+          pnt.y = nHeight
+      }
+    })
   }
 
 }

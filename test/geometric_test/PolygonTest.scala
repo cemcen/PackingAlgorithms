@@ -96,6 +96,28 @@ class PolygonTest extends FlatSpec with Matchers {
     intersection.size should be (1)
   }
 
+  it should "intersect correctly (test 5)" in {
+    val p1 = new Polygon(List(new Point(8.005133996507066,18.057677412673478),
+      new Point(15.017595049442171,24.209881078202947),
+      new Point(11.085242340961226,33.02655861347225),
+      new Point(1.1844320085877307,31.264731921805605),
+      new Point(0.0,22.58444480475038)
+    ))
+    val p2 = new Polygon(List(new Point(0.0,10.574722497987214),
+      new Point(9.131521800109219,19.045884993695033),
+      new Point(19.09520445554115,12.973888993474004),
+      new Point(17.30201241392311,2.3651350448441884),
+      new Point(5.685108502136997,0.0),
+      new Point(150.0,0.0),
+      new Point(150.0,75.0),
+      new Point(0.0,75.0)
+    ))
+
+    val intersection: List[Point] = p1.intersectPolygonCuadratic(p2)
+    //intersection.foreach(println(_))
+
+    intersection.size should be (2)
+  }
 
   it should "know if a point is inside or outside" in {
     val triangle = new Polygon(List(new Point(0,0), new Point(2,2), new Point(-2, 2)))
@@ -167,13 +189,13 @@ class PolygonTest extends FlatSpec with Matchers {
     for (_ <- 1 to 100) {
       val Rhexagon = PolygonFactory.createNewPolygon(10.0, 6, "hexagon", randomFigure = true, 18)
       val Rsquare = PolygonFactory.createNewPolygon(10.0, 4, "square", randomFigure = true, 18)
-      //println("HEXAGONO PRUEBA")
-      //Rhexagon.points.foreach(println(_))
-      //println("CUADRADO PRUEBA")
-      //Rsquare.points.foreach(println(_))
-      //println("RESULTA3")
+//      println("HEXAGONO PRUEBA")
+//      Rhexagon.points.foreach(println(_))
+//      println("CUADRADO PRUEBA")
+//      Rsquare.points.foreach(println(_))
+//      println("RESULTA3")
       result = LocusAlgorithm.getLocusOfTwoPolygons(Rhexagon, Rsquare)
-      //result.points.foreach(println(_))
+//      result.points.foreach(println(_))
       result.points.size should be (10)
     }
   }

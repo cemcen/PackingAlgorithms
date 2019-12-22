@@ -1,85 +1,51 @@
 <template>
-    <v-app id="inspire" dark>
-        <v-navigation-drawer v-model="drawer" clipped fixed app>
-            <v-list dense>
-                <v-list-tile @click="">
-                    <v-list-tile-action>
-                        <v-icon>dashboard</v-icon>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Dashboard</v-list-tile-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-                <v-list-tile @click="">
-                    <v-list-tile-action>
-                        <v-icon>settings</v-icon>
-                    </v-list-tile-action>
-                    <v-list-tile-content>
-                        <v-list-tile-title>Settings</v-list-tile-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-            </v-list>
-        </v-navigation-drawer>
-        <v-toolbar app fixed clipped-left>
-            <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-            <v-toolbar-title>Packing Geometrico</v-toolbar-title>
+    <v-app id="inspire">
+        <v-toolbar dark color="teal lighten-2" app fixed clipped-left>
+            <v-toolbar-title>Convex Polygon Packing</v-toolbar-title>
         </v-toolbar>
-        <v-content>
-            <v-container class="my-card">
-                <v-card class="my-card">
-                    <v-tabs centered color="teal darken-1" dark icons-and-text>
-                        <v-tabs-slider color="teal lighten-4"></v-tabs-slider>
-
-                        <v-tab id="tab-packing" @click="selectTab(2)" >
-                            Packing
-                            <v-icon>category</v-icon>
-                        </v-tab>
-
-                        <v-tab id="tab-polygon" @click="selectTab(1)">
-                            Add Polygon
-                            <v-icon>add_box</v-icon>
-                        </v-tab>
-
-                        <v-tab id="tab-distribution" @click="selectTab(0)">
-                            Analysis
-                            <v-icon>dashboard</v-icon>
-                        </v-tab>
-                    </v-tabs>
-                    <router-view/>
-                </v-card>
-            </v-container>
+        <v-content class="content-style">
+            <v-layout class="all-height">
+                <v-flex sm12 pa-2>
+                    <packing-tab></packing-tab>
+                </v-flex>
+            </v-layout>
         </v-content>
     </v-app>
 </template>
 
 
 <script>
-    const routes = ["/probability", "/polygons", "/packing"];
+    import PackingTab from "./PackingTab.vue";
 
     export default {
-        data(){
+        components: {PackingTab},
+        data() {
             return {
                 drawer: false,
-                selectedTab: 0,
                 script: null,
                 ps: null
             }
         },
         created() {
-            this.selectTab(2);
         },
         methods: {
-            selectTab(i){
-                this.selectedTab = i;
-                this.$router.push(routes[i]);
-            },
         },
         props: {
             source: String
-        }
+        },
     }
 </script>
 
 <style scoped>
+    .content-style {
+        background-color: #ffffff;
+    }
 
+    .all-height{
+        height: 100%;
+    }
+
+    .my-card{
+        height: 100%;
+    }
 </style>

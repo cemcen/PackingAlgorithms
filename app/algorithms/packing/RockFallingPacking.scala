@@ -9,14 +9,14 @@ import org.scalactic._
 import org.scalactic.TripleEquals._
 import Tolerance._
 
-class SpaceReducePacking extends PackingApproach {
+class RockFallingPacking extends PackingApproach {
 
-  var minimumArea: Double = _
+  var minimumY: Double = _
 
   override def insertNextPolygon(insertingPolygon: Polygon, container: Container2D, polygonList: ArrayBuffer[Polygon]): Point = {
 
     // Reinitialize the two values to be considered, minimum area and the graph that contains that possibility.
-    minimumArea = Double.MaxValue
+    minimumY = Double.MaxValue
 
     // We want to find the best position for the polygon to be inserted. In this approach we choose the one that has less area.
     var bestCenterPos: Point = null
@@ -38,17 +38,19 @@ class SpaceReducePacking extends PackingApproach {
       if((distanceToContainer(i) < insertingPolygon.maximumDiagonalLength
         || distanceToContainer(i) === insertingPolygon.maximumDiagonalLength +- 1e-8)
         && !completedExterior(polygon.centroid)) {
+
         // Get locus from polygon inserted.
         val polygonLocus: Polygon = LocusAlgorithm.getLocusOfTwoPolygons(polygon, insertingPolygon)
         val intersectionPoints: List[Point] = containerLocus.intersectPolygon(polygonLocus)
 
         // If they intersect it means that the polygon can be placed there.
         intersectionPoints.foreach(pnt => {
+          if(pnt.y < minimumY) {
+            val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, container.getPolygon, polygon)
 
-          val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, container.getPolygon, polygon)
-
-          if (insertingPoint != null) {
-            bestCenterPos = insertingPoint
+            if (insertingPoint != null) {
+              bestCenterPos = insertingPoint
+            }
           }
         })
       }
@@ -81,20 +83,18 @@ class SpaceReducePacking extends PackingApproach {
           val intersectionPoints: List[Point] = polygonALocus.intersectPolygon(polygonBLocus)
 
           intersectionPoints.foreach(pnt => {
-            val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
+            if(pnt.y < minimumY) {
+              val insertingPoint: Point = executeAlgorithm(insertingPolygon, pnt, container, polygonList, polygonA, polygonB)
 
-            if (insertingPoint != null) {
-              bestCenterPos = insertingPoint
+              if (insertingPoint != null) {
+                bestCenterPos = insertingPoint
+              }
             }
           })
 
         }
       })
     })
-
-//    if(bestCenterPos != null) {
-//      this.graph = bestGraph
-//    }
 
     bestCenterPos
   }
@@ -130,13 +130,11 @@ class SpaceReducePacking extends PackingApproach {
 
     if (!intersects && container.isInside(pointAnalyzed) && containerIntersections < 2) {
 
-      val maybeBestMinimumValue: Double = polygonGraph.getMinimumArea(insertingPolygon)
-
-      if(maybeBestMinimumValue < minimumArea) {
+      if(pointAnalyzed.y < minimumY) {
         interPolygons.clear()
         interPolygons += polygonIntersectionA
         interPolygons += polygonIntersectionB
-        minimumArea = maybeBestMinimumValue
+        minimumY = pointAnalyzed.y
         bestPosition = pointAnalyzed
       }
     }

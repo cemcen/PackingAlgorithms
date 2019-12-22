@@ -4,6 +4,13 @@ import geometry.{Point, Polygon}
 import network.Graph
 
 import scala.collection.mutable.ArrayBuffer
+import org.scalactic._
+import org.scalactic.TripleEquals._
+import Tolerance._
+import algorithms.util.Layer
+import experiments.Experiment
+
+import scala.collection.mutable
 
 /**
   *
@@ -18,10 +25,10 @@ import scala.collection.mutable.ArrayBuffer
 class AdvanceFrontPacking extends PackingAlgorithm {
 
   override var nextPolygon: List[Polygon] = _
+  override protected var layersNextPolygons: List[Layer] = _
   override var finalPolygonPosition: ArrayBuffer[Polygon] = _
   override protected var container: Container2D = _
   override var packingTechnique: PackingApproach = _
-  override var graph: Graph = _
 
   /**
     * Executes the packing algorithm. Classes that extends this abstract class must implement this method.
@@ -36,18 +43,29 @@ class AdvanceFrontPacking extends PackingAlgorithm {
     val locusContainer: Polygon = container.getInnerLocus(firstPolygon)
     val leftBottomPoint: Point = locusContainer.points.head
 
-    // For neighbourhood we will use a graph.
-    graph = new Graph()
-    graph.addContainer(container)
+    if(Experiment.DEBUG_MODE) {
+      Experiment.startTest(nextPolygon)
+    }
 
+    // Update the graph representing the packing
     firstPolygon.movePolygon(leftBottomPoint)
-    graph = graph.addPolygon1Intersection(firstPolygon, container.getPolygon)
-    packingTechnique.updateGraph(graph)
+    packingTechnique.polygonListInsert(nextPolygon)
+
+    // Update the graph with the polygons connexions.
+    packingTechnique.addContainerToGraph(container)
+    packingTechnique.addPolygonToGraph(firstPolygon)
+    val interPolygon: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+    interPolygon += container.getPolygon
+    packingTechnique.addLinksToGraph(firstPolygon, interPolygon)
 
     polygonList += firstPolygon
+    packingTechnique.addedPolygon(firstPolygon)
+    if(Experiment.DEBUG_MODE) {
+      Experiment.addedPolygon(firstPolygon)
+    }
 
     // Iterate over nextPolygon array to pack every polygon in the array.
-    nextPolygon.tail.indices.foreach( i => {
+    nextPolygon.tail.indices.foreach(i => {
 
       // Next polygon to be inserted.
       val insertingPolygon: Polygon = nextPolygon.tail(i)
@@ -57,11 +75,29 @@ class AdvanceFrontPacking extends PackingAlgorithm {
 
       // Save polygon Position in the array.
       if(bestCenterPos != null) {
+        if(Experiment.DEBUG_MODE) {
+          Experiment.addedPolygon(insertingPolygon)
+        }
         insertingPolygon.movePolygon(bestCenterPos)
         polygonList += insertingPolygon
+        packingTechnique.addedPolygon(insertingPolygon)
       }
     })
 
-    finalPolygonPosition = polygonList
+    if(Experiment.DEBUG_MODE) {
+      val timeElapsed = Experiment.endTest()
+      val polygons = packingTechnique.getPolygonList
+      var area: Double = 0
+
+      polygons.foreach(pol => {
+        if(!pol.isHole) {
+          area += pol.getArea
+        }
+      })
+
+      Experiment.addExperiment(container.getHeight, container.getWidth, timeElapsed, area/(container.getWidth*container.getHeight))
+    }
+
+    finalPolygonPosition = packingTechnique.getPolygonList
   }
 }

@@ -1,9 +1,9 @@
 package controllers
 
 import algorithms.Packing2D
-import algorithms.packing.{AdvanceFrontPacking, NaivePacking, PackingAlgorithm, SpaceReducePacking}
-import dto.dim2D.input.Input2DMesh
-import dto.dim2D.output.{Output2DMesh, OutputPolygon, Point2D}
+import algorithms.packing._
+import dto.dim2D.input.{Input2DMesh, Input2DMultiLayerMesh}
+import dto.dim2D.output.{Output2DMesh, OutputGraph, OutputPolygon, Point2D}
 import geometry.Polygon
 import javax.inject.Inject
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
@@ -33,17 +33,12 @@ class MeshController @Inject()(components: ControllerComponents)
           // If defined we only get the dimensions.
           width = mesh.width.get
           height = mesh.height.get
-          val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
-          if(mesh.approachAlgorithm.get == 0) {
-            packingAlgorithm.setPackingTechnique(new NaivePacking)
-          } else if (mesh.approachAlgorithm.get == 1) {
-            packingAlgorithm.setPackingTechnique(new SpaceReducePacking)
-          }
-          Packing2D.setPackingAlgorithm(packingAlgorithm)
+          setPackingAlgorithm(mesh.approachAlgorithm.get, 0)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 
         }
 
+        // Create packing output
         var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
         polygonMesh.foreach(pol => {
           var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
@@ -52,7 +47,7 @@ class MeshController @Inject()(components: ControllerComponents)
             pointList += new Point2D(pnt.x, pnt.y)
           })
 
-          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius)
+          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius, pol.isHole, pol.getArea)
         })
 
         val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
@@ -61,6 +56,61 @@ class MeshController @Inject()(components: ControllerComponents)
       case _: JsError =>
         BadRequest("Json received in wrong format.")
     }
+  }
+
+  def createMultiLayerMesh2D: Action[JsValue] = Action(parse.json) { request =>
+    request.body.validate[Input2DMultiLayerMesh] match {
+      case s: JsSuccess[Input2DMultiLayerMesh] =>
+        // Get the json with the data.
+        val mesh: Input2DMultiLayerMesh = s.get
+        var width: Double = 0.0
+
+        // We store the result in this list.
+        var polygonMesh: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
+
+        width = mesh.width.get
+        setPackingAlgorithm(mesh.approachAlgorithm.get, 1)
+        polygonMesh = Packing2D.createMultiLayerMesh(mesh.layers, width, mesh.randomShape.get)
+
+        // Create packing output
+        var polygonOutput: ArrayBuffer[OutputPolygon] = new ArrayBuffer[OutputPolygon]()
+        polygonMesh.foreach(pol => {
+          var pointList: ArrayBuffer[Point2D] = new ArrayBuffer[Point2D]()
+
+          pol.points.foreach(pnt => {
+            pointList += new Point2D(pnt.x, pnt.y)
+          })
+
+          polygonOutput += new OutputPolygon(pointList.toList, pol.label, pol.radius, pol.isHole, pol.getArea)
+        })
+
+        var height: Double = 0.0
+        mesh.layers.foreach(lay => {
+          height += lay.height.get
+        })
+
+        val output: Output2DMesh = new Output2DMesh(polygonOutput.toList, width, height)
+
+        Ok(Json.obj("mesh" -> output))
+
+      case _: JsError =>
+        BadRequest("Json received in wrong format.")
+    }
+  }
+
+  def setPackingAlgorithm(approachAlgorithm: Int, chosenAlgorithm: Int): Unit = {
+    var packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
+    if (chosenAlgorithm == 1) {
+      packingAlgorithm = new PiledPacking
+    }
+
+    if (approachAlgorithm == 0) {
+      packingAlgorithm.setPackingTechnique(new RockFallingPacking)
+    } else if (approachAlgorithm == 1) {
+      packingAlgorithm.setPackingTechnique(new SpaceReducePacking)
+    }
+
+    Packing2D.setPackingAlgorithm(packingAlgorithm)
   }
 
 }

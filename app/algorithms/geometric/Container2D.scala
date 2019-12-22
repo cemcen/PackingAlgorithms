@@ -9,10 +9,10 @@ import scala.collection.mutable.ArrayBuffer
   *
   * (xPos, yPos) is the point at the left down corner.
   */
-class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double = 0) {
+class Container2D(width: Double, private var height: Double, xPos: Double = 0, yPos: Double = 0) {
 
   // Used for storing the half edges of this polygon.
-  private val containerPolygon: Polygon = new Polygon(List(new Point(xPos, yPos), new Point(width,yPos), new Point(width, height), new Point(xPos, height)))
+  private var containerPolygon: Polygon = new Polygon(List(new Point(xPos, yPos), new Point(width,yPos), new Point(width, height), new Point(xPos, height)))
 
   /**
     * Returns the polygon that makes the centroid of the given polygon
@@ -64,12 +64,51 @@ class Container2D(width: Double, height: Double, xPos: Double = 0, yPos: Double 
     * Transform the container in a Polygon.
     */
   def getPolygon: Polygon = containerPolygon
+
+  def minimumDistance(polygon: Polygon): Double = {
+    var distance: Double = Double.MaxValue
+
+    var minX: Double = polygon.points.head.x
+    var minY: Double = polygon.points.head.x
+    var maxX: Double = polygon.points.head.y
+    var maxY: Double = polygon.points.head.y
+
+//    println("Calculate Distance")
+//    println("Polygon: ")
+//    println()
+    polygon.points.foreach(p => {
+//      println(p)
+      if(p.x > maxX) maxX = p.x
+      if(p.y > maxY) maxY = p.y
+      if(p.x < minX) minX = p.x
+      if(p.y < minY) minY = p.y
+    })
+
+//    println("Distance: ")
+//    println(minX)
+//    println(minY)
+//    println(height - maxY)
+//    println(width - maxX)
+
+    distance = Math.min(Math.min(minX, minY), Math.min(height - maxY, width - maxX))
+
+    distance
+  }
+
+  def getWidth: Double = width
+  def getHeight: Double = height
+  def addHeight(layerHeight: Double): Unit = {
+    height = height + layerHeight
+    containerPolygon = new Polygon(List(new Point(xPos, yPos), new Point(width,yPos), new Point(width, height), new Point(xPos, height)))
+    containerPolygon.setContainer()
+  }
 }
 
 object Container2D {
 
   def apply(width: Double, height: Double): Container2D = {
     val container: Container2D = new Container2D(width, height)
+    container.containerPolygon.setContainer()
     container
   }
 

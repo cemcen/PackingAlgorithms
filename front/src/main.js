@@ -20,4 +20,5 @@ const app = new Vue({
     render: h => h(App)
 });
 
+
 import '../sass/style.scss';

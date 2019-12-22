@@ -24,3 +24,10 @@
     }
 </script>
 
+<style>
+
+    .page-container{
+        background-color: #ffffff;
+    }
+</style>
+
