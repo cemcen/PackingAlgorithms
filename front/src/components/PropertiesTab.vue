@@ -40,58 +40,58 @@
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="teal lighten-2" flat @click.native="close">Cancel</v-btn>
+                    <v-btn color="teal lighten-2" text @click.native="close">Cancel</v-btn>
                     <v-btn dark color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
 
         <v-list two-line>
-            <v-layout class="right-layout" align-end>
+            <v-row class="right-layout" align="end">
                 <v-flex pt-3>
                     <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
                         New Property
                     </v-btn>
                 </v-flex>
-            </v-layout>
+            </v-row>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
                 No properties registered.
             </div>
             <v-divider></v-divider>
             <template v-for="(key, value) in Object.entries(properties)">
 
-                <v-list-tile :key="key[1].label" avatar @click="">
+                <v-list-item :key="key[1].label">
 
-                    <!--<v-list-tile-action class="checkbox-width">
+                    <!--<v-list-item-action class="checkbox-width">
                         <v-checkbox color="teal lighten-2" v-model="key[1].selected"></v-checkbox>
-                    </v-list-tile-action>-->
+                    </v-list-item-action>-->
 
-                    <v-list-tile-avatar>
+                    <v-list-item-avatar>
                         <swatches v-model="key[1].color" disabled colors="material-basic"/>
-                    </v-list-tile-avatar>
+                    </v-list-item-avatar>
 
-                    <v-list-tile-content>
-                        <v-list-tile-title v-html="key[1].label"></v-list-tile-title>
-                        <v-list-tile-sub-title>
+                    <v-list-item-content>
+                        <v-list-item-title v-html="key[1].label"></v-list-item-title>
+                        <v-list-item-subtitle>
                             <span>Type of value: {{ key[1].typeOfValue }}</span> <br/>
                             <span>Default value: {{ key[1].default? key[1].default : 'Not Defined' }}</span>
-                        </v-list-tile-sub-title>
-                    </v-list-tile-content>
-                    <v-list-tile-action class="checkbox-width">
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action class="checkbox-width">
                         <v-layout row>
                             <v-flex>
-                                <v-btn icon ripple @click="editItem(key[0])">
-                                    <v-icon color="teal lighten-2">edit</v-icon>
+                                <v-btn icon @click="editItem(key[0])">
+                                    <v-icon color="teal lighten-2">mdi-pencil</v-icon>
                                 </v-btn>
                             </v-flex>
                             <v-flex>
-                                <v-btn icon ripple @click="deleteItem(key[0])">
-                                    <v-icon color="red lighten-2">delete</v-icon>
+                                <v-btn icon @click="deleteItem(key[0])">
+                                    <v-icon color="red lighten-2">mdi-delete</v-icon>
                                 </v-btn>
                             </v-flex>
                         </v-layout>
-                    </v-list-tile-action>
-                </v-list-tile>
+                    </v-list-item-action>
+                </v-list-item>
                 <v-divider></v-divider>
             </template>
         </v-list>
@@ -233,5 +233,7 @@
     .right-layout{
         display: grid;
         justify-content: flex-end;
+        margin-right: 10px;
+        margin-bottom: 10px;
     }
 </style>
