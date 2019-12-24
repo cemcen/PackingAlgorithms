@@ -31,7 +31,7 @@
                                     <download-icon/>
                                 </v-btn>
                             </template>
-                            <span>Export</span>
+                            <span>Download Mesh</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
@@ -570,39 +570,41 @@
                         };
                         let height = this.packing.height;
                         let width = this.packing.width;
-                        this.packing.polygons.forEach(pol => {
-                            for (let i = 0; i < pol.points.length; i++) {
-                                let pntA = pol.points[i];
-                                let pntB = pol.points[(i + 1) % pol.points.length];
+                        if(this.packing.graph) {
+                            this.packing.polygons.forEach(pol => {
+                                for (let i = 0; i < pol.points.length; i++) {
+                                    let pntA = pol.points[i];
+                                    let pntB = pol.points[(i + 1) % pol.points.length];
 
-                                if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                                    this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                                        selected: false
-                                    }
-                                } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                                    this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                                        selected: false
+                                    if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                                            selected: false
+                                        }
+                                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                                            selected: false
+                                        }
                                     }
                                 }
-                            }
-                        });
-                        this.packing.polygons.forEach(pol => {
-                            pol.selected = this.polygonIntersection(pol, box, width, height, p);
-                            for (let i = 0; i < pol.points.length; i++) {
-                                let pntA = pol.points[i];
-                                let pntB = pol.points[(i + 1) % pol.points.length];
+                            });
+                            this.packing.polygons.forEach(pol => {
+                                pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                                for (let i = 0; i < pol.points.length; i++) {
+                                    let pntA = pol.points[i];
+                                    let pntB = pol.points[(i + 1) % pol.points.length];
 
-                                if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                                    this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                                        selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
-                                    }
-                                } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                                    this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                                        selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
+                                    if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                                            selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
+                                        }
+                                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                                            selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                         dragged = false;
                         p.draw();
                     }
@@ -624,31 +626,33 @@
                     let graph = this.packing.graph;
                     let height = this.packing.height;
                     let width = this.packing.width;
-                    Object.keys(graph).forEach(function (pointA) {
-                        Object.keys(graph[pointA]).forEach(function (pointB) {
-                            const pntA = JSON.parse("[" + pointA + "]");
-                            const pntB = JSON.parse("[" + pointB + "]");
+                    if(graph) {
+                        Object.keys(graph).forEach(function (pointA) {
+                            Object.keys(graph[pointA]).forEach(function (pointB) {
+                                const pntA = JSON.parse("[" + pointA + "]");
+                                const pntB = JSON.parse("[" + pointB + "]");
 
-                            if (graph[pointA][pointB].selected) {
-                                p.stroke(189, 189, 189);
-                            } else {
-                                p.stroke(33, 33, 33);
-                            }
+                                if (graph[pointA][pointB].selected) {
+                                    p.stroke(189, 189, 189);
+                                } else {
+                                    p.stroke(33, 33, 33);
+                                }
 
-                            if (graph[pointA][pointB].selected) {
-                                p.strokeWeight(4);
-                            } else {
-                                p.strokeWeight(3);
-                            }
+                                if (graph[pointA][pointB].selected) {
+                                    p.strokeWeight(4);
+                                } else {
+                                    p.strokeWeight(3);
+                                }
 
-                            p.line(
-                                (pntA[0] / width) * p.width,
-                                ((height - pntA[1]) / height) * p.height,
-                                (pntB[0] / width) * p.width,
-                                ((height - pntB[1]) / height) * p.height
-                            );
+                                p.line(
+                                    (pntA[0] / width) * p.width,
+                                    ((height - pntA[1]) / height) * p.height,
+                                    (pntB[0] / width) * p.width,
+                                    ((height - pntB[1]) / height) * p.height
+                                );
+                            });
                         });
-                    });
+                    }
                     if (locked) {
                         p.strokeWeight(3);
                         p.stroke(239, 83, 80);
@@ -776,6 +780,8 @@
                 let points = this.packing.draw.points;
                 let edges = this.packing.draw.edges;
                 let polygons = this.packing.draw.polygons;
+                let borderPoints = this.packing.draw.borderPoints;
+                let borderSegments = this.packing.draw.borderSegments;
 
                 let sortedPoints = this.sortDictionary(points);
                 let sortedEdges = this.sortDictionary(edges);
@@ -783,7 +789,13 @@
                 let properties = JSON.parse(localStorage.getItem('properties'));
                 let propertiesArray = Object.keys(properties);
 
-                file += Object.keys(points).length + ' ' + Object.keys(edges).length + ' ' + propertiesArray.length + ' ' + Object.keys(polygons).length + '\n';
+                file += Object.keys(points).length
+                    + ' ' + Object.keys(edges).length
+                    + ' ' + propertiesArray.length
+                    + ' ' + Object.keys(polygons).length
+                    + ' ' + Object.keys(borderPoints).length
+                    + ' ' + Object.keys(borderSegments).length
+                    + '\n';
 
                 sortedPoints.forEach(point => {
                     let splitted = point[0].split(",");
@@ -814,6 +826,26 @@
                             file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
                         })
                     }
+                    file = file.slice(0, -1);
+                    file += '\n';
+                });
+
+                Object.keys(borderPoints).forEach(bp => {
+                    file += (borderPoints[bp].pointIndex + ' ');
+                    file += (borderPoints[bp].polygons.length + ' ');
+                    borderPoints[bp].polygons.forEach(pol => {
+                        file += (pol + ' ');
+                    });
+                    file = file.slice(0, -1);
+                    file += '\n';
+                });
+
+                Object.keys(borderSegments).forEach(bs => {
+                    file += (borderSegments[bs].segmentIndex + ' ');
+                    file += (borderSegments[bs].polygons.length + ' ');
+                    borderSegments[bs].polygons.forEach(pol => {
+                        file += (pol + ' ');
+                    });
                     file = file.slice(0, -1);
                     file += '\n';
                 });
@@ -1026,14 +1058,82 @@
             parseMesh(mesh) {
                 //console.log(resp);
 
+                const width = mesh.width;
+                const height = mesh.height;
+
                 let points = {};
                 let edges = {};
                 let polygons = {};
+                let borderPoints = {};
+                let borderSegments = {};
                 let edgesG = {};
                 let cEdgesG = {};
                 let p = 1;
                 let e = 1;
+                let bp = 1;
+                let bs = 1;
                 let polCount = 1;
+
+                function checkEpsilon(value, equalValue, precision = 1e-8) {
+                    return Math.abs(value - equalValue) < precision;
+                }
+
+                function isBorderPoint(point, minX, maxX, minY, maxY) {
+                    if(checkEpsilon(point.x, minX)
+                        || checkEpsilon(point.x, maxX)
+                        || checkEpsilon(point.y, minY)
+                        || checkEpsilon(point.y, maxY)) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                function checkBorderPoint(point, borderPoints, width, height, bpCount, polCount) {
+                    let nPoint = false;
+                    // Check if the point is on the border of the container.
+                    if (isBorderPoint(point, 0, width, 0, height)) {
+
+                        // Check if the point is already labeled.
+                        if (!([point.x, point.y] in borderPoints)) {
+                            borderPoints[[point.x, point.y]] = {
+                                index: bpCount,
+                                pointIndex: points[[point.x, point.y]],
+                                polygons: []
+                            };
+                            nPoint = true;
+                        }
+
+                        // Add the polygon if needed.
+                        if (!borderPoints[[point.x, point.y]].polygons.includes(polCount)) {
+                            borderPoints[[point.x, point.y]].polygons.push(polCount);
+                        }
+                    }
+                    return nPoint;
+                }
+
+                function checkBorderSegment(pointA, pointB, borderSegments, width, height, bsCount, polCount) {
+                    let nSegment = false;
+                    // Check if one of the points is on the border of the container.
+                    if (isBorderPoint(pointA, 0, width, 0, height)
+                        || isBorderPoint(pointB, 0, width, 0, height)) {
+
+                        // Check if the segment is already labeled.
+                        if (!([points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]] in borderSegments)) {
+                            borderSegments[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = {
+                                index: bsCount,
+                                segmentIndex: edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]],
+                                polygons: []
+                            };
+                            nSegment = true;
+                        }
+
+                        // Add the polygon if needed.
+                        if (!borderSegments[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]].polygons.includes(polCount)) {
+                            borderSegments[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]].polygons.push(polCount);
+                        }
+                    }
+                    return nSegment;
+                }
 
                 mesh.polygons.forEach(pol => {
 
@@ -1043,6 +1143,7 @@
 
                         let pointA = pol.points[i];
                         let pointB = pol.points[(i + 1) % pol.points.length];
+
                         if (!([pointA.x, pointA.y] in points)) {
                             points[[pointA.x, pointA.y]] = p;
                             p += 1;
@@ -1053,8 +1154,22 @@
                             p += 1;
                         }
 
+                        // Check if the points are on the border of the container.
+                        if (checkBorderPoint(pointA, borderPoints, width, height, bp, polCount)) {
+                            bp += 1
+                        }
+                        if (checkBorderPoint(pointB, borderPoints, width, height, bp, polCount)) {
+                            bp += 1
+                        }
+
                         if (!([points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]] in edges)) {
                             edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = e;
+
+                            // Check if the segment is on the border of the container.
+                            if (checkBorderSegment(pointA, pointB, borderSegments, width, height, bs, polCount)) {
+                                bs += 1
+                            }
+
                             e += 1;
 
                             if (!([pointA.x, pointA.y] in cEdgesG)) {
@@ -1093,6 +1208,8 @@
                 this.packing.draw.points = points;
                 this.packing.draw.edges = edges;
                 this.packing.draw.polygons = polygons;
+                this.packing.draw.borderPoints = borderPoints;
+                this.packing.draw.borderSegments = borderSegments;
                 this.packing.graph = edgesG;
                 this.packing.rGraph = cEdgesG;
             },
