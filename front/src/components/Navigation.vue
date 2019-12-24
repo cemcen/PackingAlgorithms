@@ -1,16 +1,18 @@
 <template>
-    <v-app id="inspire">
-        <v-toolbar dark color="teal lighten-2" app fixed clipped-left>
-            <v-toolbar-title>Convex Polygon Packing</v-toolbar-title>
-        </v-toolbar>
-        <v-content class="content-style">
-            <v-layout class="all-height">
-                <v-flex sm12 pa-2>
-                    <packing-tab></packing-tab>
-                </v-flex>
-            </v-layout>
-        </v-content>
-    </v-app>
+    <div id="app">
+        <v-app id="inspire">
+            <v-app-bar app color="teal lighten-2" dark>
+                <v-toolbar-title>Convex Polygon Packing</v-toolbar-title>
+            </v-app-bar>
+            <v-content class="content-style">
+                <v-layout class="all-height">
+                    <v-flex sm12 pa-2>
+                        <packing-tab></packing-tab>
+                    </v-flex>
+                </v-layout>
+            </v-content>
+        </v-app>
+    </div>
 </template>
 
 
@@ -28,8 +30,7 @@
         },
         created() {
         },
-        methods: {
-        },
+        methods: {},
         props: {
             source: String
         },
@@ -41,11 +42,11 @@
         background-color: #ffffff;
     }
 
-    .all-height{
+    .all-height {
         height: 100%;
     }
 
-    .my-card{
+    .my-card {
         height: 100%;
     }
 </style>

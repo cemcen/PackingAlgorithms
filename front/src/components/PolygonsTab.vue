@@ -7,8 +7,8 @@
                 </v-card-title>
 
                 <v-card-text>
-                    <v-layout justify-center>
-                        <v-flex>
+                    <v-row justify="center">
+                        <v-flex sm12>
                             <v-text-field v-validate="'required'"
                                           :error-messages="errors.collect('label')"
                                           v-model="editedItem.label"
@@ -17,6 +17,8 @@
                                           clearable
                                           required>
                             </v-text-field>
+                        </v-flex>
+                        <v-flex sm12>
                             <v-text-field v-validate="'required|min_value:3'"
                                           :error-messages="errors.collect('vertex')"
                                           v-model="editedItem.numberOfVertex"
@@ -26,6 +28,9 @@
                                           clearable
                                           required>
                             </v-text-field>
+                        </v-flex>
+
+                        <v-flex sm12>
                             <v-text-field v-validate="'required|isBiggerThanZero'"
                                           :error-messages="errors.collect('radius')"
                                           v-model="editedItem.radius"
@@ -35,6 +40,8 @@
                                           clearable
                                           required>
                             </v-text-field>
+                        </v-flex>
+                        <v-flex sm12>
                             <v-text-field v-validate="'required|isBiggerThanZero'"
                                           :error-messages="errors.collect('percentage')"
                                           v-model="editedItem.percentage"
@@ -45,56 +52,56 @@
                                           required>
                             </v-text-field>
                         </v-flex>
-                    </v-layout>
+                    </v-row>
                 </v-card-text>
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="teal lighten-2" flat @click.native="close">Cancel</v-btn>
+                    <v-btn color="teal lighten-2" text @click.native="close">Cancel</v-btn>
                     <v-btn dark color="teal lighten-2" @keyup.enter="save" @click.native="save">Save</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
 
         <v-list two-line>
-            <v-layout class="right-layout" align-end>
+            <v-row class="right-layout" align="end">
                 <v-flex pt-3>
                     <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
                         New Polygon
                     </v-btn>
                 </v-flex>
-            </v-layout>
+            </v-row>
             <div class="text-centered font-weight-light grey--text title mb-2" v-show="polygons.length === 0">
                 No polygons registered.
             </div>
             <v-divider></v-divider>
             <template v-for="(item, index) in polygons">
 
-                <v-list-tile :key="item.label" avatar @click="">
+                <v-list-item :key="item.label" @click="">
 
-                    <v-list-tile-content>
-                        <v-list-tile-title v-html="item.label"></v-list-tile-title>
-                        <v-list-tile-sub-title>
+                    <v-list-item-content>
+                        <v-list-item-title v-html="item.label"></v-list-item-title>
+                        <v-list-item-subtitle>
                             <span>Number of Vertex: {{ item.numberOfVertex }}</span> <br/>
                             <span>Percentage: {{ item.percentage }}%,</span>
                             <span>Radius: {{ item.radius }}</span>
-                        </v-list-tile-sub-title>
-                    </v-list-tile-content>
-                    <v-list-tile-action>
+                        </v-list-item-subtitle>
+                    </v-list-item-content>
+                    <v-list-item-action>
                         <v-layout row>
                             <v-flex>
-                                <v-btn icon ripple @click="editItem(item)">
-                                    <v-icon color="teal lighten-2">edit</v-icon>
+                                <v-btn icon @click="editItem(item)">
+                                    <v-icon color="teal lighten-2">mdi-pencil</v-icon>
                                 </v-btn>
                             </v-flex>
                             <v-flex>
-                                <v-btn icon ripple @click="deleteItem(item)">
-                                    <v-icon color="red lighten-2">delete</v-icon>
+                                <v-btn icon @click="deleteItem(item)">
+                                    <v-icon color="red lighten-2">mdi-delete</v-icon>
                                 </v-btn>
                             </v-flex>
                         </v-layout>
-                    </v-list-tile-action>
-                </v-list-tile>
+                    </v-list-item-action>
+                </v-list-item>
                 <v-divider></v-divider>
             </template>
         </v-list>
@@ -232,12 +239,14 @@
         margin: 2px;
     }
 
-    .text-centered{
+    .text-centered {
         text-align: center;
     }
 
-    .right-layout{
+    .right-layout {
         display: grid;
         justify-content: flex-end;
+        margin-right: 10px;
+        margin-bottom: 10px;
     }
 </style>
