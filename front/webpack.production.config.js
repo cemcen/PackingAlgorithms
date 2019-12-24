@@ -4,8 +4,23 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader')
+
 module.exports = {
     entry: path.resolve('./src/main.js'),
+    optimization: {
+        minimizer: [
+            new UglifyJsPlugin({
+                uglifyOptions: {
+                    sourceMap: true,
+                    warnings: false,
+
+                }
+            }),
+        ],
+    },
+    mode: 'production',
     output: {
         path: path.resolve('../public/bundle'),
         filename: 'js.bundle.[hash].js'
@@ -31,6 +46,10 @@ module.exports = {
                 })
             },
             {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
+            },
+            {
                 test: /\.(png|jpg|gif|svg)$/,
                 loader: 'file-loader',
                 options: {
@@ -43,10 +62,10 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production')
         }),
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true
-        }),
-        new ExtractTextPlugin("style.bundle.[contentHash].css"),
+        new ExtractTextPlugin(
+            {
+                filename: 'style/[name].[md5:contenthash:hex:20].css'
+            }),
         new OptimizeCssAssetsPlugin({
             cssProcessor: require('cssnano'),
             cssProcessorOptions: { discardComments: {removeAll: true } }
@@ -56,6 +75,7 @@ module.exports = {
             test: /\.(js|css)$/,
             minRatio: 0.8,
             deleteOriginalAssets: false
-        })
+        }),
+        new VueLoaderPlugin()
     ]
 };

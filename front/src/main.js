@@ -14,6 +14,7 @@ Vue.use(VueResource);
 Vue.use(VueRouter);
 
 //new Vue(App).$mount('#app');
+
 const app = new Vue({
     router,
     el: '#app',

@@ -33,9 +33,15 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <v-btn icon flat color="teal lighten-2" dark slot="activator" @click="openAngleDialog()" class="mb-2">
-                                <v-icon>tune</v-icon>
+                                <v-icon>mdi-icon-acute</v-icon>
                             </v-btn>
                             <span>Minimum Angle</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <v-btn icon flat color="teal lighten-2" dark slot="activator" @click="openBorderConditions()" class="mb-2">
+                                <v-icon>select_all</v-icon>
+                            </v-btn>
+                            <span>Border Conditions</span>
                         </v-tooltip>
 
                         <v-spacer></v-spacer>
@@ -274,7 +280,7 @@
             </v-flex>
             <v-flex sm3 pa-2>
                 <v-card class="my-card">
-                    <v-tabs show-arrows grow color="#eeeeee">
+                    <v-tabs grow color="#eeeeee">
                         <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
 
                         <!--<v-tab id="tab-info" @click="selectTab(2)">
@@ -333,6 +339,7 @@
           return {
               selectedTab: 1,
               ps: null,
+              dialogBorderConditions: false,
               snackbar: false,
               snackbarMessage: '',
               timeout: 1200,
@@ -614,6 +621,9 @@
             },
             openAngleDialog(){
               this.dialogAngle = true;
+            },
+            openBorderConditions(){
+              this.dialogBorderConditions = true;
             },
             optimizeAngle() {
                 let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
