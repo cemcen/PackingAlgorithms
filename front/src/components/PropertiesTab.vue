@@ -60,7 +60,7 @@
             <v-divider></v-divider>
             <template v-for="(key, value) in Object.entries(properties)">
 
-                <v-list-item :key="key[1].label" @click="">
+                <v-list-item :key="key[1].label">
 
                     <!--<v-list-item-action class="checkbox-width">
                         <v-checkbox color="teal lighten-2" v-model="key[1].selected"></v-checkbox>

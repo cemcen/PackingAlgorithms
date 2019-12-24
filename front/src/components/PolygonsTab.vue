@@ -77,7 +77,7 @@
             <v-divider></v-divider>
             <template v-for="(item, index) in polygons">
 
-                <v-list-item :key="item.label" @click="">
+                <v-list-item :key="item.label">
 
                     <v-list-item-content>
                         <v-list-item-title v-html="item.label"></v-list-item-title>

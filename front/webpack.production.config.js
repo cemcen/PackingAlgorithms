@@ -64,7 +64,7 @@ module.exports = {
         }),
         new ExtractTextPlugin(
             {
-                filename: 'style/[name].[md5:contenthash:hex:20].css'
+                filename: 'style/pack-vex.min.css'
             }),
         new OptimizeCssAssetsPlugin({
             cssProcessor: require('cssnano'),

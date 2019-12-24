@@ -10,7 +10,7 @@
     <link href="assets/styles/vuetify-min.css" rel="stylesheet">
     <link rel="icon" href="assets/images/tetris.png">
     @if(env.isProd) {
-        <link rel="stylesheet" href="/assets/bundle/@cssBundle">
+        <link rel="stylesheet" href="/assets/bundle/style/@cssBundle">
     }
 </head>
 <body>
@@ -21,6 +21,5 @@
     } else {
         <script src="/assets/bundle/@jsBundle"></script>
     }
-    <script src="/assets/js/build.js"></script>
 </body>
 </html>

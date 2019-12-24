@@ -10,7 +10,7 @@ object WebpackBuildFile {
   } else ""
 
   val cssBundle: String = if(style.exists && style.isDirectory) {
-    style.listFiles.filter(_.isFile).toList.find(f => f.getName.contains("main.0f169ec58c26d2c5069f.")).get.getName.replace(".gz", "")
+    style.listFiles.filter(_.isFile).toList.find(f => f.getName.contains("pack-vex.min.")).get.getName.replace(".gz", "")
   } else ""
 
 }

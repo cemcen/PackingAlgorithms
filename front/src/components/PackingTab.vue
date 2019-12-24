@@ -4,7 +4,7 @@
             <v-flex sm9 pa-2>
                 <v-card class="my-card">
                     <v-toolbar color="#eeeeee">
-                        <v-toolbar-title>Packing</v-toolbar-title>
+                        <v-toolbar-title>Options</v-toolbar-title>
                         <v-divider class="mx-2" inset vertical></v-divider>
 
                         <v-tooltip top>
@@ -807,9 +807,9 @@
                     });
                     file += (polygon[2].area + ' ');
                     file += ((polygon[2].hole ? 1 : 0) + ' ');
-                    file += (polygon[2].properties.length + ' ');
 
                     if (polygon[2].properties && polygon[2].properties.length > 0) {
+                        file += (polygon[2].properties.length + ' ');
                         polygon[2].properties.forEach(prop => {
                             file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
                         })
