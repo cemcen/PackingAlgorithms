@@ -79,14 +79,16 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
 
   def addContainer(container: Container2D): Unit = {
 
-    val path = Path.string2path("debug/packing/")
-    val directory: File = new File("debug/packing")
-    if (!directory.exists()) {
-      directory.mkdir()
+    if(Experiment.DEBUG_MODE) {
+      val path = Path.string2path("debug/packing/")
+      val directory: File = new File("debug/packing")
+      if (!directory.exists()) {
+        directory.mkdir()
+      }
+      path.jfile.listFiles.foreach(f => {
+        f.delete()
+      })
     }
-    path.jfile.listFiles.foreach(f => {
-      f.delete()
-    })
 
     height = container.getHeight.toInt
     width = container.getWidth.toInt

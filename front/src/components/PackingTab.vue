@@ -207,79 +207,10 @@
                             </v-card>
                         </v-dialog>
 
-                        <v-dialog v-model="dialog2" persistent max-width="500px">
-                            <v-card color="#ffffff">
-                                <v-card-title>
-                                    <span class="headline">Assign Properties</span>
-                                </v-card-title>
-
-                                <v-card-text>
-                                    <v-row justify="center">
-                                        <v-flex>
-                                            <v-select v-validate="'required'"
-                                                      label="Choose which polygons should have these properties"
-                                                      :error-messages="errors.collect('selectedOptionProperties')"
-                                                      item-text="name"
-                                                      v-model="selectedOptionProperties" :items="optionProperties"
-                                                      return-object
-                                                      data-vv-name="selectedOptionProperties">
-                                            </v-select>
-                                        </v-flex>
-                                    </v-row>
-                                    <v-row justify="center">
-                                        <v-flex>
-                                            <v-select v-validate="'required'"
-                                                      label="Choose which type of polygon should have these properties"
-                                                      :error-messages="errors.collect('selectedOptionType')"
-                                                      item-text="name"
-                                                      v-model="selectedOptionType" :items="optionType" return-object
-                                                      data-vv-name="selectedOptionType">
-                                            </v-select>
-                                        </v-flex>
-                                    </v-row>
-                                    <v-row justify="center">
-                                        <v-list style="width: 100%" two-line>
-                                            <div class="text-centered font-weight-light grey--text title mb-2"
-                                                 v-show="properties.length === 0">
-                                                No properties registered.
-                                            </div>
-                                            <template v-for="(key, value) in Object.entries(properties)">
-
-                                                <v-list-item :key="key[1].label">
-
-                                                    <v-list-item-action>
-                                                        <v-checkbox color="teal lighten-2"
-                                                                    v-model="key[1].selected"></v-checkbox>
-                                                    </v-list-item-action>
-
-                                                    <v-list-item-avatar>
-                                                        <swatches v-model="key[1].color" disabled class="mr-3"
-                                                                  colors="material-basic"/>
-                                                    </v-list-item-avatar>
-
-                                                    <v-list-item-content>
-                                                        <v-list-item-title v-html="key[1].label"></v-list-item-title>
-                                                        <v-list-item-subtitle>
-                                                            <span>Type of value: {{ key[1].typeOfValue }}</span> <br/>
-                                                            <span>Default value: {{ key[1].default? key[1].default : 'Not Defined' }}</span>
-                                                        </v-list-item-subtitle>
-                                                    </v-list-item-content>
-                                                </v-list-item>
-                                                <v-divider></v-divider>
-                                            </template>
-                                        </v-list>
-                                    </v-row>
-                                </v-card-text>
-
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn color="teal lighten-2" text @click.native="dialog2 = false">Close</v-btn>
-                                    <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign
-                                        Properties
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
+                        <assign-properties :dialog="dialog2"
+                                           @closeDialog="dialog2 = false"
+                                           :properties="properties"
+                                           @assignProperties="assignProperties"/>
 
                         <v-dialog v-model="dialogAngle" persistent max-width="500px">
                             <v-card>
@@ -315,6 +246,9 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
+
+                        <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" @closeDialog="dialogBorderConditions = false"/>
+
                     </v-toolbar>
                     <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
                         <div ref="polygonDrawer"></div>
@@ -377,6 +311,8 @@
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
+    import BorderConditions from "./BorderConditions.vue";
+    import AssignProperties from "./AssignProperties.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -385,6 +321,8 @@
             validator: 'new'
         },
         components: {
+            AssignProperties,
+            BorderConditions,
             InfoTab,
             PolygonsTab,
             PropertiesTab,
@@ -421,38 +359,6 @@
                 dialogAngle: false,
                 minimumAngle: 30,
                 polygons: [],
-                optionProperties: [
-                    {
-                        value: 0,
-                        name: "Selected Polygons"
-                    },
-                    {
-                        value: 1,
-                        name: "All Polygons"
-                    }
-                ],
-                optionType: [
-                    {
-                        value: 0,
-                        name: "All Polygons"
-                    },
-                    {
-                        value: 1,
-                        name: "Only polygons"
-                    },
-                    {
-                        value: 2,
-                        name: "Only holes"
-                    }
-                ],
-                selectedOptionProperties: {
-                    value: 0,
-                    name: "Selected Polygons"
-                },
-                selectedOptionType: {
-                    value: 0,
-                    name: "All Polygons"
-                },
                 show: false,
                 dialogInfo: false,
                 executing: false,
@@ -626,6 +532,11 @@
                     let graph = this.packing.graph;
                     let height = this.packing.height;
                     let width = this.packing.width;
+                    let widthContainer = this.getWidth(p);
+                    let heightContainer = this.getHeight(p);
+                    let xAxisOffset = this.getOffsetXAxis();
+                    let yAxisOffset = this.getOffsetYAxis();
+
                     if(graph) {
                         Object.keys(graph).forEach(function (pointA) {
                             Object.keys(graph[pointA]).forEach(function (pointB) {
@@ -645,10 +556,10 @@
                                 }
 
                                 p.line(
-                                    (pntA[0] / width) * p.width,
-                                    ((height - pntA[1]) / height) * p.height,
-                                    (pntB[0] / width) * p.width,
-                                    ((height - pntB[1]) / height) * p.height
+                                    ((pntA[0] / width) * widthContainer) + xAxisOffset,
+                                    (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
+                                    ((pntB[0] / width) * widthContainer) + xAxisOffset,
+                                    (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
                                 );
                             });
                         });
@@ -683,6 +594,18 @@
             },
         },
         methods: {
+            getWidth(p) {
+                return p.width - 30;
+            },
+            getHeight(p) {
+                return p.height - 30;
+            },
+            getOffsetXAxis() {
+                return 10;
+            },
+            getOffsetYAxis() {
+                return 10;
+            },
             selectTab(i) {
                 this.selectedTab = i;
                 this.$router.push(routes[i]);
@@ -692,6 +615,7 @@
             },
             openBorderConditions() {
                 this.dialogBorderConditions = true;
+                this.$refs.borderConditionsComponent.reDraw();
             },
             optimizeAngle() {
                 let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
@@ -787,6 +711,7 @@
                 let sortedEdges = this.sortDictionary(edges);
                 let sortedPolygons = this.sortPolygons(polygons);
                 let properties = JSON.parse(localStorage.getItem('properties'));
+                if(!properties) properties = {};
                 let propertiesArray = Object.keys(properties);
 
                 file += Object.keys(points).length
@@ -895,12 +820,12 @@
 
                 localStorage.setItem('packing', JSON.stringify(this.packing));
             },
-            assignProperties() {
+            assignProperties(selectedOptionProperties, selectedOptionType) {
                 this.packing.polygons.forEach(polygon => {
-                    if ((this.selectedOptionProperties.value === 0 && polygon.selected) || this.selectedOptionProperties.value === 1) {
-                        if (this.selectedOptionType.value === 0
-                            || (this.selectedOptionType.value === 1 && !polygon.hole)
-                            || (this.selectedOptionType.value === 2 && polygon.hole)) {
+                    if ((selectedOptionProperties.value === 0 && polygon.selected) || selectedOptionProperties.value === 1) {
+                        if (selectedOptionType.value === 0
+                            || (selectedOptionType.value === 1 && !polygon.hole)
+                            || (selectedOptionType.value === 2 && polygon.hole)) {
                             if (polygon.triangulation == null) {
                                 polygon.triangulation = [];
                                 let contour = [];
@@ -960,8 +885,8 @@
                                 p.stroke(properties[polygon.properties[(Math.floor(i / painted_triangles_each_step)) % polygon.properties.length].key].color);
                                 p.beginShape();
                                 polygon.triangulation[i].forEach(pnt => {
-                                    let sx = (pnt.x / width) * p.width;
-                                    let sy = ((height - pnt.y) / height) * p.height;
+                                    let sx = ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis();
+                                    let sy = (((height - pnt.y) / height) * this.getHeight(p)) + + this.getOffsetYAxis();
 
                                     p.vertex(sx, sy);
                                 });
@@ -1000,6 +925,7 @@
                                 this.packing = resp.body.mesh;
                                 this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
                                 this.parseMesh(resp.body.mesh);
+                                this.$refs.borderConditionsComponent.updatePacking(this.packing);
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -1045,6 +971,7 @@
                                 this.packing = resp.body.mesh;
                                 this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
                                 this.parseMesh(resp.body.mesh);
+                                this.$refs.borderConditionsComponent.updatePacking();
                             }).catch(error => {
                                 this.executing = false;
                                 //console.log(error);
@@ -1088,6 +1015,12 @@
                     return false;
                 }
 
+                function isBorderSegmentSlope(pointA, pointB) {
+                    if(Math.abs(pointA.y - pointB.y) < 1e-8) return true;
+                    if(Math.abs(pointA.x - pointB.x) < 1e-8) return true;
+                    return false;
+                }
+
                 function checkBorderPoint(point, borderPoints, width, height, bpCount, polCount) {
                     let nPoint = false;
                     // Check if the point is on the border of the container.
@@ -1115,7 +1048,8 @@
                     let nSegment = false;
                     // Check if one of the points is on the border of the container.
                     if (isBorderPoint(pointA, 0, width, 0, height)
-                        || isBorderPoint(pointB, 0, width, 0, height)) {
+                        && isBorderPoint(pointB, 0, width, 0, height)
+                        && isBorderSegmentSlope(pointA, pointB) ) {
 
                         // Check if the segment is already labeled.
                         if (!([points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]] in borderSegments)) {
@@ -1223,10 +1157,10 @@
 
                     let pntA = polygon.points[i];
                     let pntB = polygon.points[(i + 1) % polygon.points.length];
-                    let xi = (pntA.x / width) * p.width,
-                        yi = ((height - pntA.y) / height) * p.height;
-                    let xj = (pntB.x / width) * p.width,
-                        yj = ((height - pntB.y) / height) * p.height;
+                    let xi = ((pntA.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yi = (((height - pntA.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+                    let xj = ((pntB.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yj = (((height - pntB.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
                     for (let j = 0; j < box.points.length; j++) {
                         let pntC = box.points[j];
                         let pntD = box.points[(j + 1) % box.points.length];
@@ -1236,8 +1170,8 @@
 
                 if (!intersects) {
                     let pntA = polygon.points[0];
-                    let x = (pntA.x / width) * p.width,
-                        y = ((height - pntA.y) / height) * p.height;
+                    let x = ((pntA.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        y = (((height - pntA.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
                     let inside = false;
                     for (let i = 0; i < box.points.length; i++) {
                         let xi = box.points[i].x,
