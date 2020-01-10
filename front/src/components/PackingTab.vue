@@ -247,7 +247,8 @@
                             </v-card>
                         </v-dialog>
 
-                        <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" @closeDialog="dialogBorderConditions = false"/>
+                        <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" :properties="properties"
+                                           @closeDialog="dialogBorderConditions = false"/>
 
                     </v-toolbar>
                     <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">

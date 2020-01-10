@@ -1,21 +1,21 @@
 <template>
-    <v-dialog eager v-model="dialog" fullscreen persistent max-width="500px">
+    <v-dialog eager v-model="dialog" fullscreen persistent max-width="500px" style="max-height: 100%">
         <v-toolbar dark color="primary">
             <v-btn icon dark @click="closeDialog()">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
-            <v-toolbar-title>Assign Border Conditions</v-toolbar-title>
+            <v-toolbar-title>Border Conditions</v-toolbar-title>
             <v-spacer></v-spacer>
         </v-toolbar>
-        <v-card class="ninety_percent_height">
-            <v-row class="fill-height">
+        <v-card class="fill-height">
+            <v-row class="fill-height" no-gutters>
                 <v-col md="6" class="fill-height">
                     <div id='myContainerBC' ref="pCont" class="polygon">
                         <div id="polygonDrawerBorderConditions" ref="polygonDrawer"></div>
                     </div>
                 </v-col>
                 <v-col md="6">
-
+                    <border-properties :properties="properties"/>
                 </v-col>
             </v-row>
             <v-card-actions>
@@ -31,13 +31,19 @@
     import Constant from "./geometry/constants";
     import Point from "./geometry/point";
     import Segment from "./geometry/segment";
+    import BorderProperties from "./BorderProperties.vue";
 
     export default {
         name: "BorderConditions",
+        components: {BorderProperties},
         props: {
             dialog: {
                 type: Boolean,
                 defaultValue: false,
+            },
+            properties: {
+                type: Object,
+                defaultValue: {},
             },
         },
         data() {
