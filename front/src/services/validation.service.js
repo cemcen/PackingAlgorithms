@@ -1,9 +1,41 @@
+let language = 'es';
+
+let dict = {
+    'es': {
+        required: 'Debe ingresar este campo.',
+        requiredBooleanValue: 'Debe ingresar este campo.',
+        requiredPositive: 'El valor ingresado debe ser positivo.',
+        email: "Debe ingresar un email válido.",
+    },
+    'en': {
+        required: 'You must enter this field.',
+        requiredBooleanValue: 'You must enter this field.',
+        requiredPositive: 'The value must be positive.',
+        email: "You must enter a valid email.",
+    }
+};
+
+
 export default {
-    required: text => value => !!value || text || 'Debe ingresar este campo.',
-    requiredBooleanValue: text => value => value != null || text || 'Debe ingresar este campo.',
+    changeLanguage(l) {
+        switch (l) {
+            case 'es': case 'es-MX': case 'es-ES':
+                language = 'es';
+                break;
+            case 'en': case 'en-US': case 'en-UK':
+                language = 'en';
+                break;
+            default:
+                language = 'es';
+        }
+    },
+
+    required: text => value => !!value || text || dict[language].required,
+    requiredBooleanValue: text => value => value != null || text || dict[language].requiredBooleanValue,
+    requiredPositive: text => value => (value != null && value > 0) || text || dict[language].requiredPositive,
     email: text => value => {
         const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return pattern.test(value) || text || "Debe ingresar un email válido.";
+        return pattern.test(value) || text || dict[language].email;
     },
     validRut: text => value => {
         if (!/^[0-9]+[-|‐]{1}[0-9kK]{1}$/.test( value ))

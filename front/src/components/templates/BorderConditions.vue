@@ -56,22 +56,14 @@
                 ps: null,
                 borderPoints: [],
                 borderSegments: [],
-                packing: {
-                    height: 0,
-                    width: 0,
-                    polygons: [],
-                    graph: {},
-                    draw: {
-                        points: {},
-                        edges: {},
-                        polygons: {},
-                    }
-                },
             }
         },
         computed: {
             properties () {
                 return this.$store.getters.getProperties;
+            },
+            packing () {
+                return this.$store.getters.getPacking;
             }
         },
         mounted() {
@@ -122,12 +114,6 @@
 
             const P5 = require('p5');
             this.ps = new P5(this.script, 'myContainerBC');
-            if (localStorage.getItem('packing')) {
-                this.packing = JSON.parse(localStorage.getItem('packing'));
-                this.packing.polygons.map(pol => pol.selected = false);
-                this.borderPoints = [];
-                this.borderSegments = [];
-            }
         },
         methods: {
             closeDialog() {
@@ -151,11 +137,8 @@
             getOffsetYAxis() {
                 return Constant.Y_OFFSET;
             },
-            updatePacking(packing) {
-                this.packing = packing;
-                this.packing.polygons.map(pol => pol.selected = false);
+            updatePacking() {
                 this.loadBorderElements();
-                this.$forceUpdate();
             },
             loadBorderElements() {
                 this.borderPoints = [];
@@ -241,7 +224,10 @@
                         }
                     }
                 });
-                localStorage.setItem('packing', JSON.stringify(this.packing));
+                this.$store.commit("updateBorderConditions", {
+                    borderPointsArray: borderPointsArray,
+                    borderSegmentsArray: borderSegmentsArray,
+                });
                 this.loadBorderElements();
             },
             downloadImage() {

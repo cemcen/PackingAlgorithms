@@ -35,8 +35,16 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
+                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="importPacking">
+                                    <v-icon>mdi-upload</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Upload Mesh</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
                                 <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="downloadImage">
-                                    <v-icon>mdi-image</v-icon>
+                                    <v-icon>mdi-file-image</v-icon>
                                 </v-btn>
                             </template>
                             <span>Download Image</span>
@@ -249,9 +257,11 @@
 
                         <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" :properties="properties"
                                            @closeDialog="dialogBorderConditions = false"/>
+                        <import-packing ref="refImportPacking"/>
+                        <download-packing ref="refExportPacking"/>
 
                     </v-toolbar>
-                    <div id='myContainer' @click="this.showPolygonData" ref="polygonContainer" class="polygon">
+                    <div id='myContainer' ref="polygonContainer" class="polygon">
                         <div ref="polygonDrawer"></div>
                     </div>
                 </v-card>
@@ -308,6 +318,8 @@
     import "vue-swatches/dist/vue-swatches.min.css"
     import BorderConditions from "../templates/BorderConditions.vue";
     import AssignProperties from "../templates/AssignProperties.vue";
+    import ImportPacking from "../templates/ImportPacking.vue";
+    import DownloadPacking from "../templates/DownloadPacking.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -316,6 +328,8 @@
             validator: 'new'
         },
         components: {
+            DownloadPacking,
+            ImportPacking,
             AssignProperties,
             BorderConditions,
             InfoTab,
@@ -347,42 +361,11 @@
                 dialog2: false,
                 dialogAngle: false,
                 minimumAngle: 30,
-                polygons: [],
                 show: false,
                 dialogInfo: false,
                 executing: false,
                 polygon: {
                     points: []
-                },
-                packing: {
-                    height: 0,
-                    width: 0,
-                    polygons: [],
-                    graph: {},
-                    draw: {
-                        points: {},
-                        edges: {},
-                        polygons: {},
-                    }
-                },
-                dictionary: {
-                    custom: {
-                        width: {
-                            required: () => 'Width is required to execute.',
-                            min_value: 'Width must be greater than 0'
-                        },
-                        height: {
-                            required: 'Height is required to execute.',
-                            min_value: 'Width must be greater than 0'
-                        },
-                        regularity: {
-                            min_value: 'Regularity must be at least 1',
-                            max_value: 'Regularity can not be greater than 100%'
-                        },
-                        approach: {
-                            required: 'Must select an approach.',
-                        }
-                    }
                 },
             }
         },
@@ -391,10 +374,16 @@
         },
         computed: {
             getSelectedPolygons() {
-                return this.packing.polygons.filter(pol => pol.selected);
+                return (this.packing && this.packing.polygons)? this.packing.polygons.filter(pol => pol.selected): [];
             },
             properties () {
                 return this.$store.getters.getProperties;
+            },
+            polygons () {
+                return this.$store.getters.getPolygons;
+            },
+            packing () {
+                return this.$store.getters.getPacking;
             }
         },
         mounted() {
@@ -445,63 +434,63 @@
                 p.mouseReleased = () => {
                     locked = false;
                     if (dragged) {
-                        let box = {
-                            points: [
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                            ]
-                        };
-                        let height = this.packing.height;
-                        let width = this.packing.width;
-                        if(this.packing.graph) {
-                            this.packing.polygons.forEach(pol => {
-                                for (let i = 0; i < pol.points.length; i++) {
-                                    let pntA = pol.points[i];
-                                    let pntB = pol.points[(i + 1) % pol.points.length];
-
-                                    if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                                            selected: false
-                                        }
-                                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                                            selected: false
-                                        }
-                                    }
-                                }
-                            });
-                            this.packing.polygons.forEach(pol => {
-                                pol.selected = this.polygonIntersection(pol, box, width, height, p);
-                                for (let i = 0; i < pol.points.length; i++) {
-                                    let pntA = pol.points[i];
-                                    let pntB = pol.points[(i + 1) % pol.points.length];
-
-                                    if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                                        this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                                            selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
-                                        }
-                                    } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                                        this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                                            selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
-                                        }
-                                    }
-                                }
-                            });
-                        }
+                        // let box = {
+                        //     points: [
+                        //         {
+                        //             x: Math.min(bx, xInit),
+                        //             y: Math.min(by, yInit)
+                        //         },
+                        //         {
+                        //             x: Math.max(bx, xInit),
+                        //             y: Math.min(by, yInit)
+                        //         },
+                        //         {
+                        //             x: Math.max(bx, xInit),
+                        //             y: Math.max(by, yInit)
+                        //         },
+                        //         {
+                        //             x: Math.min(bx, xInit),
+                        //             y: Math.max(by, yInit)
+                        //         },
+                        //     ]
+                        // };
+                        // let height = this.packing.height;
+                        // let width = this.packing.width;
+                        // if(this.packing.graph) {
+                        //     this.packing.polygons.forEach(pol => {
+                        //         for (let i = 0; i < pol.points.length; i++) {
+                        //             let pntA = pol.points[i];
+                        //             let pntB = pol.points[(i + 1) % pol.points.length];
+                        //
+                        //             if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                        //                 this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                        //                     selected: false
+                        //                 }
+                        //             } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                        //                 this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                        //                     selected: false
+                        //                 }
+                        //             }
+                        //         }
+                        //     });
+                        //     this.packing.polygons.forEach(pol => {
+                        //         pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                        //         for (let i = 0; i < pol.points.length; i++) {
+                        //             let pntA = pol.points[i];
+                        //             let pntB = pol.points[(i + 1) % pol.points.length];
+                        //
+                        //             if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
+                        //                 this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
+                        //                     selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
+                        //                 }
+                        //             } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
+                        //                 this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
+                        //                     selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
+                        //                 }
+                        //             }
+                        //         }
+                        //     });
+                        // }
                         dragged = false;
                         p.draw();
                     }
@@ -517,43 +506,47 @@
                     p.background(255, 255, 255);
                     p.noFill();
                     p.push();
-                    this.packing.polygons.forEach(pol => {
-                        this.drawPolygon(pol, this.packing.width, this.packing.height, p)
-                    });
-                    let graph = this.packing.graph;
-                    let height = this.packing.height;
-                    let width = this.packing.width;
-                    let widthContainer = this.getWidth(p);
-                    let heightContainer = this.getHeight(p);
-                    let xAxisOffset = this.getOffsetXAxis();
-                    let yAxisOffset = this.getOffsetYAxis();
-
-                    if(graph) {
-                        Object.keys(graph).forEach(function (pointA) {
-                            Object.keys(graph[pointA]).forEach(function (pointB) {
-                                const pntA = JSON.parse("[" + pointA + "]");
-                                const pntB = JSON.parse("[" + pointB + "]");
-
-                                if (graph[pointA][pointB].selected) {
-                                    p.stroke(189, 189, 189);
-                                } else {
-                                    p.stroke(33, 33, 33);
-                                }
-
-                                if (graph[pointA][pointB].selected) {
-                                    p.strokeWeight(4);
-                                } else {
-                                    p.strokeWeight(3);
-                                }
-
-                                p.line(
-                                    ((pntA[0] / width) * widthContainer) + xAxisOffset,
-                                    (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
-                                    ((pntB[0] / width) * widthContainer) + xAxisOffset,
-                                    (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
-                                );
+                    if(this.packing) {
+                        if (this.packing.polygons) {
+                            this.packing.polygons.forEach(pol => {
+                                this.drawPolygon(pol, this.packing.width, this.packing.height, p)
                             });
-                        });
+                        }
+                        let graph = this.packing.graph;
+                        let height = this.packing.height;
+                        let width = this.packing.width;
+                        let widthContainer = this.getWidth(p);
+                        let heightContainer = this.getHeight(p);
+                        let xAxisOffset = this.getOffsetXAxis();
+                        let yAxisOffset = this.getOffsetYAxis();
+
+                        if (graph) {
+                            Object.keys(graph).forEach(function (pointA) {
+                                Object.keys(graph[pointA]).forEach(function (pointB) {
+                                    const pntA = JSON.parse("[" + pointA + "]");
+                                    const pntB = JSON.parse("[" + pointB + "]");
+
+                                    if (graph[pointA][pointB].selected) {
+                                        p.stroke(189, 189, 189);
+                                    } else {
+                                        p.stroke(33, 33, 33);
+                                    }
+
+                                    if (graph[pointA][pointB].selected) {
+                                        p.strokeWeight(4);
+                                    } else {
+                                        p.strokeWeight(3);
+                                    }
+
+                                    p.line(
+                                        ((pntA[0] / width) * widthContainer) + xAxisOffset,
+                                        (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
+                                        ((pntB[0] / width) * widthContainer) + xAxisOffset,
+                                        (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
+                                    );
+                                });
+                            });
+                        }
                     }
                     if (locked) {
                         p.strokeWeight(3);
@@ -568,20 +561,6 @@
             };
             const P5 = require('p5');
             this.ps = new P5(this.script, 'myContainer');
-            if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
-            if (localStorage.getItem('packing')) {
-                this.packing = JSON.parse(localStorage.getItem('packing'));
-                this.packing.polygons.map(pol => pol.selected = false);
-            }
-            this.$validator.localize('es', this.dictionary);
-        },
-        watch: {
-            packing: {
-                handler() {
-                    localStorage.setItem('packing', JSON.stringify(this.packing));
-                },
-                deep: true
-            },
         },
         methods: {
             getWidth(p) {
@@ -688,145 +667,16 @@
                     });
                 })
             },
+            importPacking() {
+                this.$refs.refImportPacking.openDialog();
+            },
             exportPacking() {
-
-                let file = '';
-                let points = this.packing.draw.points;
-                let edges = this.packing.draw.edges;
-                let polygons = this.packing.draw.polygons;
-                let borderPoints = this.packing.draw.borderPoints;
-                let borderSegments = this.packing.draw.borderSegments;
-
-                let sortedPoints = this.sortDictionary(points);
-                let sortedEdges = this.sortDictionary(edges);
-                let sortedPolygons = this.sortPolygons(polygons);
-                let properties = this.properties;
-                if(!properties) properties = {};
-                let propertiesArray = Object.keys(properties);
-
-                file += Object.keys(points).length
-                    + ' ' + Object.keys(edges).length
-                    + ' ' + propertiesArray.length
-                    + ' ' + Object.keys(polygons).length
-                    + ' ' + Object.keys(borderPoints).length
-                    + ' ' + Object.keys(borderSegments).length
-                    + '\n';
-
-                sortedPoints.forEach(point => {
-                    let splitted = point[0].split(",");
-                    file += splitted[0] + ' ' + splitted[1] + '\n';
-                });
-
-                sortedEdges.forEach(edge => {
-                    let splitted = edge[0].split(",");
-                    file += splitted[0] + ' ' + splitted[1] + '\n';
-                });
-
-                propertiesArray.forEach(prop => {
-                    file += prop + '\n';
-                });
-
-                sortedPolygons.forEach(polygon => {
-                    let splitted = polygon[0].split(",");
-                    file += (splitted.length + ' ');
-                    splitted.forEach(s => {
-                        file += (s + ' ');
-                    });
-                    file += (polygon[2].area + ' ');
-                    file += ((polygon[2].hole ? 1 : 0) + ' ');
-
-                    if (polygon[2].properties && polygon[2].properties.length > 0) {
-                        file += (polygon[2].properties.length + ' ');
-                        polygon[2].properties.forEach(prop => {
-                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
-                        })
-                    } else {
-                        file += (0 + ' ');
-                    }
-                    file = file.slice(0, -1);
-                    file += '\n';
-                });
-
-                Object.keys(borderPoints).forEach(bp => {
-                    file += (borderPoints[bp].pointIndex + ' ');
-                    if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
-                        file += (borderPoints[bp].properties.length + ' ');
-                        borderPoints[bp].properties.forEach(prop => {
-                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
-                        })
-                    } else {
-                        file += (0 + ' ');
-                    }
-                    file = file.slice(0, -1);
-                    file += '\n';
-                });
-
-                Object.keys(borderSegments).forEach(bs => {
-                    file += (borderSegments[bs].segmentIndex + ' ');
-                    borderSegments[bs].polygons.forEach(pol => {
-                        file += (pol + ' ');
-                        file += ((sortedPolygons[pol - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1)+ ' ');
-
-                    });
-                    if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
-                        file += (borderSegments[bs].properties.length + ' ');
-                        borderSegments[bs].properties.forEach(prop => {
-                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
-                        })
-                    } else {
-                        file += (0 + ' ');
-                    }
-                    file = file.slice(0, -1);
-                    file += '\n';
-                });
-
-
-                let filename = 'packing.txt';
-                let universalBOM = "\uFEFF";
-
-                let link = document.createElement('a');
-                link.setAttribute('href', 'data:text/csv; charset=utf-8,' + encodeURIComponent(universalBOM + file));
-                link.setAttribute('download', filename);
-                link.click();
-
-            },
-            sortDictionary(dict) {
-                // Create items array
-                let sorted = Object.keys(dict).map(function (key) {
-                    return [key, dict[key]];
-                });
-
-                // Sort the array based on the second element
-                sorted.sort(function (first, second) {
-                    return first[1] - second[1];
-                });
-
-                return sorted;
-            },
-            sortPolygons(dict) {
-                // Create items array
-                let sorted = Object.keys(dict).map(function (key) {
-                    return [key, dict[key].count, dict[key].polygon];
-                });
-
-                // Sort the array based on the second element
-                sorted.sort(function (first, second) {
-                    return first[1] - second[1];
-                });
-
-                return sorted;
-            },
-            showPolygonData() {
-                this.selectedPolygon = this.polygon;
-                //this.selectedPolygon.selected = !this.selectedPolygon.selected;
-                if (this.polygon.properties == null) {
-                    this.polygon.properties = [];
-                }
-
-                localStorage.setItem('packing', JSON.stringify(this.packing));
+                this.$refs.refExportPacking.openDialog();
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
-                this.packing.polygons.forEach(polygon => {
+                let polygons = this.packing.polygons;
+                let draw = Object.assign({}, this.packing.draw);
+                polygons.forEach(polygon => {
                     if ((selectedOptionProperties.value === 0 && polygon.selected) || selectedOptionProperties.value === 1) {
                         if (selectedOptionType.value === 0
                             || (selectedOptionType.value === 1 && !polygon.hole)
@@ -864,9 +714,14 @@
                                 polygonPoints.push(this.packing.draw.points[[pointA.x, pointA.y]]);
                             }
 
-                            this.packing.draw.polygons[polygonPoints].polygon.properties = polygon.properties;
+                            draw.polygons[polygonPoints].polygon.properties = polygon.properties;
                         }
                     }
+                });
+
+                this.$store.commit("assignProperties", {
+                    draw: draw,
+                    polygons: polygons
                 });
 
                 this.ps.draw();
@@ -904,7 +759,6 @@
             execute() {
                 this.$validator.validateAll().then(result => {
                     if (result) {
-                        if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
                         if (this.polygons.length === 0) {
                             alert('Must insert at least one polygon')
                         } else {
@@ -927,13 +781,12 @@
                             this.executing = true;
                             api.sendMesh(data).then(resp => {
                                 this.executing = false;
-                                this.packing = resp.body.mesh;
-                                this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
+                                this.$store.commit("newPacking", resp.body.mesh);
                                 this.parseMesh(resp.body.mesh);
-                                this.$refs.borderConditionsComponent.updatePacking(this.packing);
+                                this.$refs.borderConditionsComponent.updatePacking();
                             }).catch(error => {
                                 this.executing = false;
-                                //console.log(error);
+                                console.log(error);
                                 alert("Error executing algorithm.");
                             });
                         }
@@ -944,7 +797,6 @@
             executeMultiLayer() {
                 this.$validator.validateAll().then(result => {
                     if (result) {
-                        if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
                         if (this.polygons.length === 0) {
                             alert('Must insert at least one polygon')
                         } else {
@@ -973,13 +825,12 @@
                             this.executing = true;
                             api.sendMeshMultiLayers(data).then(resp => {
                                 this.executing = false;
-                                this.packing = resp.body.mesh;
-                                this.packing.originalPacking = JSON.parse(JSON.stringify(resp.body.mesh));
+                                this.$store.commit("newPacking", resp.body.mesh);
                                 this.parseMesh(resp.body.mesh);
                                 this.$refs.borderConditionsComponent.updatePacking();
                             }).catch(error => {
                                 this.executing = false;
-                                //console.log(error);
+                                console.log(error);
                                 alert("Error executing algorithm.");
                             });
                         }
@@ -1141,14 +992,15 @@
                     }
                 });
 
-                this.packing.draw = {};
-                this.packing.draw.points = points;
-                this.packing.draw.edges = edges;
-                this.packing.draw.polygons = polygons;
-                this.packing.draw.borderPoints = borderPoints;
-                this.packing.draw.borderSegments = borderSegments;
-                this.packing.graph = edgesG;
-                this.packing.rGraph = cEdgesG;
+                this.$store.commit("updatePacking", {
+                    points: points,
+                    edges: edges,
+                    polygons: polygons,
+                    borderPoints: borderPoints,
+                    borderSegments: borderSegments,
+                    edgesG: edgesG,
+                    cEdgesG: cEdgesG,
+                });
             },
             downloadImage() {
                 let filename = 'packing.png';

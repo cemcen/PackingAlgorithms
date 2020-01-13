@@ -95,6 +95,7 @@
                 }
             },
             openDialog() {
+                this.isEditing = false;
                 this.$refs.propertiesForm.openDialog();
             }
         }

@@ -10,27 +10,92 @@ const vuexLocal = new VuexPersistence({
 
 const store = new Vuex.Store({
     state: {
-        properties: window.localStorage.getItem('properties')? JSON.parse(window.localStorage.getItem('properties')): {},
-        border: window.localStorage.getItem('properties')? JSON.parse(window.localStorage.getItem('properties')): {},
+        properties: {},
+        polygons: [],
+        packing: {}
     },
     mutations: {
+        loadPacking: (state, item) => {
+            if(item) {
+                state.properties = item.properties;
+                state.polygons = item.polygons;
+                state.packing = item.packing;
+            }
+        },
         deleteProperty: (state, item) => {
-            Vue.delete(state.properties, state.properties[item].label);
-            window.localStorage.setItem('properties', JSON.stringify(state.properties));
+            if(item) {
+                Vue.delete(state.properties, state.properties[item].label);
+            }
         },
         editProperty: (state, item) => {
-            Vue.set(state.properties, item.label, item);
-            window.localStorage.setItem('properties', JSON.stringify(state.properties));
+            if(item) {
+                Vue.set(state.properties, item.label, item);
+            }
         },
         addProperty: (state, item) => {
-            Vue.set(state.properties, item.label, item);
-            window.localStorage.setItem('properties', JSON.stringify(state.properties));
+            if(item) {
+                Vue.set(state.properties, item.label, item);
+            }
+        },
+        deletePolygon: (state, item) => {
+            if(item) {
+                const index = state.polygons.indexOf(item);
+                state.polygons.splice(index, 1);
+            }
+        },
+        editPolygon: (state, data) => {
+            console.log(data);
+            if(data) {
+                state.polygons[data.index] = data.item;
+            }
+        },
+        addPolygon: (state, item) => {
+            if(item) {
+                state.polygons.push(item);
+            }
+        },
+        newPacking: (state, packing) => {
+            if(packing) {
+                 Object.assign(state.packing, packing);
+                 Vue.set(state.packing, "originalPacking", JSON.parse(JSON.stringify(packing)))
+            }
+        },
+        updatePacking: (state, changes) => {
+            if(changes) {
+                let draw = {};
+                draw.points = changes.points;
+                draw.edges = changes.edges;
+                draw.polygons = changes.polygons;
+                draw.borderPoints = changes.borderPoints;
+                draw.borderSegments = changes.borderSegments;
+                Vue.set(state.packing, "draw", draw);
+                Vue.set(state.packing, "graph", changes.edgesG);
+                Vue.set(state.packing, "rGraph", changes.cEdgesG);
+            }
+        },
+        assignProperties: (state, changes) => {
+            if(changes) {
+                Vue.set(state.packing, "draw", changes.draw);
+                Vue.set(state.packing, "polygons", changes.polygons);
+            }
+        },
+        updateBorderConditions: (state, borderConditions) => {
+            if(borderConditions) {
+                Vue.set(state.packing.draw, "borderPoints", borderConditions.borderPointsArray);
+                Vue.set(state.packing.draw, "borderSegments", borderConditions.borderSegmentsArray);
+            }
         }
     },
     getters: {
         getProperties: state => {
             return state.properties;
         },
+        getPolygons: state => {
+            return state.polygons;
+        },
+        getPacking: state => {
+            return state.packing;
+        }
     },
     plugins: [vuexLocal.plugin]
 });

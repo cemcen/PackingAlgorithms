@@ -1,37 +1,41 @@
 <template>
-    <v-dialog v-model="dialog" persistent max-width="500px">
+    <v-dialog eager v-model="dialog" persistent max-width="500px">
         <v-card>
             <v-card-title>
                 <span class="headline">{{ formTitle }}</span>
             </v-card-title>
 
             <v-card-text>
-                <v-row justify="center">
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <v-text-field :disabled="isEditing"
-                                      v-model="editedItem.label" label="Label" clearable required>
-                        </v-text-field>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <swatches v-model="editedItem.color" colors="material-basic" inline/>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <v-select v-model="editedItem.typeOfValue" :items="typeOfValues"
-                                  label="Type of Value" clearable required></v-select>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <v-text-field v-model="editedItem.default" label="Default Value"
-                                      :type="editedItem.typeOfValue === 'Number'? 'number': 'text'"
-                                      clearable required>
-                        </v-text-field>
-                    </v-col>
-                </v-row>
+                <v-form ref="propertiesForm">
+                    <v-row justify="center">
+                        <v-col class="pa-0 pr-3 pl-3">
+                            <v-text-field :disabled="isEditing" :rules="[validation.required()]"
+                                          v-model="editedItem.label" label="Label" clearable required>
+                            </v-text-field>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col class="pa-0 pr-3 pl-3">
+                            <swatches v-model="editedItem.color" colors="material-basic" inline/>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col class="pa-0 pr-3 pl-3">
+                            <v-select v-model="editedItem.typeOfValue" :items="typeOfValues"
+                                      :rules="[validation.required()]"
+                                      label="Type of Value" clearable required></v-select>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col class="pa-0 pr-3 pl-3">
+                            <v-text-field v-model="editedItem.default" label="Default Value"
+                                          :rules="[validation.required()]"
+                                          :type="editedItem.typeOfValue === 'Number'? 'number': 'text'"
+                                          clearable required>
+                            </v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-form>
             </v-card-text>
 
             <v-card-actions>
@@ -47,6 +51,7 @@
     import Swatches from 'vue-swatches';
     import "vue-swatches/dist/vue-swatches.min.css"
     import validation from './../../services/validation.service';
+
     export default {
         name: "PropertiesForm",
         props: {
@@ -70,41 +75,47 @@
                 },
             }
         },
+        created() {
+            this.validation.changeLanguage('en');
+        },
         computed: {
-            properties () {
+            properties() {
                 return this.$store.getters.getProperties;
             },
             formTitle() {
-                return (!this.isEditing)? 'Add Property' : 'Edit Property';
+                return (!this.isEditing) ? 'Add Property' : 'Edit Property';
             }
         },
         methods: {
-            openDialog(e){
+            openDialog(e) {
+                this.resetValidation();
                 this.editedItem = {
                     label: '',
                     typeOfValue: '',
                     color: "#F44336"
                 };
-                if(e) {
-                   this.editedItem = Object.assign({}, e);
+                if (e) {
+                    this.editedItem = Object.assign({}, e);
                 }
                 this.dialog = true;
             },
             close() {
+                this.resetValidation();
                 this.dialog = false;
             },
-            save(){
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        if(this.isEditing) {
-                            this.$store.commit("editProperty", this.editedItem);
-                            this.isEditing = false;
-                        } else {
-                            this.$store.commit("addProperty", this.editedItem);
-                        }
-                        this.close();
+            resetValidation() {
+                this.$refs.propertiesForm.resetValidation();
+            },
+            save() {
+                if (this.$refs.propertiesForm.validate()) {
+                    if (this.isEditing) {
+                        this.$store.commit("editProperty", this.editedItem);
+                        this.isEditing = false;
+                    } else {
+                        this.$store.commit("addProperty", this.editedItem);
                     }
-                });
+                    this.close();
+                }
             },
         }
     }
