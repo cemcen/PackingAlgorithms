@@ -2,11 +2,17 @@
     <v-card color="#ffffff" class="ma-3 fill-height" style="max-height: 80%">
         <v-card-title>
             <span class="headline">Assign Properties</span>
+            <v-spacer></v-spacer>
+            <v-btn dark color="primary" @click.native="openDialog()" >
+                <v-icon class="mr-1">mdi-plus</v-icon>
+                New Property
+            </v-btn>
         </v-card-title>
+        <properties-form ref="propertiesForm" :is-editing="isEditing"/>
 
-        <v-card-text style="max-height: 50%">
+        <v-card-text style="max-height: 80%; overflow: auto;">
             <v-row justify="center">
-                <v-col md="12">
+                <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="All border elements or only selected ones."
                               v-model="selectedOptionProperties"
                               :items="optionProperties">
@@ -14,7 +20,7 @@
                 </v-col>
             </v-row>
             <v-row justify="center">
-                <v-col md="12">
+                <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="All border elements, only segments or only vertices."
                               v-model="selectedOptionType" :items="optionType">
                     </v-select>
@@ -56,7 +62,10 @@
 
         <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign Properties</v-btn>
+            <v-btn dark color="teal lighten-2" @click.native="assignProperties">
+                <v-icon class="mr-1">mdi-palette</v-icon>
+                Assign Properties
+            </v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -64,28 +73,38 @@
 <script>
     import Swatches from 'vue-swatches';
     import "vue-swatches/dist/vue-swatches.min.css"
+    import PropertiesForm from "./PropertiesForm.vue";
     export default {
         name: "BorderProperties",
-        props: {
-            properties: {
-                type: Object,
-                defaultValue: {},
-            },
-        },
+        props: {},
         components: {
-            Swatches
+            Swatches,
+            PropertiesForm
         },
         data() {
             return {
+                isEditing: false,
                 selectedOptionProperties: "All",
                 selectedOptionType: "All",
                 optionProperties: ["All", "Only selected"],
                 optionType: ["All", "All Nodes", "All Segments"],
             }
         },
+        computed: {
+            properties () {
+                return this.$store.getters.getProperties;
+            }
+        },
+        methods: {
+            openDialog() {
+                this.$refs.propertiesForm.openDialog();
+            },
+            assignProperties() {
+                this.$emit("assign-properties", this.selectedOptionProperties, this.selectedOptionType)
+            }
+        }
     }
 </script>
 
 <style scoped>
-
 </style>

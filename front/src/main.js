@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Vuetify from 'vuetify';
 import VueResource from 'vue-resource'
 import colors from 'vuetify/es5/util/colors'
+import store from './store';
 
 import router from './router'
 import VeeValidate from 'vee-validate'
@@ -13,6 +14,7 @@ Vue.use(VeeValidate);
 Vue.use(VueResource);
 Vue.use(VueRouter);
 Vue.use(Vuetify);
+
 
 let vuetify = new Vuetify({
     icons: {
@@ -33,6 +35,7 @@ let vuetify = new Vuetify({
 const app = new Vue({
     vuetify,
     router,
+    store,
     el: '#app',
     render: h => h(App)
 });

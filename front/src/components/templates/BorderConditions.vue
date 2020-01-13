@@ -6,31 +6,40 @@
             </v-btn>
             <v-toolbar-title>Border Conditions</v-toolbar-title>
             <v-spacer></v-spacer>
+            <v-tooltip left>
+                <template v-slot:activator="{ on }">
+                    <v-btn icon color="white" v-on="on" @click="downloadImage">
+                        <v-icon>mdi-download</v-icon>
+                    </v-btn>
+                </template>
+                <span>Download Image</span>
+            </v-tooltip>
         </v-toolbar>
         <v-card class="fill-height">
             <v-row class="fill-height" no-gutters>
                 <v-col md="6" class="fill-height">
+                    <v-flex class="d-flex justify-center">
+                        <span class="hint-style">You can select multiple border elements holding the OPTION/ALT button.</span>
+                    </v-flex>
+
                     <div id='myContainerBC' ref="pCont" class="polygon">
                         <div id="polygonDrawerBorderConditions" ref="polygonDrawer"></div>
                     </div>
+
                 </v-col>
-                <v-col md="6">
-                    <border-properties :properties="properties"/>
+                <v-col md="6" class="fill-height">
+                    <border-properties @assign-properties="assignProperties"/>
                 </v-col>
             </v-row>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-
-            </v-card-actions>
         </v-card>
     </v-dialog>
 </template>
 
 <script>
 
-    import Constant from "./geometry/constants";
-    import Point from "./geometry/point";
-    import Segment from "./geometry/segment";
+    import Constant from "../geometry/constants";
+    import Point from "../geometry/point";
+    import Segment from "../geometry/segment";
     import BorderProperties from "./BorderProperties.vue";
 
     export default {
@@ -40,10 +49,6 @@
             dialog: {
                 type: Boolean,
                 defaultValue: false,
-            },
-            properties: {
-                type: Object,
-                defaultValue: {},
             },
         },
         data() {
@@ -64,6 +69,11 @@
                 },
             }
         },
+        computed: {
+            properties () {
+                return this.$store.getters.getProperties;
+            }
+        },
         mounted() {
             this.script = p => {
                 let canvas = null;
@@ -74,6 +84,16 @@
                     canvas = p.createCanvas(this.$refs.pCont.clientWidth, this.$refs.pCont.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     this.loadBorderElements();
+                    canvas.mousePressed(() => {
+                        if (this.dialog) {
+                            this.borderSegments.forEach(seg => {
+                                seg.mousePressed(p);
+                            });
+                            this.borderPoints.forEach(pnt => {
+                                pnt.mousePressed(p);
+                            });
+                        }
+                    });
 
                     // Amount of frames per second, how many times per second it's drawn.
                     p.frameRate(5);
@@ -87,7 +107,7 @@
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    if(this.dialog) {
+                    if (this.dialog) {
                         p.background(255, 255, 255);
                         p.noFill();
                         p.push();
@@ -97,16 +117,6 @@
                     }
                 };
 
-                p.mousePressed = () => {
-                    if(this.dialog) {
-                        this.borderSegments.forEach(seg => {
-                            seg.mousePressed(p);
-                        });
-                        this.borderPoints.forEach(pnt => {
-                            pnt.mousePressed(p);
-                        });
-                    }
-                };
 
             };
 
@@ -144,25 +154,25 @@
             updatePacking(packing) {
                 this.packing = packing;
                 this.packing.polygons.map(pol => pol.selected = false);
-                this.borderPoints = [];
-                this.borderSegments = [];
                 this.loadBorderElements();
                 this.$forceUpdate();
             },
             loadBorderElements() {
+                this.borderPoints = [];
+                this.borderSegments = [];
                 let borderPointsArray = this.packing.draw.borderPoints;
                 let bPDict = {};
                 Object.keys(borderPointsArray).forEach(bp => {
                     const pntA = JSON.parse("[" + bp + "]");
                     bPDict[borderPointsArray[bp].pointIndex] = pntA;
-                    this.borderPoints.push(new Point(pntA[0], pntA[1], this.packing.width, this.packing.height))
+                    this.borderPoints.push(new Point(pntA[0], pntA[1], this.packing.width, this.packing.height, bp, borderPointsArray[bp].properties))
                 });
                 let borderSegmentsArray = this.packing.draw.borderSegments;
                 Object.keys(borderSegmentsArray).forEach(bs => {
                     let split = bs.split(",");
                     let pntA = bPDict[split[0]];
                     let pntB = bPDict[split[1]];
-                    this.borderSegments.push(new Segment(pntA[0], pntA[1], pntB[0], pntB[1] ,this.packing.width, this.packing.height));
+                    this.borderSegments.push(new Segment(pntA[0], pntA[1], pntB[0], pntB[1], this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties));
                 });
             },
             drawGraph(p) {
@@ -193,14 +203,51 @@
             },
             drawBorderElements(p) {
                 this.borderSegments.forEach(seg => {
-                    seg.checkMouseOver(p);
+                    seg.checkMouseOver(p, this.properties);
                     seg.draw(p);
                 });
                 this.borderPoints.forEach(pnt => {
-                    pnt.checkMouseOver(p);
+                    pnt.checkMouseOver(p, this.properties);
                     pnt.draw(p);
                 });
-            }
+            },
+            assignProperties(selectedOptionProperties, selectedOptionType) {
+                let sOP = selectedOptionProperties === "All"? 0 : 1;
+                let sOT = selectedOptionType === "All"? 0 : (selectedOptionType === "All Nodes"? 1 : 2);
+                let borderPointsArray = this.packing.draw.borderPoints;
+                let borderSegmentsArray = this.packing.draw.borderSegments;
+                let properties = this.properties;
+                this.borderPoints.forEach(pnt => {
+                    if(sOP === 0 || (pnt.isSelected() && sOP === 1)) {
+                        if(sOT === 0 || sOT === 1) {
+                            borderPointsArray[pnt.getKey()].properties = [];
+                            Object.keys(properties).forEach(function (item) {
+                                if (properties[item].selected) {
+                                    borderPointsArray[pnt.getKey()].properties.push({key: item, value: properties[item].default})
+                                }
+                            });
+                        }
+                    }
+                });
+                this.borderSegments.forEach(seg => {
+                    if(sOP === 0 || (seg.isSelected() && sOP === 1)) {
+                        if(sOT === 0 || sOT === 2) {
+                            borderSegmentsArray[seg.getKey()].properties = [];
+                            Object.keys(properties).forEach(function (item) {
+                                if (properties[item].selected) {
+                                    borderSegmentsArray[seg.getKey()].properties.push({key: item, value: properties[item].default})
+                                }
+                            });
+                        }
+                    }
+                });
+                localStorage.setItem('packing', JSON.stringify(this.packing));
+                this.loadBorderElements();
+            },
+            downloadImage() {
+                let filename = 'border_conditions.png';
+                this.ps.save(filename);
+            },
         }
     }
 </script>
@@ -211,7 +258,7 @@
         width: 500px;
     }
 
-    .ninety_percent_height{
+    .ninety_percent_height {
         height: 50% !important;
     }
 
@@ -220,5 +267,10 @@
         margin: 0;
         height: 80%;
         min-width: 100%;
+    }
+
+    .hint-style {
+        font-size: smaller;
+        color: #666;
     }
 </style>

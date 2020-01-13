@@ -57,6 +57,8 @@
     "vue-material-design-icons": "^4.4.0",
     "vue-resource": "^1.5.0",
     "vue-router": "^3.0.1",
-    "vue-swatches": "^1.0.3"
+    "vue-swatches": "^1.0.3",
+    "vuex": "^3.1.2",
+    "vuex-persist": "^2.2.0"
   }
 }

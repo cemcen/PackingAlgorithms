@@ -1,10 +1,10 @@
 import VueRouter from 'vue-router';
 
 import Navigation from './components/Navigation.vue'
-import PolygonsTab from './components/PolygonsTab.vue'
-import ProbabilityTab from './components/ProbabiltyTab.vue'
-import PropertiesTab from './components/PropertiesTab.vue'
-import PackingTab from './components/PackingTab.vue'
+import PolygonsTab from './components/pages/PolygonsTab.vue'
+import ProbabilityTab from './components/pages/ProbabiltyTab.vue'
+import PropertiesTab from './components/pages/PropertiesTab.vue'
+import PackingTab from './components/pages/PackingTab.vue'
 import InfoTab from './components/InfoTab.vue'
 
 

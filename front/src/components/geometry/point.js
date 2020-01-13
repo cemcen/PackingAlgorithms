@@ -2,13 +2,15 @@ import Constant from "./constants";
 
 class Point {
 
-    constructor(x, y, width, height) {
+    constructor(x, y, width, height, key, properties) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.mouseOver = false;
         this.selected = false;
+        this.key = key;
+        this.properties = properties;
     }
 
     draw(p){
@@ -20,8 +22,11 @@ class Point {
         this.selected = this.mouseOver || (this.selected && p.keyIsDown(p.OPTION));
     }
 
-    checkMouseOver(p) {
+    checkMouseOver(p, propertiesDict) {
         p.stroke(30, 30, 30);
+        if(this.properties && this.properties.length > 0 && this.properties[0].key in propertiesDict) {
+            p.stroke(propertiesDict[this.properties[0].key].color);
+        }
         p.strokeWeight(10);
         if(this.selected || this.checkIfMouseOverPoint(p) ) {
             p.stroke('teal');
@@ -65,6 +70,14 @@ class Point {
         let heightContainer = Point.getHeight(p);
         let yAxisOffset = Point.getOffsetYAxis();
         return (((height - y) / height) * heightContainer) + yAxisOffset
+    }
+
+    isSelected() {
+        return this.selected;
+    }
+
+    getKey() {
+        return this.key;
     }
 }
 

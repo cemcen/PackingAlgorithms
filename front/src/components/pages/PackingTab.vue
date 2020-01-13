@@ -11,15 +11,15 @@
                             <template v-slot:activator="{ on }">
                                 <v-btn color="teal lighten-2" text :disabled="executing" @click="dialog = true" icon
                                        v-on="on">
-                                    <plus-circle-icon/>
+                                    <v-icon>mdi-plus-circle</v-icon>
                                 </v-btn>
                             </template>
                             <span>Create New Packing</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" v-on="on" @click="openAssignProp">
-                                    <palette-icon/>
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on" @click="openAssignProp">
+                                    <v-icon>mdi-palette</v-icon>
                                 </v-btn>
                             </template>
                             <span>Assign Properties</span>
@@ -27,33 +27,33 @@
 
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" v-on="on" @click="exportPacking">
-                                    <download-icon/>
+                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="exportPacking">
+                                    <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </template>
                             <span>Download Mesh</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" v-on="on" @click="downloadImage">
-                                    <image-icon/>
+                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="downloadImage">
+                                    <v-icon>mdi-image</v-icon>
                                 </v-btn>
                             </template>
                             <span>Download Image</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" v-on="on" @click="openAngleDialog()">
-                                    <angle-acute-icon/>
+                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="openAngleDialog()">
+                                    <v-icon>mdi-angle-acute</v-icon>
                                 </v-btn>
                             </template>
                             <span>Minimum Angle</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" v-on="on"
+                                <v-btn icon text color="teal lighten-2" v-on="on" :disabled="executing"
                                        @click="openBorderConditions()">
-                                    <selection-drag-icon/>
+                                    <v-icon>mdi-selection-drag</v-icon>
                                 </v-btn>
                             </template>
                             <span>Border Conditions</span>
@@ -236,7 +236,7 @@
 
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
-                                    <v-btn color="teal lighten-2" text @click.native="dialogAngle = false">Cancel
+                                    <v-btn color="teal lighten-2" text @click.native="dialogAngle = false">Close
                                     </v-btn>
                                     <v-btn color="teal lighten-2" text @click.native="loadOriginal">Load Original
                                     </v-btn>
@@ -276,7 +276,7 @@
                         </v-tab>
                     </v-tabs>
                     <div v-show="selectedTab === 0" class="max-height-card">
-                        <properties-tab @assign="assignProperties" ref="propertiesTab"></properties-tab>
+                        <properties-tab ref="propertiesTab"></properties-tab>
                     </div>
 
                     <div v-show="selectedTab === 1" class="max-height-card">
@@ -299,21 +299,15 @@
 <script>
     import PropertiesTab from "./PropertiesTab.vue";
     import PolygonsTab from "./PolygonsTab.vue";
-    import InfoTab from "./InfoTab.vue";
-    import api from "../services/api.services";
+    import InfoTab from "../InfoTab.vue";
+    import api from "../../services/api.services";
     import * as poly2tri from 'poly2tri';
     import Swatches from 'vue-swatches';
-    import PlusCircleIcon from 'vue-material-design-icons/PlusCircle.vue';
-    import PaletteIcon from 'vue-material-design-icons/Palette.vue';
-    import DownloadIcon from 'vue-material-design-icons/Download.vue';
-    import ImageIcon from 'vue-material-design-icons/Image.vue';
-    import AngleAcuteIcon from 'vue-material-design-icons/AngleAcute.vue';
-    import SelectionDragIcon from 'vue-material-design-icons/SelectionDrag.vue';
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
-    import BorderConditions from "./BorderConditions.vue";
-    import AssignProperties from "./AssignProperties.vue";
+    import BorderConditions from "../templates/BorderConditions.vue";
+    import AssignProperties from "../templates/AssignProperties.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -328,12 +322,6 @@
             PolygonsTab,
             PropertiesTab,
             Swatches,
-            PlusCircleIcon,
-            PaletteIcon,
-            DownloadIcon,
-            ImageIcon,
-            AngleAcuteIcon,
-            SelectionDragIcon
         },
         name: "packing",
         data() {
@@ -377,7 +365,6 @@
                         polygons: {},
                     }
                 },
-                properties: {},
                 dictionary: {
                     custom: {
                         width: {
@@ -405,6 +392,9 @@
         computed: {
             getSelectedPolygons() {
                 return this.packing.polygons.filter(pol => pol.selected);
+            },
+            properties () {
+                return this.$store.getters.getProperties;
             }
         },
         mounted() {
@@ -579,7 +569,6 @@
             const P5 = require('p5');
             this.ps = new P5(this.script, 'myContainer');
             if (localStorage.getItem('polygons')) this.polygons = JSON.parse(localStorage.getItem('polygons'));
-            if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
             if (localStorage.getItem('packing')) {
                 this.packing = JSON.parse(localStorage.getItem('packing'));
                 this.packing.polygons.map(pol => pol.selected = false);
@@ -711,7 +700,7 @@
                 let sortedPoints = this.sortDictionary(points);
                 let sortedEdges = this.sortDictionary(edges);
                 let sortedPolygons = this.sortPolygons(polygons);
-                let properties = JSON.parse(localStorage.getItem('properties'));
+                let properties = this.properties;
                 if(!properties) properties = {};
                 let propertiesArray = Object.keys(properties);
 
@@ -751,6 +740,8 @@
                         polygon[2].properties.forEach(prop => {
                             file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
                         })
+                    } else {
+                        file += (0 + ' ');
                     }
                     file = file.slice(0, -1);
                     file += '\n';
@@ -758,20 +749,33 @@
 
                 Object.keys(borderPoints).forEach(bp => {
                     file += (borderPoints[bp].pointIndex + ' ');
-                    file += (borderPoints[bp].polygons.length + ' ');
-                    borderPoints[bp].polygons.forEach(pol => {
-                        file += (pol + ' ');
-                    });
+                    if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
+                        file += (borderPoints[bp].properties.length + ' ');
+                        borderPoints[bp].properties.forEach(prop => {
+                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                        })
+                    } else {
+                        file += (0 + ' ');
+                    }
                     file = file.slice(0, -1);
                     file += '\n';
                 });
 
                 Object.keys(borderSegments).forEach(bs => {
                     file += (borderSegments[bs].segmentIndex + ' ');
-                    file += (borderSegments[bs].polygons.length + ' ');
                     borderSegments[bs].polygons.forEach(pol => {
                         file += (pol + ' ');
+                        file += ((sortedPolygons[pol - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1)+ ' ');
+
                     });
+                    if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
+                        file += (borderSegments[bs].properties.length + ' ');
+                        borderSegments[bs].properties.forEach(prop => {
+                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                        })
+                    } else {
+                        file += (0 + ' ');
+                    }
                     file = file.slice(0, -1);
                     file += '\n';
                 });
@@ -876,7 +880,7 @@
                 p.strokeWeight(1);
                 if (polygon.properties != null && polygon.properties.length > 0) {
                     if (polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
-                        let properties = JSON.parse(localStorage.getItem('properties'));
+                        let properties = this.properties;
                         polygon.properties = polygon.properties.filter(prop => Object.keys(properties).includes(prop.key));
 
                         if (polygon.properties.length > 0) {
@@ -1007,19 +1011,17 @@
                 }
 
                 function isBorderPoint(point, minX, maxX, minY, maxY) {
-                    if(checkEpsilon(point.x, minX)
+                    return !!(checkEpsilon(point.x, minX)
                         || checkEpsilon(point.x, maxX)
                         || checkEpsilon(point.y, minY)
-                        || checkEpsilon(point.y, maxY)) {
-                        return true;
-                    }
-                    return false;
+                        || checkEpsilon(point.y, maxY));
+
                 }
 
                 function isBorderSegmentSlope(pointA, pointB) {
                     if(Math.abs(pointA.y - pointB.y) < 1e-8) return true;
-                    if(Math.abs(pointA.x - pointB.x) < 1e-8) return true;
-                    return false;
+                    return Math.abs(pointA.x - pointB.x) < 1e-8;
+
                 }
 
                 function checkBorderPoint(point, borderPoints, width, height, bpCount, polCount) {
@@ -1201,7 +1203,6 @@
                 }
             },
             openAssignProp() {
-                if (localStorage.getItem('properties')) this.properties = JSON.parse(localStorage.getItem('properties'));
                 this.dialog2 = true;
             },
             addLayer() {

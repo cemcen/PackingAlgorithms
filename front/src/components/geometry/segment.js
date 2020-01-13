@@ -3,11 +3,13 @@ import Point from "./point";
 
 class Segment {
 
-    constructor(x1, y1, x2, y2, width, height) {
+    constructor(x1, y1, x2, y2, width, height, key, properties) {
         this.pntA = new Point(x1, y1, width, height);
         this.pntB = new Point(x2, y2, width, height);
         this.mouseOver = false;
         this.selected = false;
+        this.key = key;
+        this.properties = properties;
     }
 
     draw(p){
@@ -19,8 +21,11 @@ class Segment {
         );
     }
 
-    checkMouseOver(p) {
+    checkMouseOver(p, propertiesDict) {
         p.stroke(30, 30, 30);
+        if(this.properties && this.properties.length > 0 && this.properties[0].key in propertiesDict) {
+            p.stroke(propertiesDict[this.properties[0].key].color);
+        }
         p.strokeWeight(3);
         if( this.selected || this.checkPointInsideSegment(p)) {
             p.stroke('teal');
@@ -43,6 +48,14 @@ class Segment {
     mousePressed(p) {
         this.mouseOver = (this.checkPointInsideSegment(p));
         this.selected = this.mouseOver || (this.selected && p.keyIsDown(p.OPTION));
+    }
+
+    isSelected() {
+        return this.selected;
+    }
+
+    getKey() {
+        return this.key;
     }
 }
 

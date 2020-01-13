@@ -7,27 +7,21 @@
 
             <v-card-text>
                 <v-row justify="center">
-                    <v-flex>
-                        <v-select v-validate="'required'"
-                                  label="Choose which polygons should have these properties"
-                                  :error-messages="errors.collect('selectedOptionProperties')"
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-select label="Choose which polygons should have these properties"
                                   item-text="name"
                                   v-model="selectedOptionProperties" :items="optionProperties"
-                                  return-object
-                                  data-vv-name="selectedOptionProperties">
+                                  return-object>
                         </v-select>
-                    </v-flex>
+                    </v-col>
                 </v-row>
                 <v-row justify="center">
-                    <v-flex>
-                        <v-select v-validate="'required'"
-                                  label="Choose which type of polygon should have these properties"
-                                  :error-messages="errors.collect('selectedOptionType')"
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-select label="Choose which type of polygon should have these properties"
                                   item-text="name"
-                                  v-model="selectedOptionType" :items="optionType" return-object
-                                  data-vv-name="selectedOptionType">
+                                  v-model="selectedOptionType" :items="optionType" return-object>
                         </v-select>
-                    </v-flex>
+                    </v-col>
                 </v-row>
                 <v-row justify="center">
                     <v-list style="width: 100%" two-line>
