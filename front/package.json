@@ -52,10 +52,14 @@
     "vue-chartjs": "^3.3.1",
     "vue-color": "^2.7.0",
     "vue-directive-tooltip": "^1.4.5",
+    "vue-fabric-wrapper": "^0.3.50",
     "vue-material": "1.0.0-beta-7",
     "vue-material-design-icons": "^4.4.0",
     "vue-resource": "^1.5.0",
     "vue-router": "^3.0.1",
-    "vue-swatches": "^1.0.3"
+    "vue-swatches": "^1.0.3",
+    "vuetify-toast-snackbar": "^0.6.1",
+    "vuex": "^3.1.2",
+    "vuex-persist": "^2.2.0"
   }
 }

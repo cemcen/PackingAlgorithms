@@ -17,7 +17,7 @@
 
 
 <script>
-    import PackingTab from "./PackingTab.vue";
+    import PackingTab from "./pages/PackingTab.vue";
 
     export default {
         components: {PackingTab},
