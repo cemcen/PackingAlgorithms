@@ -67,78 +67,82 @@
                                 let polygons = [];
                                 let height = 0;
                                 let width = 0;
-                                for (let i = 1; i < lines.length; i++) {
-                                    if (i <= numberOfPoints) {
-                                        let pnt = lines[i].split(" ");
-                                        let x = parseFloat(pnt[0]);
-                                        let y = parseFloat(pnt[1]);
-                                        width = (width < x) ? x : width;
-                                        height = (height < y) ? y : height;
-                                        points[i] = {
-                                            x: x,
-                                            y: y
-                                        }
-                                    } else if (i <= numberOfPoints + numberOfEdges) {
+                                lines.forEach((line, index) => {
+                                    if(index > 0) {
+                                        if (index <= numberOfPoints) {
+                                            let pnt = line.split(" ");
+                                            let x = parseFloat(pnt[0]);
+                                            let y = parseFloat(pnt[1]);
+                                            width = (width < x) ? x : width;
+                                            height = (height < y) ? y : height;
+                                            points[index] = {
+                                                x: x,
+                                                y: y
+                                            }
+                                        } else if (index <= numberOfPoints + numberOfEdges) {
 
-                                    } else if (i <= numberOfPoints + numberOfEdges + numberOfProperties) {
-                                        if (lines[i] in this.properties) {
-                                            propertiesFile[i - (numberOfPoints + numberOfEdges)] = this.properties[lines[i]];
-                                        } else {
-                                            this.$store.commit("addProperty", {
-                                                label: lines[i],
-                                                typeOfValue: "Number",
-                                                color: "#F44336",
-                                                default: "11",
-                                                selected: false
-                                            });
-                                            propertiesFile[i - (numberOfPoints + numberOfEdges)] = this.properties[lines[i]];
-                                        }
-
-                                    } else if (i <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons) {
-                                        let polygonLine = lines[i].split(" ");
-                                        let vertices = parseInt(polygonLine[0]);
-                                        let pointsArray = [];
-                                        let propertiesArray = [];
-                                        let numberOfProperties = parseInt(polygonLine[vertices + 3]);
-                                        for (let j = 1; j <= vertices; j++) {
-                                            pointsArray.push(points[polygonLine[j]]);
-                                        }
-
-                                        for (let j = vertices + 4; j < vertices + 4 + numberOfProperties; j++) {
-                                            let aProperty = propertiesFile[polygonLine[j]];
-                                            propertiesArray.push({key: aProperty.label, value: aProperty.default});
-                                        }
-
-                                        let triangulation = [];
-                                        if (propertiesArray.length > 0) {
-                                            let contour = [];
-                                            pointsArray.forEach(pnt => {
-                                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
-                                            });
-                                            let swctx = new poly2tri.SweepContext(contour);
-                                            swctx.triangulate();
-                                            let triangles = swctx.getTriangles();
-                                            triangles.forEach(function (t) {
-                                                let triangle = [];
-                                                t.getPoints().forEach(function (p) {
-                                                    triangle.push({x: p.x, y: p.y});
+                                        } else if (index <= numberOfPoints + numberOfEdges + numberOfProperties) {
+                                            if (line in this.properties) {
+                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line];
+                                            } else {
+                                                this.$store.commit("addProperty", {
+                                                    label: lines[i],
+                                                    typeOfValue: "Number",
+                                                    color: "#F44336",
+                                                    default: "11",
+                                                    selected: false
                                                 });
+                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line];
+                                            }
 
-                                                triangulation.push(triangle);
+                                        } else if (index <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons) {
+                                            let polygonLine = line.split(" ");
+                                            let vertices = parseInt(polygonLine[0]);
+                                            let pointsArray = [];
+                                            let propertiesArray = [];
+                                            let numberOfProperties = parseInt(polygonLine[vertices + 3]);
+
+                                            Array(vertices).fill(undefined).map((_, i) => {
+                                                pointsArray.push(points[polygonLine[i + 1]]);
+                                            });
+
+                                            Array(numberOfProperties).fill(undefined).map((_, i) => {
+                                                let aProperty = propertiesFile[polygonLine[i + vertices + 4]];
+                                                propertiesArray.push({key: aProperty.label, value: aProperty.default});
+                                            });
+
+                                            let triangulation = [];
+                                            if (propertiesArray.length > 0) {
+                                                let contour = [];
+                                                pointsArray.forEach(pnt => {
+                                                    contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                                });
+                                                let swctx = new poly2tri.SweepContext(contour);
+                                                swctx.triangulate();
+                                                let triangles = swctx.getTriangles();
+                                                triangles.forEach(function (t) {
+                                                    let triangle = [];
+                                                    t.getPoints().forEach(function (p) {
+                                                        triangle.push({x: p.x, y: p.y});
+                                                    });
+
+                                                    triangulation.push(triangle);
+                                                });
+                                            }
+
+                                            polygons.push({
+                                                label: "",
+                                                radius: null,
+                                                points: pointsArray,
+                                                area: parseFloat(polygonLine[vertices + 1]),
+                                                hole: parseInt(polygonLine[vertices + 2]) === 1,
+                                                properties: propertiesArray,
+                                                triangulation: triangulation
                                             });
                                         }
-
-                                        polygons.push({
-                                            label: "",
-                                            radius: null,
-                                            points: pointsArray,
-                                            area: parseFloat(polygonLine[vertices + 1]),
-                                            hole: parseInt(polygonLine[vertices + 2]) === 1,
-                                            properties: propertiesArray,
-                                            triangulation: triangulation
-                                        });
                                     }
-                                }
+                                });
+
                                 this.close();
                                 this.$emit("loadtxtpacking", {
                                     polygons: polygons,
@@ -146,6 +150,7 @@
                                     width: width
                                 });
                             } catch (e) {
+                                console.log(e);
                                 alert("Cannot load file (wrong format)");
                             }
                         });

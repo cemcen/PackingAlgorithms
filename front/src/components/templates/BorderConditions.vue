@@ -143,20 +143,22 @@
             loadBorderElements() {
                 this.borderPoints = [];
                 this.borderSegments = [];
-                let borderPointsArray = this.packing.draw.borderPoints;
-                let bPDict = {};
-                Object.keys(borderPointsArray).forEach(bp => {
-                    const pntA = JSON.parse("[" + bp + "]");
-                    bPDict[borderPointsArray[bp].pointIndex] = pntA;
-                    this.borderPoints.push(new Point(pntA[0], pntA[1], this.packing.width, this.packing.height, bp, borderPointsArray[bp].properties))
-                });
-                let borderSegmentsArray = this.packing.draw.borderSegments;
-                Object.keys(borderSegmentsArray).forEach(bs => {
-                    let split = bs.split(",");
-                    let pntA = bPDict[split[0]];
-                    let pntB = bPDict[split[1]];
-                    this.borderSegments.push(new Segment(pntA[0], pntA[1], pntB[0], pntB[1], this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties));
-                });
+                if(this.packing && this.packing.draw) {
+                    let borderPointsArray = this.packing.draw.borderPoints;
+                    let bPDict = {};
+                    Object.keys(borderPointsArray).forEach(bp => {
+                        const pntA = JSON.parse("[" + bp + "]");
+                        bPDict[borderPointsArray[bp].pointIndex] = pntA;
+                        this.borderPoints.push(new Point(pntA[0], pntA[1], this.packing.width, this.packing.height, bp, borderPointsArray[bp].properties))
+                    });
+                    let borderSegmentsArray = this.packing.draw.borderSegments;
+                    Object.keys(borderSegmentsArray).forEach(bs => {
+                        let split = bs.split(",");
+                        let pntA = bPDict[split[0]];
+                        let pntB = bPDict[split[1]];
+                        this.borderSegments.push(new Segment(pntA[0], pntA[1], pntB[0], pntB[1], this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties));
+                    });
+                }
             },
             drawGraph(p) {
                 let graph = this.packing.graph;

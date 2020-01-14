@@ -4,20 +4,14 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const { VueLoaderPlugin } = require('vue-loader')
+const TerserPlugin = require('terser-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
     entry: path.resolve('./src/main.js'),
     optimization: {
         minimizer: [
-            new UglifyJsPlugin({
-                uglifyOptions: {
-                    sourceMap: true,
-                    warnings: false,
-
-                }
-            }),
+            new TerserPlugin(),
         ],
     },
     mode: 'production',
