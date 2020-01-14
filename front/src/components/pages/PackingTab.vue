@@ -257,7 +257,7 @@
 
                         <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" :properties="properties"
                                            @closeDialog="dialogBorderConditions = false"/>
-                        <import-packing ref="refImportPacking"/>
+                        <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
 
                     </v-toolbar>
@@ -434,63 +434,36 @@
                 p.mouseReleased = () => {
                     locked = false;
                     if (dragged) {
-                        // let box = {
-                        //     points: [
-                        //         {
-                        //             x: Math.min(bx, xInit),
-                        //             y: Math.min(by, yInit)
-                        //         },
-                        //         {
-                        //             x: Math.max(bx, xInit),
-                        //             y: Math.min(by, yInit)
-                        //         },
-                        //         {
-                        //             x: Math.max(bx, xInit),
-                        //             y: Math.max(by, yInit)
-                        //         },
-                        //         {
-                        //             x: Math.min(bx, xInit),
-                        //             y: Math.max(by, yInit)
-                        //         },
-                        //     ]
-                        // };
-                        // let height = this.packing.height;
-                        // let width = this.packing.width;
-                        // if(this.packing.graph) {
-                        //     this.packing.polygons.forEach(pol => {
-                        //         for (let i = 0; i < pol.points.length; i++) {
-                        //             let pntA = pol.points[i];
-                        //             let pntB = pol.points[(i + 1) % pol.points.length];
-                        //
-                        //             if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                        //                 this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                        //                     selected: false
-                        //                 }
-                        //             } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                        //                 this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                        //                     selected: false
-                        //                 }
-                        //             }
-                        //         }
-                        //     });
-                        //     this.packing.polygons.forEach(pol => {
-                        //         pol.selected = this.polygonIntersection(pol, box, width, height, p);
-                        //         for (let i = 0; i < pol.points.length; i++) {
-                        //             let pntA = pol.points[i];
-                        //             let pntB = pol.points[(i + 1) % pol.points.length];
-                        //
-                        //             if ([pntA.x, pntA.y] in this.packing.graph && [pntB.x, pntB.y] in this.packing.graph[[pntA.x, pntA.y]]) {
-                        //                 this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]] = {
-                        //                     selected: pol.selected || this.packing.graph[[pntA.x, pntA.y]][[pntB.x, pntB.y]].selected
-                        //                 }
-                        //             } else if ([pntB.x, pntB.y] in this.packing.graph && [pntA.x, pntA.y] in this.packing.graph[[pntB.x, pntB.y]]) {
-                        //                 this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]] = {
-                        //                     selected: pol.selected || this.packing.graph[[pntB.x, pntB.y]][[pntA.x, pntA.y]].selected
-                        //                 }
-                        //             }
-                        //         }
-                        //     });
-                        // }
+                        let box = {
+                            points: [
+                                {
+                                    x: Math.min(bx, xInit),
+                                    y: Math.min(by, yInit)
+                                },
+                                {
+                                    x: Math.max(bx, xInit),
+                                    y: Math.min(by, yInit)
+                                },
+                                {
+                                    x: Math.max(bx, xInit),
+                                    y: Math.max(by, yInit)
+                                },
+                                {
+                                    x: Math.min(bx, xInit),
+                                    y: Math.max(by, yInit)
+                                },
+                            ]
+                        };
+                        let height = this.packing.height;
+                        let width = this.packing.width;
+                        if(this.packing.graph) {
+                            this.packing.polygons.forEach(pol => {
+                                pol.selected = false;
+                            });
+                            this.packing.polygons.forEach(pol => {
+                                pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                            });
+                        }
                         dragged = false;
                         p.draw();
                     }
@@ -526,17 +499,8 @@
                                     const pntA = JSON.parse("[" + pointA + "]");
                                     const pntB = JSON.parse("[" + pointB + "]");
 
-                                    if (graph[pointA][pointB].selected) {
-                                        p.stroke(189, 189, 189);
-                                    } else {
-                                        p.stroke(33, 33, 33);
-                                    }
-
-                                    if (graph[pointA][pointB].selected) {
-                                        p.strokeWeight(4);
-                                    } else {
-                                        p.strokeWeight(3);
-                                    }
+                                    p.stroke(33, 33, 33);
+                                    p.strokeWeight(3);
 
                                     p.line(
                                         ((pntA[0] / width) * widthContainer) + xAxisOffset,
@@ -755,6 +719,17 @@
                         }
                     }
                 }
+                if(polygon.selected) {
+                    p.fill('rgba(0,0,0, 0.25)');
+                    p.beginShape();
+                    polygon.points.forEach(pnt => {
+                        p.vertex(
+                            ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                            (((height - pnt.y) / height) * this.getHeight(p)) + + this.getOffsetYAxis()
+                        );
+                    });
+                    p.endShape(p.CLOSE);
+                }
             },
             execute() {
                 this.$validator.validateAll().then(result => {
@@ -837,6 +812,11 @@
                         this.dialog = false;
                     }
                 });
+            },
+            loadTxtPacking(data) {
+                this.$store.commit("newPacking", data);
+                this.parseMesh(data);
+                this.$refs.borderConditionsComponent.updatePacking();
             },
             parseMesh(mesh) {
                 //console.log(resp);

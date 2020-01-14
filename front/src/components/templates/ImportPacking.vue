@@ -26,6 +26,7 @@
 
 <script>
     import validation from './../../services/validation.service';
+    import * as poly2tri from 'poly2tri';
 
     export default {
         name: "ImportPacking",
@@ -35,6 +36,11 @@
                 validation: validation,
                 file: null
             }
+        },
+        computed: {
+            properties () {
+                return this.$store.getters.getProperties;
+            },
         },
         created() {
             this.validation.changeLanguage('en');
@@ -49,8 +55,99 @@
                         });
                     } else if(this.file.type === 'text/plain') {
                         this.file.text().then(res => {
-                            console.log(res);
-                            this.close();
+                            try {
+                                let lines = res.split("\n");
+                                let firstLine = lines[0].split(" ");
+                                let numberOfPoints = parseInt(firstLine[0]);
+                                let numberOfEdges = parseInt(firstLine[1]);
+                                let numberOfProperties = parseInt(firstLine[2]);
+                                let numberOfPolygons = parseInt(firstLine[3]);
+                                let points = {};
+                                let propertiesFile = {};
+                                let polygons = [];
+                                let height = 0;
+                                let width = 0;
+                                for (let i = 1; i < lines.length; i++) {
+                                    if (i <= numberOfPoints) {
+                                        let pnt = lines[i].split(" ");
+                                        let x = parseFloat(pnt[0]);
+                                        let y = parseFloat(pnt[1]);
+                                        width = (width < x) ? x : width;
+                                        height = (height < y) ? y : height;
+                                        points[i] = {
+                                            x: x,
+                                            y: y
+                                        }
+                                    } else if (i <= numberOfPoints + numberOfEdges) {
+
+                                    } else if (i <= numberOfPoints + numberOfEdges + numberOfProperties) {
+                                        if (lines[i] in this.properties) {
+                                            propertiesFile[i - (numberOfPoints + numberOfEdges)] = this.properties[lines[i]];
+                                        } else {
+                                            this.$store.commit("addProperty", {
+                                                label: lines[i],
+                                                typeOfValue: "Number",
+                                                color: "#F44336",
+                                                default: "11",
+                                                selected: false
+                                            });
+                                            propertiesFile[i - (numberOfPoints + numberOfEdges)] = this.properties[lines[i]];
+                                        }
+
+                                    } else if (i <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons) {
+                                        let polygonLine = lines[i].split(" ");
+                                        let vertices = parseInt(polygonLine[0]);
+                                        let pointsArray = [];
+                                        let propertiesArray = [];
+                                        let numberOfProperties = parseInt(polygonLine[vertices + 3]);
+                                        for (let j = 1; j <= vertices; j++) {
+                                            pointsArray.push(points[polygonLine[j]]);
+                                        }
+
+                                        for (let j = vertices + 4; j < vertices + 4 + numberOfProperties; j++) {
+                                            let aProperty = propertiesFile[polygonLine[j]];
+                                            propertiesArray.push({key: aProperty.label, value: aProperty.default});
+                                        }
+
+                                        let triangulation = [];
+                                        if (propertiesArray.length > 0) {
+                                            let contour = [];
+                                            pointsArray.forEach(pnt => {
+                                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                            });
+                                            let swctx = new poly2tri.SweepContext(contour);
+                                            swctx.triangulate();
+                                            let triangles = swctx.getTriangles();
+                                            triangles.forEach(function (t) {
+                                                let triangle = [];
+                                                t.getPoints().forEach(function (p) {
+                                                    triangle.push({x: p.x, y: p.y});
+                                                });
+
+                                                triangulation.push(triangle);
+                                            });
+                                        }
+
+                                        polygons.push({
+                                            label: "",
+                                            radius: null,
+                                            points: pointsArray,
+                                            area: parseFloat(polygonLine[vertices + 1]),
+                                            hole: parseInt(polygonLine[vertices + 2]) === 1,
+                                            properties: propertiesArray,
+                                            triangulation: triangulation
+                                        });
+                                    }
+                                }
+                                this.close();
+                                this.$emit("loadtxtpacking", {
+                                    polygons: polygons,
+                                    height: height,
+                                    width: width
+                                });
+                            } catch (e) {
+                                alert("Cannot load file (wrong format)");
+                            }
                         });
                     } else {
                         this.$toast("File not supported");
