@@ -64,7 +64,7 @@
                                     <v-icon>mdi-selection-drag</v-icon>
                                 </v-btn>
                             </template>
-                            <span>Border Conditions</span>
+                            <span>Boundary Conditions</span>
                         </v-tooltip>
 
                         <v-spacer></v-spacer>
@@ -255,8 +255,8 @@
                             </v-card>
                         </v-dialog>
 
-                        <border-conditions ref="borderConditionsComponent" :dialog="dialogBorderConditions" :properties="properties"
-                                           @closeDialog="dialogBorderConditions = false"/>
+                        <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :properties="properties"
+                                           @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
 
@@ -316,7 +316,7 @@
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
-    import BorderConditions from "../templates/BorderConditions.vue";
+    import BoundaryConditions from "../templates/BoundaryConditions.vue";
     import AssignProperties from "../templates/AssignProperties.vue";
     import ImportPacking from "../templates/ImportPacking.vue";
     import DownloadPacking from "../templates/DownloadPacking.vue";
@@ -331,7 +331,7 @@
             DownloadPacking,
             ImportPacking,
             AssignProperties,
-            BorderConditions,
+            BoundaryConditions,
             InfoTab,
             PolygonsTab,
             PropertiesTab,
@@ -342,7 +342,7 @@
             return {
                 selectedTab: 1,
                 ps: null,
-                dialogBorderConditions: false,
+                dialogBoundaryConditions: false,
                 snackbar: false,
                 snackbarMessage: '',
                 timeout: 1200,
@@ -547,8 +547,8 @@
                 this.dialogAngle = true;
             },
             openBorderConditions() {
-                this.dialogBorderConditions = true;
-                this.$refs.borderConditionsComponent.reDraw();
+                this.dialogBoundaryConditions = true;
+                this.$refs.boundaryConditionsComponent.reDraw();
             },
             optimizeAngle() {
                 let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
@@ -758,7 +758,7 @@
                                 this.executing = false;
                                 this.$store.commit("newPacking", resp.body.mesh);
                                 this.parseMesh(resp.body.mesh);
-                                this.$refs.borderConditionsComponent.updatePacking();
+                                this.$refs.boundaryConditionsComponent.updatePacking();
                             }).catch(error => {
                                 this.executing = false;
                                 console.log(error);
@@ -802,7 +802,7 @@
                                 this.executing = false;
                                 this.$store.commit("newPacking", resp.body.mesh);
                                 this.parseMesh(resp.body.mesh);
-                                this.$refs.borderConditionsComponent.updatePacking();
+                                this.$refs.boundaryConditionsComponent.updatePacking();
                             }).catch(error => {
                                 this.executing = false;
                                 console.log(error);
@@ -816,7 +816,7 @@
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
                 this.parseMesh(data);
-                this.$refs.borderConditionsComponent.updatePacking();
+                this.$refs.boundaryConditionsComponent.updatePacking();
             },
             parseMesh(mesh) {
                 //console.log(resp);

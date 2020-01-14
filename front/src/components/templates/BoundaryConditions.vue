@@ -4,7 +4,7 @@
             <v-btn icon dark @click="closeDialog()">
                 <v-icon>mdi-close</v-icon>
             </v-btn>
-            <v-toolbar-title>Border Conditions</v-toolbar-title>
+            <v-toolbar-title>Boundary Conditions</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-tooltip left>
                 <template v-slot:activator="{ on }">
@@ -28,7 +28,7 @@
 
                 </v-col>
                 <v-col md="6" class="fill-height">
-                    <border-properties @assign-properties="assignProperties"/>
+                    <boundary-properties @assign-properties="assignProperties"/>
                 </v-col>
             </v-row>
         </v-card>
@@ -40,11 +40,11 @@
     import Constant from "../geometry/constants";
     import Point from "../geometry/point";
     import Segment from "../geometry/segment";
-    import BorderProperties from "./BorderProperties.vue";
+    import BoundaryProperties from "./BoundaryProperties.vue";
 
     export default {
         name: "BorderConditions",
-        components: {BorderProperties},
+        components: {BoundaryProperties},
         props: {
             dialog: {
                 type: Boolean,

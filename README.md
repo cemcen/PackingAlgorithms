@@ -9,6 +9,33 @@
 
 ## Introduction
 
+A geometric packing is an non polynomial problem (NP problem) 
+that tries to pack different types of geometric figures into a 
+finite space. We will focus on a convex polygon geometric packing.
+
+As an example the next image shows the result of a geometric packing
+ with three different kinds of polygons.
+
+![Geometric Packing](documentation/images/packing_example.png)
+
+This repository provides a simple app that allows you to generate a 
+variety of packing meshes. The app has the following features:
+
+* Geometric packing mesh generation.
+    * Pack polygons with one container or multiple 
+    layers of containers (containers of the same width)
+    * Two different approaches for the geometric packing algorithm.
+    * Adjustable polygon variability
+* Assignable properties for polygons on the mesh.
+* Download mesh file on txt and json format.
+* Upload mesh file.
+* Download image of mesh generated.
+* Mesh refinement.
+* Plugin for boundary conditions
+    * Assign properties to vertices and segments 
+    on the boundary of the container. 
+
+![App Screenshot](documentation/images/app_screenshot.png)
 
 ## Documentation 
 
@@ -16,7 +43,6 @@
 ## Demo and Examples
 
 [Demo](http://create.cl:9872/polygons) 
-
 
 ## Installation
 
@@ -29,27 +55,34 @@
 
 ### Development
 
-For development you first need to install all the node libraries.
+For development you first need to clone the repository and install all the node libraries.
 
 ```
+git clone https://github.com/juakotorres/PackingAlgorithms.git
 cd front/
 npm install
 ```
 
 After installing the nodes libraries needed you can start the application using:
 
-```sbt run``` 
+```
+sbt run
+``` 
 
 
 ### Production
 
 First enter the Play console:
 
-```sbt```
+```
+sbt
+```
 
 Then for production we need to compile the project into JAR files using:
 
-```sbt dist```
+```
+sbt dist
+```
 
 This produces a ZIP file containing all JAR files needed to
  run the application in the ```targer/universal``` folder. 
@@ -60,7 +93,7 @@ This produces a ZIP file containing all JAR files needed to
 cd target/universal
 unzip packvex-1.1.zip
 cd packvex-1.1/
-bin/packvex -Dhttp.port=9872
+bin/packvex
  ```
  
  ## License
