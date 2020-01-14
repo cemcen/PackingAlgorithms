@@ -1,8 +1,21 @@
 # Geometric Packing for Convex Polygons
 
-## What is a Packing Algorithm? 
+## Table of Contents
+* [Introduction](#introduction)  
+* [Documentation](#documentation)  
+* [Demo and Examples](#demo-and-examples)  
+* [Installation](#installation)  
+* [License](#license)  
 
-## App for mesh simulation
+## Introduction
+
+
+## Documentation 
+
+
+## Demo and Examples
+
+[Demo](http://create.cl:9872/polygons) 
 
 
 ## Installation
@@ -46,5 +59,10 @@ This produces a ZIP file containing all JAR files needed to
 ```
 cd target/universal
 unzip packvex-1.1.zip
-
+cd packvex-1.1/
+bin/packvex -Dhttp.port=9872
  ```
+ 
+ ## License
+ 
+ MIT
