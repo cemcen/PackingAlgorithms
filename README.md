@@ -3,6 +3,7 @@
 ## Table of Contents
 * [Introduction](#introduction)  
 * [Screenshots](#screenshots)  
+* [Demo](#demo)  
 * [Documentation](#documentation)  
 * [Installation](#installation)  
 * [License](#license)  
