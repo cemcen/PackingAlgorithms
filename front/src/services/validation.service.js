@@ -6,12 +6,16 @@ let dict = {
         requiredBooleanValue: 'Debe ingresar este campo.',
         requiredPositive: 'El valor ingresado debe ser positivo.',
         email: "Debe ingresar un email válido.",
+        betweenValues: (v1, v2) => ('El valor ingresado debe estar entre ' + v1  + ' y ' + v2),
+        atLeastOneSelected: 'Debe seleccionar al menos un item.'
     },
     'en': {
         required: 'You must enter this field.',
         requiredBooleanValue: 'You must enter this field.',
         requiredPositive: 'The value must be positive.',
         email: "You must enter a valid email.",
+        betweenValues: (v1, v2) => ('The value must be between ' + v1  + ' and ' + v2),
+        atLeastOneSelected: 'Must select at least one item.'
     }
 };
 
@@ -50,7 +54,10 @@ export default {
 
         return ((S?S-1:'k') == digv) || text || 'El rut ingresado no es válido.';
     },
-    atLeastOneSelected: text => value => value.length > 0 || text || 'Debe seleccionar al menos un item.',
+    atLeastOneSelected: text => value => value.length > 0 || text || dict[language].atLeastOneSelected,
+    betweenValues: (value1, value2) => text => value => (value <= value2 && value >= value1)
+        || text || dict[language].betweenValues(value1, value2)
+    ,
     requiredWhenOtherIsSelected: array => valueIncluded => text => value => !array.includes(valueIncluded)
         || (array.includes(valueIncluded) && !!value) || text || 'Debe ingresar este campo.'
     ,

@@ -44,9 +44,8 @@ const store = new Vuex.Store({
             }
         },
         editPolygon: (state, data) => {
-            console.log(data);
             if(data) {
-                state.polygons[data.index] = data.item;
+                Vue.set(state.polygons, data.index, data.item);
             }
         },
         addPolygon: (state, item) => {

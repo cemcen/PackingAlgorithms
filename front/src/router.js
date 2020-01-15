@@ -5,8 +5,6 @@ import PolygonsTab from './components/pages/PolygonsTab.vue'
 import ProbabilityTab from './components/pages/ProbabiltyTab.vue'
 import PropertiesTab from './components/pages/PropertiesTab.vue'
 import PackingTab from './components/pages/PackingTab.vue'
-import InfoTab from './components/InfoTab.vue'
-
 
 const router = new VueRouter({
     mode: 'history',
@@ -31,10 +29,6 @@ const router = new VueRouter({
                 {
                     path: "packing",
                     component: PackingTab
-                },
-                {
-                    path: "info",
-                    component: InfoTab
                 },
             ]
         }

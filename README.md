@@ -2,8 +2,8 @@
 
 ## Table of Contents
 * [Introduction](#introduction)  
+* [Screenshots](#screenshots)  
 * [Documentation](#documentation)  
-* [Demo and Examples](#demo-and-examples)  
 * [Installation](#installation)  
 * [License](#license)  
 
@@ -37,12 +37,24 @@ variety of packing meshes. The app has the following features:
 
 ![App Screenshot](documentation/images/app_screenshot.png)
 
+## Screenshots
+
+![Example 1](documentation/images/gravity_packing_result.png)
+
+![Example 2](documentation/images/boundary_example.png)
+
+![Example 3](documentation/images/density_packing_result.png)
+
+![Example 4](documentation/images/layers_result.png)
+
+## Demo
+
+Try using the app on this [link](http://create.cl:9872/)
+
 ## Documentation 
 
-
-## Demo and Examples
-
-[Demo](http://create.cl:9872/polygons) 
+* [User Manual Documentation](https://github.com/juakotorres/PackingAlgorithms/wiki/User-Manual)
+* [API Documentation](https://github.com/juakotorres/PackingAlgorithms/wiki/API-Documentation)
 
 ## Installation
 

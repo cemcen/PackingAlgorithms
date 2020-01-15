@@ -18,7 +18,8 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on" @click="openAssignProp">
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
+                                       @click="openAssignProp">
                                     <v-icon>mdi-palette</v-icon>
                                 </v-btn>
                             </template>
@@ -27,7 +28,8 @@
 
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="exportPacking">
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
+                                       @click="exportPacking">
                                     <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </template>
@@ -35,7 +37,8 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="importPacking">
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
+                                       @click="importPacking">
                                     <v-icon>mdi-upload</v-icon>
                                 </v-btn>
                             </template>
@@ -43,7 +46,8 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="downloadImage">
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
+                                       @click="downloadImage">
                                     <v-icon>mdi-file-image</v-icon>
                                 </v-btn>
                             </template>
@@ -51,7 +55,8 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn icon text color="teal lighten-2":disabled="executing" v-on="on" @click="openAngleDialog()">
+                                <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
+                                       @click="openAngleDialog()">
                                     <v-icon>mdi-angle-acute</v-icon>
                                 </v-btn>
                             </template>
@@ -71,175 +76,32 @@
 
                         <v-progress-circular v-show="executing" indeterminate
                                              color="teal lighten-2"></v-progress-circular>
-                        <v-dialog v-model="dialog" persistent max-width="700px">
-                            <v-card color="#ffffff">
-                                <v-card-title>
-                                    <span class="headline">New Packing</span>
-                                </v-card-title>
 
-                                <v-tabs v-model="tab" slider-color="teal lighten-2" color="teal lighten-2"
-                                        background-color="transparent" grow>
-                                    <v-tab v-for="item in piledOption" :key="item">
-                                        {{ item }}
-                                    </v-tab>
-                                </v-tabs>
-                                <v-card-text>
-                                    <div v-show="tab === 0">
-                                        <v-container>
-                                            <v-row justify="center">
-                                                <v-flex pr-3>
-                                                    <v-text-field v-validate="'required|min_value:1'"
-                                                                  :error-messages="errors.collect('width')"
-                                                                  v-model="width" type="number" label="Container Width"
-                                                                  data-vv-name="width" clearable required>
-                                                    </v-text-field>
-                                                </v-flex>
-                                                <v-flex>
-                                                    <v-text-field v-validate="'required|min_value:1'"
-                                                                  :error-messages="errors.collect('height')"
-                                                                  v-model="height" type="number"
-                                                                  label="Container Height"
-                                                                  data-vv-name="height" clearable required>
-                                                    </v-text-field>
-                                                </v-flex>
-                                            </v-row>
-                                            <v-row justify="center">
-                                                <v-flex>
-                                                    <v-text-field v-validate="'required|min_value:1|max_value:100'"
-                                                                  :error-messages="errors.collect('regularity')"
-                                                                  v-model="regularity" type="number"
-                                                                  label="Polygons Regularity"
-                                                                  hint="Variability of an edge (5% of variability)"
-                                                                  persistent-hint
-                                                                  data-vv-name="regularity" clearable>
-                                                    </v-text-field>
-                                                </v-flex>
-                                            </v-row>
-                                            <v-row justify="center">
-                                                <v-flex>
-                                                    <v-radio-group v-validate="'required'" label="Choose approach"
-                                                                   :error-messages="errors.collect('approach')"
-                                                                   v-model="approach"
-                                                                   data-vv-name="regularity" row>
-                                                        <v-radio color="teal lighten-2" label="Dense packing"
-                                                                 :value="1"></v-radio>
-                                                        <v-radio color="teal lighten-2" label="Gravity simulation"
-                                                                 :value="0"></v-radio>
-                                                    </v-radio-group>
-                                                </v-flex>
-                                            </v-row>
-                                        </v-container>
-                                    </div>
-                                    <div v-show="tab === 1">
-                                        <v-container>
-                                            <v-row justify="center">
-                                                <v-btn color="teal lighten-2" class="mr-2" dark @click="addLayer">
-                                                    Add Layer
-                                                </v-btn>
-                                                <v-btn :disabled="layers.length === 1" :dark="layers.length !== 1"
-                                                       color="teal lighten-2"
-                                                       @click="deleteLayer">
-                                                    Remove Layer
-                                                </v-btn>
-                                            </v-row>
-                                            <v-row justify="center">
-                                                <v-flex>
-                                                    <v-text-field v-validate="'required|min_value:1'"
-                                                                  :error-messages="errors.collect('width')"
-                                                                  v-model="width" type="number" label="Container Width"
-                                                                  data-vv-name="width" clearable required>
-                                                    </v-text-field>
-                                                </v-flex>
-                                            </v-row>
-                                            <v-layout v-for="(item, index) in layers" :key="index" column>
-                                                <v-row>
-                                                    <v-flex pr-3>
-                                                        <v-text-field v-validate="'required|min_value:1'"
-                                                                      :error-messages="errors.collect(`height${index}`)"
-                                                                      v-model="layers[index].height" type="number"
-                                                                      label="Container Height"
-                                                                      :data-vv-name="`height${index}`" clearable
-                                                                      required>
-                                                        </v-text-field>
-                                                    </v-flex>
-                                                    <v-flex>
-                                                        <v-text-field v-validate="'required|min_value:1|max_value:100'"
-                                                                      :error-messages="errors.collect(`regularity${index}`)"
-                                                                      v-model="layers[index].regularity" type="number"
-                                                                      label="Polygons Regularity"
-                                                                      hint="Variability of an edge (5% of variability)"
-                                                                      persistent-hint
-                                                                      :data-vv-name="`regularity${index}`" clearable>
-                                                        </v-text-field>
-                                                    </v-flex>
-                                                </v-row>
-                                                <v-row>
-                                                    <v-flex>
-                                                        <v-select
-                                                                v-model="layers[index].polygons" :items="polygons"
-                                                                item-text="label" item-color="teal lighten-2"
-                                                                :data-vv-name="`polygons${index}`"
-                                                                color="teal lighten-2" chips return-object
-                                                                label="Layer Polygons" multiple>
-                                                        </v-select>
-                                                    </v-flex>
-                                                </v-row>
-                                            </v-layout>
-                                            <v-row justify="center">
-                                                <v-flex>
-                                                    <v-radio-group v-validate="'required'" label="Choose approach"
-                                                                   :error-messages="errors.collect('approach')"
-                                                                   v-model="approach"
-                                                                   data-vv-name="regularity" row>
-                                                        <v-radio color="teal lighten-2" label="Dense packing"
-                                                                 :value="1"></v-radio>
-                                                        <v-radio color="teal lighten-2" label="Gravity simulation"
-                                                                 :value="0"></v-radio>
-                                                    </v-radio-group>
-                                                </v-flex>
-                                            </v-row>
-                                        </v-container>
-                                    </div>
-                                </v-card-text>
-
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn color="teal lighten-2" text @click.native="dialog = false">Close</v-btn>
-                                    <v-btn v-if="tab === 0" dark color="teal lighten-2" @click.native="execute">Execute
-                                        Algorithm
-                                    </v-btn>
-                                    <v-btn v-else dark color="teal lighten-2" @click.native="executeMultiLayer">Execute
-                                        Algorithm
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
+                        <dialog-new-packing :dialog="dialog" @close="dialog = false"
+                                            @execute="execute" @execute-multi-layer="executeMultiLayer"/>
 
                         <assign-properties :dialog="dialog2"
                                            @closeDialog="dialog2 = false"
                                            :properties="properties"
                                            @assignProperties="assignProperties"/>
 
-                        <v-dialog v-model="dialogAngle" persistent max-width="500px">
+                        <v-dialog eager v-model="dialogAngle" persistent max-width="500px">
                             <v-card>
                                 <v-card-title>
                                     <span class="headline">Minimum Layout Angle</span>
                                 </v-card-title>
 
                                 <v-card-text>
-                                    <v-layout justify-center>
-                                        <v-flex>
-                                            <v-text-field v-validate="'required'"
-                                                          :error-messages="errors.collect('minimumAngle')"
-                                                          v-model="minimumAngle"
-                                                          label="Minimum Angle"
-                                                          type="number"
-                                                          data-vv-name="minimumAngle"
-                                                          clearable
-                                                          required>
-                                            </v-text-field>
-                                        </v-flex>
-                                    </v-layout>
+                                    <v-form ref="minimumAngleForm">
+                                        <v-row justify="center">
+                                            <v-col class="pa-0 pr-3 pl-3">
+                                                <v-text-field v-model="minimumAngle" label="Minimum Angle"
+                                                              :rules="[validation.required(), validation.requiredPositive()]"
+                                                              type="number" clearable required>
+                                                </v-text-field>
+                                            </v-col>
+                                        </v-row>
+                                    </v-form>
                                 </v-card-text>
 
                                 <v-card-actions>
@@ -255,8 +117,9 @@
                             </v-card>
                         </v-dialog>
 
-                        <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :properties="properties"
-                                           @closeDialog="dialogBoundaryConditions = false"/>
+                        <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
+                                             :properties="properties"
+                                             @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
 
@@ -292,27 +155,19 @@
                     <div v-show="selectedTab === 1" class="max-height-card">
                         <polygons-tab></polygons-tab>
                     </div>
-
-                    <div v-show="selectedTab === 2" class="max-height-card">
-                        <info-tab :selected-polygons="getSelectedPolygons"></info-tab>
-                    </div>
                 </v-card>
             </v-flex>
         </v-layout>
-
-        <v-snackbar color="teal lighten-2" v-model="snackbar" bottom :timeout="timeout">
-            {{ snackbarMessage }}
-        </v-snackbar>
     </div>
 </template>
 
 <script>
     import PropertiesTab from "./PropertiesTab.vue";
     import PolygonsTab from "./PolygonsTab.vue";
-    import InfoTab from "../InfoTab.vue";
     import api from "../../services/api.services";
     import * as poly2tri from 'poly2tri';
     import Swatches from 'vue-swatches';
+    import validation from './../../services/validation.service';
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
@@ -320,6 +175,7 @@
     import AssignProperties from "../templates/AssignProperties.vue";
     import ImportPacking from "../templates/ImportPacking.vue";
     import DownloadPacking from "../templates/DownloadPacking.vue";
+    import DialogNewPacking from "../templates/DialogNewPacking.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -328,11 +184,11 @@
             validator: 'new'
         },
         components: {
+            DialogNewPacking,
             DownloadPacking,
             ImportPacking,
             AssignProperties,
             BoundaryConditions,
-            InfoTab,
             PolygonsTab,
             PropertiesTab,
             Swatches,
@@ -340,23 +196,11 @@
         name: "packing",
         data() {
             return {
+                validation: validation,
                 selectedTab: 1,
                 ps: null,
                 dialogBoundaryConditions: false,
-                snackbar: false,
-                snackbarMessage: '',
                 timeout: 1200,
-                layers: [{
-                    height: 75,
-                    regularity: 5
-                }],
-                width: 150,
-                height: 75,
-                randomShape: false,
-                piledOption: ["Single Layer", "Multiple Layers"],
-                tab: 0,
-                regularity: 5,
-                approach: 1,
                 dialog: false,
                 dialog2: false,
                 dialogAngle: false,
@@ -371,18 +215,19 @@
         },
         created() {
             this.selectTab(this.selectedTab);
+            this.validation.changeLanguage('en');
         },
         computed: {
             getSelectedPolygons() {
-                return (this.packing && this.packing.polygons)? this.packing.polygons.filter(pol => pol.selected): [];
+                return (this.packing && this.packing.polygons) ? this.packing.polygons.filter(pol => pol.selected) : [];
             },
-            properties () {
+            properties() {
                 return this.$store.getters.getProperties;
             },
-            polygons () {
+            polygons() {
                 return this.$store.getters.getPolygons;
             },
-            packing () {
+            packing() {
                 return this.$store.getters.getPacking;
             }
         },
@@ -456,7 +301,7 @@
                         };
                         let height = this.packing.height;
                         let width = this.packing.width;
-                        if(this.packing.graph) {
+                        if (this.packing.graph) {
                             this.packing.polygons.forEach(pol => {
                                 pol.selected = false;
                             });
@@ -479,7 +324,7 @@
                     p.background(255, 255, 255);
                     p.noFill();
                     p.push();
-                    if(this.packing) {
+                    if (this.packing) {
                         if (this.packing.polygons) {
                             this.packing.polygons.forEach(pol => {
                                 this.drawPolygon(pol, this.packing.width, this.packing.height, p)
@@ -544,6 +389,7 @@
                 this.$router.push(routes[i]);
             },
             openAngleDialog() {
+                this.$refs.minimumAngleForm.resetValidation();
                 this.dialogAngle = true;
             },
             openBorderConditions() {
@@ -551,54 +397,56 @@
                 this.$refs.boundaryConditionsComponent.reDraw();
             },
             optimizeAngle() {
-                let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
-                let changed = false;
-                this.packing.polygons.map(pol => {
-                    if (pol.hole) {
-                        let deletedPoints = [];
-                        for (let i = 0; i < pol.points.length; i += 1) {
-                            let p1 = pol.points[i];
-                            let p2 = pol.points[(i + 1) % pol.points.length];
-                            let p3 = pol.points[(i + 2) % pol.points.length];
+                if(this.$refs.minimumAngleForm.validate()) {
+                    let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
+                    let changed = false;
+                    this.packing.polygons.map(pol => {
+                        if (pol.hole) {
+                            let deletedPoints = [];
+                            for (let i = 0; i < pol.points.length; i += 1) {
+                                let p1 = pol.points[i];
+                                let p2 = pol.points[(i + 1) % pol.points.length];
+                                let p3 = pol.points[(i + 2) % pol.points.length];
 
-                            let p21 = [p1.x - p2.x, p1.y - p2.y];
-                            let p23 = [p3.x - p2.x, p3.y - p2.y];
+                                let p21 = [p1.x - p2.x, p1.y - p2.y];
+                                let p23 = [p3.x - p2.x, p3.y - p2.y];
 
-                            let angle = Math.acos(
-                                (p21[0] * p23[0] + p21[1] * p23[1])
-                                /
-                                (
-                                    Math.sqrt(p21[0] * p21[0] + p21[1] * p21[1])
-                                    * Math.sqrt(p23[0] * p23[0] + p23[1] * p23[1])
-                                )
-                            );
+                                let angle = Math.acos(
+                                    (p21[0] * p23[0] + p21[1] * p23[1])
+                                    /
+                                    (
+                                        Math.sqrt(p21[0] * p21[0] + p21[1] * p21[1])
+                                        * Math.sqrt(p23[0] * p23[0] + p23[1] * p23[1])
+                                    )
+                                );
 
-                            if (angle < minimumRadianAngle) {
-                                pol.triangulation = null;
+                                if (angle < minimumRadianAngle) {
+                                    pol.triangulation = null;
 
-                                if (Object.keys(this.packing.rGraph[[p1.x, p1.y]]).length < Object.keys(this.packing.rGraph[[p3.x, p3.y]]).length) {
-                                    deletedPoints.push(p1);
-                                } else {
-                                    deletedPoints.push(p3);
+                                    if (Object.keys(this.packing.rGraph[[p1.x, p1.y]]).length < Object.keys(this.packing.rGraph[[p3.x, p3.y]]).length) {
+                                        deletedPoints.push(p1);
+                                    } else {
+                                        deletedPoints.push(p3);
+                                    }
+                                    changed = true;
                                 }
-                                changed = true;
                             }
+
+                            deletedPoints.forEach(point => {
+                                this.packing.polygons.map(pol => {
+                                    pol.points = pol.points.filter(pnt => !(pnt.x === point.x && pnt.y === point.y));
+                                });
+                            })
                         }
+                    });
 
-                        deletedPoints.forEach(point => {
-                            this.packing.polygons.map(pol => {
-                                pol.points = pol.points.filter(pnt => !(pnt.x === point.x && pnt.y === point.y));
-                            });
-                        })
+                    if (changed) {
+                        this.triangulateMesh();
                     }
-                });
 
-                if (changed) {
-                    this.triangulateMesh();
+                    this.parseMesh(this.packing);
+                    this.dialogAngle = false;
                 }
-
-                this.parseMesh(this.packing);
-                this.dialogAngle = false;
             },
             loadOriginal() {
                 this.packing.polygons = JSON.parse(JSON.stringify(this.packing.originalPacking.polygons));
@@ -690,9 +538,6 @@
 
                 this.ps.draw();
                 this.dialog2 = false;
-
-                //this.snackbar = true;
-                //this.snackbarMessage = "Properties assigned successfully";
             },
             drawPolygon(polygon, width, height, p) {
                 p.stroke(33, 33, 33);
@@ -710,7 +555,7 @@
                                 p.beginShape();
                                 polygon.triangulation[i].forEach(pnt => {
                                     let sx = ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis();
-                                    let sy = (((height - pnt.y) / height) * this.getHeight(p)) + + this.getOffsetYAxis();
+                                    let sy = (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis();
 
                                     p.vertex(sx, sy);
                                 });
@@ -719,27 +564,63 @@
                         }
                     }
                 }
-                if(polygon.selected) {
+                if (polygon.selected) {
                     p.fill('rgba(0,0,0, 0.25)');
                     p.beginShape();
                     polygon.points.forEach(pnt => {
                         p.vertex(
                             ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
-                            (((height - pnt.y) / height) * this.getHeight(p)) + + this.getOffsetYAxis()
+                            (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis()
                         );
                     });
                     p.endShape(p.CLOSE);
                 }
             },
-            execute() {
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        if (this.polygons.length === 0) {
-                            alert('Must insert at least one polygon')
-                        } else {
+            execute(packingOptions) {
+                if (this.polygons.length === 0) {
+                    alert('Must insert at least one polygon')
+                } else {
 
-                            let data = {
-                                'polygons': this.polygons.map(x => {
+                    let data = {
+                        'polygons': this.polygons.map(x => {
+                            return {
+                                'label': x.label,
+                                'numberOfVertex': parseInt(x.numberOfVertex),
+                                'percentage': parseInt(x.percentage),
+                                'radius': parseFloat(x.radius)
+                            };
+                        }),
+                        'width': parseFloat(packingOptions.width),
+                        'height': parseFloat(packingOptions.height),
+                        'randomShape': packingOptions.randomShape,
+                        'regularity': parseInt(180 / parseInt(packingOptions.regularity)),
+                        'approachAlgorithm': packingOptions.approach
+                    };
+                    this.executing = true;
+                    api.sendMesh(data).then(resp => {
+                        this.executing = false;
+                        this.$store.commit("newPacking", resp.body.mesh);
+                        this.parseMesh(resp.body.mesh);
+                        this.$refs.boundaryConditionsComponent.updatePacking();
+                    }).catch(error => {
+                        this.executing = false;
+                        console.log(error);
+                        alert("Error executing algorithm.");
+                    });
+                }
+                this.dialog = false;
+            },
+            executeMultiLayer(packingOptions) {
+                if (this.polygons.length === 0) {
+                    alert('Must insert at least one polygon')
+                } else {
+
+                    let data = {
+                        'layers': packingOptions.layers.map(lay => {
+                            return {
+                                'height': parseFloat(lay.height),
+                                'regularity': parseInt(180 / parseInt(lay.regularity)),
+                                'polygons': lay.polygons.map(x => {
                                     return {
                                         'label': x.label,
                                         'numberOfVertex': parseInt(x.numberOfVertex),
@@ -747,71 +628,27 @@
                                         'radius': parseFloat(x.radius)
                                     };
                                 }),
-                                'width': parseFloat(this.width),
-                                'height': parseFloat(this.height),
-                                'randomShape': this.randomShape,
-                                'regularity': parseInt(180 / parseInt(this.regularity)),
-                                'approachAlgorithm': this.approach
                             };
-                            this.executing = true;
-                            api.sendMesh(data).then(resp => {
-                                this.executing = false;
-                                this.$store.commit("newPacking", resp.body.mesh);
-                                this.parseMesh(resp.body.mesh);
-                                this.$refs.boundaryConditionsComponent.updatePacking();
-                            }).catch(error => {
-                                this.executing = false;
-                                console.log(error);
-                                alert("Error executing algorithm.");
-                            });
-                        }
-                        this.dialog = false;
-                    }
-                });
-            },
-            executeMultiLayer() {
-                this.$validator.validateAll().then(result => {
-                    if (result) {
-                        if (this.polygons.length === 0) {
-                            alert('Must insert at least one polygon')
-                        } else {
+                        }),
+                        'width': parseFloat(packingOptions.width),
+                        'randomShape': packingOptions.randomShape,
+                        'regularity': parseInt(180 / parseInt(packingOptions.regularity)),
+                        'approachAlgorithm': packingOptions.approach
+                    };
 
-                            let data = {
-                                'layers': this.layers.map(lay => {
-                                    return {
-                                        'height': parseFloat(lay.height),
-                                        'regularity': parseInt(180 / parseInt(lay.regularity)),
-                                        'polygons': lay.polygons.map(x => {
-                                            return {
-                                                'label': x.label,
-                                                'numberOfVertex': parseInt(x.numberOfVertex),
-                                                'percentage': parseInt(x.percentage),
-                                                'radius': parseFloat(x.radius)
-                                            };
-                                        }),
-                                    };
-                                }),
-                                'width': parseFloat(this.width),
-                                'randomShape': this.randomShape,
-                                'regularity': parseInt(180 / parseInt(this.regularity)),
-                                'approachAlgorithm': this.approach
-                            };
-
-                            this.executing = true;
-                            api.sendMeshMultiLayers(data).then(resp => {
-                                this.executing = false;
-                                this.$store.commit("newPacking", resp.body.mesh);
-                                this.parseMesh(resp.body.mesh);
-                                this.$refs.boundaryConditionsComponent.updatePacking();
-                            }).catch(error => {
-                                this.executing = false;
-                                console.log(error);
-                                alert("Error executing algorithm.");
-                            });
-                        }
-                        this.dialog = false;
-                    }
-                });
+                    this.executing = true;
+                    api.sendMeshMultiLayers(data).then(resp => {
+                        this.executing = false;
+                        this.$store.commit("newPacking", resp.body.mesh);
+                        this.parseMesh(resp.body.mesh);
+                        this.$refs.boundaryConditionsComponent.updatePacking();
+                    }).catch(error => {
+                        this.executing = false;
+                        console.log(error);
+                        alert("Error executing algorithm.");
+                    });
+                }
+                this.dialog = false;
             },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
@@ -850,7 +687,7 @@
                 }
 
                 function isBorderSegmentSlope(pointA, pointB) {
-                    if(Math.abs(pointA.y - pointB.y) < 1e-8) return true;
+                    if (Math.abs(pointA.y - pointB.y) < 1e-8) return true;
                     return Math.abs(pointA.x - pointB.x) < 1e-8;
 
                 }
@@ -883,7 +720,7 @@
                     // Check if one of the points is on the border of the container.
                     if (isBorderPoint(pointA, 0, width, 0, height)
                         && isBorderPoint(pointB, 0, width, 0, height)
-                        && isBorderSegmentSlope(pointA, pointB) ) {
+                        && isBorderSegmentSlope(pointA, pointB)) {
 
                         // Check if the segment is already labeled.
                         if (!([points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]] in borderSegments)) {
@@ -1037,15 +874,6 @@
             openAssignProp() {
                 this.dialog2 = true;
             },
-            addLayer() {
-                this.layers.push({
-                    height: null,
-                    regularity: 5
-                });
-            },
-            deleteLayer() {
-                this.layers.pop();
-            }
         },
     }
 </script>

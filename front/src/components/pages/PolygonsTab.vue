@@ -142,7 +142,6 @@
             save() {
                 if (this.$refs.polygonForm.validate()) {
                     if (this.isEditing) {
-                        console.log(this.editedItem);
                         this.$store.commit('editPolygon', { index: this.editedIndex, item: this.editedItem});
                     } else {
                         this.$store.commit('addPolygon', this.editedItem);
