@@ -17,7 +17,7 @@
                             <v-flex sm12>
                                 <v-text-field v-model="editedItem.numberOfVertex"
                                               :rules="[validation.required(), validation.requiredPositive()]"
-                                              type="number" label="Number of vertex"
+                                              type="number" label="Number of vertices"
                                               clearable required>
                                 </v-text-field>
                             </v-flex>
@@ -66,7 +66,7 @@
                     <v-list-item-content>
                         <v-list-item-title v-html="item.label"></v-list-item-title>
                         <v-list-item-subtitle>
-                            <span>Number of Vertex: {{ item.numberOfVertex }}</span> <br/>
+                            <span>Number of Vertices: {{ item.numberOfVertex }}</span> <br/>
                             <span>Percentage: {{ item.percentage }}%,</span>
                             <span>Radius: {{ item.radius }}</span>
                         </v-list-item-subtitle>
