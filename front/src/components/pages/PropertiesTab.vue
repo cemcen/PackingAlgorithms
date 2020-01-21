@@ -9,7 +9,7 @@
                     </v-btn>
                 </v-flex>
             </v-row>
-            <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties.length === 0">
+            <div class="text-centered font-weight-light grey--text title mb-2" v-show="properties != null && Object.keys(properties).length === 0">
                 No properties registered.
             </div>
             <v-divider></v-divider>
