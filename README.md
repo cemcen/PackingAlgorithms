@@ -16,8 +16,8 @@ finite space. We will focus on a convex polygon geometric packing.
 
 As an example the next image shows the result of a geometric packing
  with three different kinds of polygons.
-
-![Geometric Packing](documentation/images/packing_example.png)
+ 
+<img src="documentation/images/packing_example.png" alt="Geometric Packing" width="500" />
 
 This repository provides a simple app that allows you to generate a 
 variety of packing meshes. The app has the following features:
@@ -36,17 +36,15 @@ variety of packing meshes. The app has the following features:
     * Assign properties to vertices and segments 
     on the boundary of the container. 
 
-![App Screenshot](documentation/images/app_screenshot.png)
+
+<img src="documentation/images/app_screenshot.png" alt="App Screenshot" width="500" />
 
 ## Screenshots
 
-![Example 1](documentation/images/gravity_packing_result.png)
-
-![Example 2](documentation/images/boundary_example.png)
-
-![Example 3](documentation/images/density_packing_result.png)
-
-![Example 4](documentation/images/layers_result.png)
+<img src="documentation/images/gravity_packing_result.png" alt="Example 1" width="700" />
+<img src="documentation/images/boundary_example.png" alt="Example 2" width="700" />
+<img src="documentation/images/density_packing_result.png" alt="Example 3" width="700" />
+<img src="documentation/images/layers_result.png" alt="Example 4" width="700" />
 
 ## Demo
 
