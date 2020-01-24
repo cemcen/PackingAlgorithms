@@ -136,7 +136,7 @@
                 });
 
                 propertiesArray.forEach(prop => {
-                    file += prop + '\n';
+                    file += prop + ' ' + this.properties[prop].default + '\n';
                 });
 
                 sortedPolygons.forEach(polygon => {
