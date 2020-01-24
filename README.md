@@ -8,6 +8,10 @@
 * [Installation](#installation)  
 * [License](#license)  
 
+## Author
+
+[Joaquín Torres](https://github.com/juakotorres) - B.Sc., M.Sc., Universidad de Chile.
+
 ## Introduction
 
 A geometric packing is an non polynomial problem (NP problem) 
