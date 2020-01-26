@@ -32,6 +32,11 @@ const store = new Vuex.Store({
                 Vue.set(state.properties, item.label, item);
             }
         },
+        editProperties: (state, item) => {
+            if(item) {
+                Object.assign(state.properties, item);
+            }
+        },
         addProperty: (state, item) => {
             if(item) {
                 Vue.set(state.properties, item.label, item);

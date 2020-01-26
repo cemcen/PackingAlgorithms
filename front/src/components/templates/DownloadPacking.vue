@@ -2,11 +2,17 @@
     <v-dialog eager v-model="dialog" persistent max-width="500px">
         <v-card>
             <v-card-title>
-                <span class="headline">Download Packing</span>
+                <span class="headline">Download Mesh File</span>
             </v-card-title>
 
             <v-card-text>
                 <v-form ref="fileDownloadForm">
+                    <v-row justify="center">
+                        <v-col class="pa-0 pr-3 pl-3">
+                            <v-select v-model="selectedFileOption" :items="fileOptions" item-text="name" label="Filename"
+                                          :rules="[validation.required()]" return-object></v-select>
+                        </v-col>
+                    </v-row>
                     <v-row justify="center">
                         <v-col class="pa-0 pr-3 pl-3">
                             <v-text-field v-model="filename" label="Filename"
@@ -47,6 +53,11 @@
                     {type: ".txt", value: 0},
                     {type: ".json", value: 1}
                 ],
+                selectedFileOption: {name: "Packing File", value: 0},
+                fileOptions: [
+                    {name: "Packing File", value: 0},
+                    {name: "Triangulation File", value: 1}
+                ],
                 selectedOption: {type: ".txt", value: 0},
             }
         },
@@ -67,10 +78,18 @@
         methods: {
             downloadPacking() {
                 if (this.$refs.fileDownloadForm.validate()) {
-                    if(this.selectedOption.value === 0) {
-                        this.exportPackingTxt();
+                    if(this.selectedFileOption.value === 0) {
+                        if (this.selectedOption.value === 0) {
+                            this.exportPackingTxt();
+                        } else {
+                            this.exportPackingJSON();
+                        }
                     } else {
-                        this.exportPackingJSON();
+                        if (this.selectedOption.value === 0) {
+                            this.exportTriangulationTxt();
+                        } else {
+                            this.exportTriangulationJSON();
+                        }
                     }
                     this.close();
                 }
@@ -83,24 +102,79 @@
             },
             close() {
                 this.resetValidation();
+                this.selectedFileOption = {name: "Packing File", value: 0};
+                this.selectedOption = {type: ".txt", value: 0};
+                this.filename = 'packing';
                 this.dialog = false;
             },
             resetValidation() {
                 this.$refs.fileDownloadForm.resetValidation();
             },
-            exportPackingJSON(){
+            exportTriangulationTxt() {
+                let file = '';
+                let points = this.packing.draw.points;
+                let polygons = this.packing.draw.polygons;
+                let triangles =  this.packing.polygons.reduce((acc, ele) => acc + ele.triangulation.length, 0);
+
+                let sortedPoints = this.sortDictionary(points);
+                let sortedPolygons = this.sortPolygons(polygons);
+
+                file += Object.keys(points).length
+                    + ' ' + triangles
+                    + ' ' + this.packing.polygons.length
+                    + '\n';
+
+                sortedPoints.forEach(point => {
+                    let splitted = point[0].split(",");
+                    file += (Math.abs(splitted[0]) < 1e-8? 0 : splitted[0])  + ' ' + (Math.abs(splitted[1]) < 1e-8? 0: splitted[1]) + '\n';
+                });
+
+                let counterTriangle = 1;
+                sortedPolygons.forEach(pol => {
+                    pol[2].triangulation.forEach(triang => {
+
+
+                        triang.forEach(pnt => {
+                            pnt.triangle = counterTriangle;
+                            file += points[[pnt.x, pnt.y]] + ' ';
+                        });
+
+                        counterTriangle += 1;
+                        file = file.slice(0, -1);
+                        file += '\n';
+                    });
+                });
+
+                sortedPolygons.forEach(pol => {
+                    file += pol[1] + ' ';
+                    file += pol[2].triangulation.length + ' ';
+                    pol[2].triangulation.forEach(triang => {
+                        file += triang[0].triangle + ' ';
+                    });
+                    file = file.slice(0, -1);
+                    file += '\n';
+                });
+
+                this.downloadTxtFile(file);
+            },
+            exportTriangulationJSON() {
+                let triangulation = [];
+
+                this.packing.polygons.forEach(pol => {
+                    triangulation.push(pol.triangulation);
+                });
+                let exportObj = {
+                    triangulation: triangulation,
+                };
+                this.downloadJsonFile(exportObj);
+            },
+            exportPackingJSON: function () {
                 let exportObj = {
                     packing: this.packing,
                     properties: this.properties,
                     polygons: this.polygons
                 };
-                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
-                let downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", this.filename + ".json");
-                document.body.appendChild(downloadAnchorNode); // required for firefox
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
+                this.downloadJsonFile(exportObj);
             },
             exportPackingTxt(){
                 let file = '';
@@ -117,17 +191,27 @@
                 if(!properties) properties = {};
                 let propertiesArray = Object.keys(properties);
 
+                let borderPointsWithProperties = 0;
+                Object.keys(borderPoints).forEach(bp => {
+                    if(borderPoints[bp].properties && borderPoints[bp].properties.length > 0) borderPointsWithProperties += 1
+                });
+
+                let borderSegmentsWithProperties = 0;
+                Object.keys(borderSegments).forEach(bs => {
+                    if(borderSegments[bs].properties && borderSegments[bs].properties.length > 0) borderSegmentsWithProperties += 1
+                });
+
                 file += Object.keys(points).length
                     + ' ' + Object.keys(edges).length
                     + ' ' + propertiesArray.length
                     + ' ' + Object.keys(polygons).length
-                    + ' ' + Object.keys(borderPoints).length
-                    + ' ' + Object.keys(borderSegments).length
+                    + ' ' + borderPointsWithProperties
+                    + ' ' + borderSegmentsWithProperties
                     + '\n';
 
                 sortedPoints.forEach(point => {
                     let splitted = point[0].split(",");
-                    file += splitted[0] + ' ' + splitted[1] + '\n';
+                    file += (Math.abs(splitted[0]) < 1e-8? 0 : splitted[0])  + ' ' + (Math.abs(splitted[1]) < 1e-8? 0: splitted[1]) + '\n';
                 });
 
                 sortedEdges.forEach(edge => {
@@ -161,46 +245,44 @@
                 });
 
                 Object.keys(borderPoints).forEach(bp => {
-                    file += (borderPoints[bp].pointIndex + ' ');
-                    if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
-                        file += (borderPoints[bp].properties.length + ' ');
-                        borderPoints[bp].properties.forEach(prop => {
-                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
-                        })
-                    } else {
-                        file += (0 + ' ');
+                    if(borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
+                        file += (borderPoints[bp].pointIndex + ' ');
+                        if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
+                            file += (borderPoints[bp].properties.length + ' ');
+                            borderPoints[bp].properties.forEach(prop => {
+                                file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                            })
+                        } else {
+                            file += (0 + ' ');
+                        }
+                        file = file.slice(0, -1);
+                        file += '\n';
                     }
-                    file = file.slice(0, -1);
-                    file += '\n';
                 });
 
                 Object.keys(borderSegments).forEach(bs => {
-                    file += (borderSegments[bs].segmentIndex + ' ');
-                    borderSegments[bs].polygons.forEach(pol => {
-                        file += (pol + ' ');
-                        file += ((sortedPolygons[pol - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1)+ ' ');
+                    if(borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
+                        file += (borderSegments[bs].segmentIndex + ' ');
+                        borderSegments[bs].polygons.forEach(pol => {
+                            file += (pol + ' ');
+                            file += ((sortedPolygons[pol - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1) + ' ');
 
-                    });
-                    if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
-                        file += (borderSegments[bs].properties.length + ' ');
-                        borderSegments[bs].properties.forEach(prop => {
-                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
-                        })
-                    } else {
-                        file += (0 + ' ');
+                        });
+                        if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
+                            file += (borderSegments[bs].properties.length + ' ');
+                            borderSegments[bs].properties.forEach(prop => {
+                                file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                            })
+                        } else {
+                            file += (0 + ' ');
+                        }
+                        file = file.slice(0, -1);
+                        file += '\n';
                     }
-                    file = file.slice(0, -1);
-                    file += '\n';
                 });
 
 
-                let filename = this.filename + '.txt';
-                let universalBOM = "\uFEFF";
-
-                let link = document.createElement('a');
-                link.setAttribute('href', 'data:text/csv; charset=utf-8,' + encodeURIComponent(universalBOM + file));
-                link.setAttribute('download', filename);
-                link.click();
+                this.downloadTxtFile(file);
             },
             sortDictionary(dict) {
                 // Create items array
@@ -228,6 +310,25 @@
 
                 return sorted;
             },
+            downloadTxtFile(file) {
+                let filename = this.filename + '.txt';
+                const blob = new Blob([file], {type: 'text/plain'});
+                this.downloadFile(blob, filename, 'text/plain');
+            },
+            downloadJsonFile(json) {
+                let filename = this.filename + '.json';
+                const blob = new Blob([JSON.stringify(json)], {type: 'application/json'});
+                this.downloadFile(blob, filename, 'application/json');
+            },
+            downloadFile(blob, filename, type) {
+                const e = document.createEvent('MouseEvents'),
+                    a = document.createElement('a');
+                a.download = filename;
+                a.href = window.URL.createObjectURL(blob);
+                a.dataset.downloadurl = [type, a.download, a.href].join(':');
+                e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(e);
+            }
         }
     }
 </script>

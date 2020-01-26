@@ -100,8 +100,8 @@
                 this.$refs.propertiesForm.openDialog();
             },
             assignProperties() {
-                this.$emit("assign-properties", this.selectedOptionProperties, this.selectedOptionType)
-            }
+                this.$emit("assign-properties", this.selectedOptionProperties, this.selectedOptionType);
+            },
         }
     }
 </script>

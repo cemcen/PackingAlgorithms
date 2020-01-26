@@ -33,7 +33,7 @@
                                     <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </template>
-                            <span>Download Mesh</span>
+                            <span>Export Mesh File</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
@@ -82,7 +82,6 @@
 
                         <assign-properties :dialog="dialog2"
                                            @closeDialog="dialog2 = false"
-                                           :properties="properties"
                                            @assignProperties="assignProperties"/>
 
                         <v-dialog eager v-model="dialogAngle" persistent max-width="500px">
@@ -118,7 +117,6 @@
                         </v-dialog>
 
                         <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
-                                             :properties="properties"
                                              @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
@@ -241,7 +239,7 @@
                     canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(1);
+                    p.frameRate(32);
                     //console.log(canvas);
                 };
 
@@ -270,7 +268,6 @@
                 p.mouseDragged = () => {
                     if (locked) {
                         dragged = true;
-                        p.draw();
                         bx = p.mouseX;
                         by = p.mouseY;
                     }
@@ -278,39 +275,60 @@
 
                 p.mouseReleased = () => {
                     locked = false;
+                    let height = this.packing.height;
+                    let width = this.packing.width;
                     if (dragged) {
-                        let box = {
-                            points: [
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                            ]
-                        };
-                        let height = this.packing.height;
-                        let width = this.packing.width;
+                        if(Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
+                            if (this.packing.graph) {
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = false;
+                                });
+                                this.packing.polygons.forEach(pol => {
+                                    let pnt = [p.mouseX, p.mouseY];
+                                    pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
+                                });
+                            }
+                        } else {
+                            let box = {
+                                points: [
+                                    {
+                                        x: Math.min(bx, xInit),
+                                        y: Math.min(by, yInit)
+                                    },
+                                    {
+                                        x: Math.max(bx, xInit),
+                                        y: Math.min(by, yInit)
+                                    },
+                                    {
+                                        x: Math.max(bx, xInit),
+                                        y: Math.max(by, yInit)
+                                    },
+                                    {
+                                        x: Math.min(bx, xInit),
+                                        y: Math.max(by, yInit)
+                                    },
+                                ]
+                            };
+                            if (this.packing.graph) {
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = false;
+                                });
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                                });
+                            }
+                            dragged = false;
+                        }
+                    } else {
                         if (this.packing.graph) {
                             this.packing.polygons.forEach(pol => {
                                 pol.selected = false;
                             });
                             this.packing.polygons.forEach(pol => {
-                                pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                                let pnt = [p.mouseX, p.mouseY];
+                                pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
                             });
                         }
-                        dragged = false;
-                        p.draw();
                     }
 
                     xInit = 0;
@@ -341,8 +359,8 @@
                         if (graph) {
                             Object.keys(graph).forEach(function (pointA) {
                                 Object.keys(graph[pointA]).forEach(function (pointB) {
-                                    const pntA = JSON.parse("[" + pointA + "]");
-                                    const pntB = JSON.parse("[" + pointB + "]");
+                                    const pntA = pointA.split(",");
+                                    const pntB = pointB.split(",");
 
                                     p.stroke(33, 33, 33);
                                     p.strokeWeight(3);
@@ -599,8 +617,11 @@
                     this.executing = true;
                     api.sendMesh(data).then(resp => {
                         this.executing = false;
-                        this.$store.commit("newPacking", resp.body.mesh);
-                        this.parseMesh(resp.body.mesh);
+                        let packing = this.triangulatePacking(resp.body.mesh);
+                        packing.xAxisOrigin = 0;
+                        packing.yAxisOrigin = 0;
+                        this.$store.commit("newPacking", packing);
+                        this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
                     }).catch(error => {
                         this.executing = false;
@@ -639,8 +660,11 @@
                     this.executing = true;
                     api.sendMeshMultiLayers(data).then(resp => {
                         this.executing = false;
-                        this.$store.commit("newPacking", resp.body.mesh);
-                        this.parseMesh(resp.body.mesh);
+                        let packing = this.triangulatePacking(resp.body.mesh);
+                        packing.xAxisOrigin = 0;
+                        packing.yAxisOrigin = 0;
+                        this.$store.commit("newPacking", packing);
+                        this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
                     }).catch(error => {
                         this.executing = false;
@@ -649,6 +673,27 @@
                     });
                 }
                 this.dialog = false;
+            },
+            triangulatePacking(mesh) {
+                mesh.polygons.forEach(pol => {
+                    pol.triangulation = [];
+                    let contour = [];
+                    pol.points.forEach(pnt => {
+                        contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                    });
+                    let swctx = new poly2tri.SweepContext(contour);
+                    swctx.triangulate();
+                    let triangles = swctx.getTriangles();
+                    triangles.forEach(function (t) {
+                        let triangle = [];
+                        t.getPoints().forEach(function (p) {
+                            triangle.push({x: p.x, y: p.y});
+                        });
+
+                        pol.triangulation.push(triangle);
+                    });
+                });
+                return mesh;
             },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
@@ -874,6 +919,24 @@
             openAssignProp() {
                 this.dialog2 = true;
             },
+            pointInsidePolygon(polygon, mousePoint,  width, height, p) {
+                let intersections = 0;
+                for (let i = 0; i < polygon.points.length; i++) {
+
+                    let pntA = polygon.points[i];
+                    let pntB = polygon.points[(i + 1) % polygon.points.length];
+                    let xi = ((pntA.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yi = (((height - pntA.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+                    let xj = ((pntB.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yj = (((height - pntB.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+
+                    if(this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
+                        intersections += 1;
+                    }
+                }
+
+                return intersections % 2 !== 0;
+            }
         },
     }
 </script>

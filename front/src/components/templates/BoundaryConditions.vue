@@ -118,6 +118,14 @@
         methods: {
             closeDialog() {
                 this.$emit('closeDialog', false);
+                this.resetSelectedProperties();
+            },
+            resetSelectedProperties() {
+                let nProperties = this.properties;
+                Object.keys(nProperties).forEach(function (item) {
+                    nProperties[item].selected = false;
+                });
+                this.$store.commit("editProperties", nProperties);
             },
             reDraw() {
                 let ps = this.ps;
