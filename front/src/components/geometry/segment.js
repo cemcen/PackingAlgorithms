@@ -3,13 +3,14 @@ import Point from "./point";
 
 class Segment {
 
-    constructor(x1, y1, x2, y2, width, height, key, properties) {
+    constructor(x1, y1, x2, y2, width, height, key, properties, indexPol) {
         this.pntA = new Point(x1, y1, width, height);
         this.pntB = new Point(x2, y2, width, height);
         this.mouseOver = false;
         this.selected = false;
         this.key = key;
         this.properties = properties;
+        this.indexPol = indexPol;
     }
 
     draw(p){
@@ -50,12 +51,20 @@ class Segment {
         this.selected = this.mouseOver || (this.selected && p.keyIsDown(p.OPTION));
     }
 
+    contains(pnt) {
+        return (Math.abs(pnt.x - this.pntA.x) < 1e-8 && Math.abs(pnt.y - this.pntA.y) < 1e-8) ||  (Math.abs(pnt.x - this.pntB.x) < 1e-8 && Math.abs(pnt.y - this.pntB.y) < 1e-8);
+    }
+
     isSelected() {
         return this.selected;
     }
 
     getKey() {
         return this.key;
+    }
+
+    getPolygonIndex() {
+        return this.indexPol;
     }
 }
 

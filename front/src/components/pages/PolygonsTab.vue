@@ -51,6 +51,7 @@
             <v-row class="right-layout" align="end">
                 <v-flex pt-3>
                     <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
+                        <v-icon class="mr-1">mdi-shape-polygon-plus</v-icon>
                         New Polygon
                     </v-btn>
                 </v-flex>

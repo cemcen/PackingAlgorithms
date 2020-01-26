@@ -71,6 +71,14 @@
                             </template>
                             <span>Boundary Conditions</span>
                         </v-tooltip>
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="loadOriginal">
+                                    <v-icon>mdi-backup-restore</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Load Original Packing</span>
+                        </v-tooltip>
 
                         <v-spacer></v-spacer>
 
@@ -107,8 +115,6 @@
                                     <v-spacer></v-spacer>
                                     <v-btn color="teal lighten-2" text @click.native="dialogAngle = false">Close
                                     </v-btn>
-                                    <v-btn color="teal lighten-2" text @click.native="loadOriginal">Load Original
-                                    </v-btn>
                                     <v-btn dark color="teal lighten-2" @keyup.enter="optimizeAngle"
                                            @click.native="optimizeAngle">Optimize
                                     </v-btn>
@@ -117,6 +123,7 @@
                         </v-dialog>
 
                         <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
+                                             @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
                                              @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
@@ -137,12 +144,12 @@
                         </v-tab>-->
 
                         <v-tab id="tab-polygon" @click="selectTab(1)">
-                            <v-icon>mdi-shape</v-icon>
+                            <v-icon class="mr-1">mdi-shape-plus</v-icon>
                             Polygons
                         </v-tab>
 
                         <v-tab id="tab-distribution" @click="selectTab(0)">
-                            <v-icon>mdi-clipboard-text</v-icon>
+                            <v-icon class="mr-1">mdi-clipboard-text</v-icon>
                             Properties
                         </v-tab>
                     </v-tabs>
@@ -467,10 +474,12 @@
                 }
             },
             loadOriginal() {
+                this.executing = true;
                 this.packing.polygons = JSON.parse(JSON.stringify(this.packing.originalPacking.polygons));
                 this.triangulateMesh();
                 this.parseMesh(this.packing);
-                this.dialogAngle = false;
+                this.$refs.boundaryConditionsComponent.updatePacking();
+                this.executing = false;
             },
             triangulateMesh() {
                 this.packing.polygons.forEach(pol => {
@@ -695,6 +704,10 @@
                 });
                 return mesh;
             },
+            changedBoundary() {
+                this.parseMesh(this.packing);
+                this.$refs.boundaryConditionsComponent.updatePacking();
+            },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
                 this.parseMesh(data);
@@ -760,7 +773,7 @@
                     return nPoint;
                 }
 
-                function checkBorderSegment(pointA, pointB, borderSegments, width, height, bsCount, polCount) {
+                function checkBorderSegment(pointA, pointB, borderSegments, width, height, bsCount, polCount, indexPol) {
                     let nSegment = false;
                     // Check if one of the points is on the border of the container.
                     if (isBorderPoint(pointA, 0, width, 0, height)
@@ -772,7 +785,8 @@
                             borderSegments[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = {
                                 index: bsCount,
                                 segmentIndex: edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]],
-                                polygons: []
+                                polygons: [],
+                                indexPol: indexPol
                             };
                             nSegment = true;
                         }
@@ -785,7 +799,7 @@
                     return nSegment;
                 }
 
-                mesh.polygons.forEach(pol => {
+                mesh.polygons.forEach((pol, indexPol) => {
 
                     let polygonPoints = [];
 
@@ -816,7 +830,7 @@
                             edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = e;
 
                             // Check if the segment is on the border of the container.
-                            if (checkBorderSegment(pointA, pointB, borderSegments, width, height, bs, polCount)) {
+                            if (checkBorderSegment(pointA, pointB, borderSegments, width, height, bs, polCount, indexPol)) {
                                 bs += 1
                             }
 
