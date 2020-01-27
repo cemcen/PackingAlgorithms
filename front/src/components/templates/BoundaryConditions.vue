@@ -25,7 +25,7 @@
             <v-tooltip left>
                 <template v-slot:activator="{ on }">
                     <v-btn icon color="white" v-on="on" @click="downloadImage">
-                        <v-icon>mdi-download</v-icon>
+                        <v-icon>mdi-file-image</v-icon>
                     </v-btn>
                 </template>
                 <span>Download Image</span>

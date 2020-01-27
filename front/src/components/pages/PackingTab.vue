@@ -6,7 +6,6 @@
                     <v-toolbar color="#eeeeee">
                         <v-toolbar-title>Options</v-toolbar-title>
                         <v-divider class="mx-2" inset vertical></v-divider>
-
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
                                 <v-btn color="teal lighten-2" text :disabled="executing" @click="dialog = true" icon
@@ -15,6 +14,14 @@
                                 </v-btn>
                             </template>
                             <span>Create New Packing</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="loadOriginal">
+                                    <v-icon>mdi-backup-restore</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Load Original Packing</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
@@ -71,13 +78,14 @@
                             </template>
                             <span>Boundary Conditions</span>
                         </v-tooltip>
+
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="loadOriginal">
-                                    <v-icon>mdi-backup-restore</v-icon>
+                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="uploadResults">
+                                    <v-icon>mdi-chart-bar</v-icon>
                                 </v-btn>
                             </template>
-                            <span>Load Original Packing</span>
+                            <span>Upload Results</span>
                         </v-tooltip>
 
                         <v-spacer></v-spacer>
@@ -127,6 +135,7 @@
                                              @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
+                        <upload-results-dialog ref="uploadResultsRef"/>
 
                     </v-toolbar>
                     <div id='myContainer' ref="polygonContainer" class="polygon">
@@ -181,6 +190,7 @@
     import ImportPacking from "../templates/ImportPacking.vue";
     import DownloadPacking from "../templates/DownloadPacking.vue";
     import DialogNewPacking from "../templates/DialogNewPacking.vue";
+    import UploadResultsDialog from "../templates/UploadResultsDialog.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -189,6 +199,7 @@
             validator: 'new'
         },
         components: {
+            UploadResultsDialog,
             DialogNewPacking,
             DownloadPacking,
             ImportPacking,
@@ -605,7 +616,7 @@
             },
             execute(packingOptions) {
                 if (this.polygons.length === 0) {
-                    alert('Must insert at least one polygon')
+                    this.$toast('Must insert at least one polygon');
                 } else {
 
                     let data = {
@@ -635,14 +646,14 @@
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
-                        alert("Error executing algorithm.");
+                        this.$toast("Error executing algorithm.");
                     });
                 }
                 this.dialog = false;
             },
             executeMultiLayer(packingOptions) {
                 if (this.polygons.length === 0) {
-                    alert('Must insert at least one polygon')
+                    this.$toast('Must insert at least one polygon');
                 } else {
 
                     let data = {
@@ -678,7 +689,7 @@
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
-                        alert("Error executing algorithm.");
+                        this.$toast("Error executing algorithm.");
                     });
                 }
                 this.dialog = false;
@@ -950,6 +961,9 @@
                 }
 
                 return intersections % 2 !== 0;
+            },
+            uploadResults() {
+                this.$refs.uploadResultsRef.openDialog();
             }
         },
     }

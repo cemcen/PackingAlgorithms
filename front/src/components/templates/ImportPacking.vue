@@ -8,8 +8,16 @@
             <v-card-text>
                 <v-form ref="fileImportForm">
                     <v-row justify="center">
+                        <v-checkbox color="primary" v-model="parameters[0]" class="mx-2" label="Vertices"></v-checkbox>
+                        <v-checkbox color="primary" v-model="parameters[1]" class="mx-2" label="Edges"></v-checkbox>
+                        <v-checkbox color="primary" v-model="parameters[2]" class="mx-2" label="Properties"></v-checkbox>
+                        <v-checkbox color="primary" v-model="parameters[3]" class="mx-2" label="Polygons"></v-checkbox>
+                    </v-row>
+                    <v-row justify="center">
                         <v-col class="pa-0 pr-3 pl-3">
-                            <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code" :rules="[validation.required()]" show-size label="Upload mesh file"></v-file-input>
+                            <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
+                                          :rules="[validation.required()]" show-size
+                                          label="Upload mesh file"></v-file-input>
                         </v-col>
                     </v-row>
                 </v-form>
@@ -33,12 +41,13 @@
         data() {
             return {
                 dialog: false,
+                parameters: [true, true, true, true],
                 validation: validation,
                 file: null
             }
         },
         computed: {
-            properties () {
+            properties() {
                 return this.$store.getters.getProperties;
             },
         },
@@ -48,33 +57,55 @@
         methods: {
             loadPacking() {
                 if (this.$refs.fileImportForm.validate()) {
-                    if(this.file.type === 'application/json') {
+                    if (this.file.type === 'application/json') {
                         this.file.text().then(res => {
                             this.$store.commit("loadPacking", JSON.parse(res));
                             this.close();
                         });
-                    } else if(this.file.type === 'text/plain') {
+                    } else if (this.file.type === 'text/plain') {
                         this.file.text().then(res => {
                             try {
+                                let i = 0;
                                 let lines = res.split("\n");
-                                let firstLine = lines[0].split(" ");
-                                let numberOfPoints = parseInt(firstLine[0]);
-                                let numberOfEdges = parseInt(firstLine[1]);
-                                let numberOfProperties = parseInt(firstLine[2]);
-                                let numberOfPolygons = parseInt(firstLine[3]);
+                                let firstLine = lines[i].split(" ");
+                                let numberOfPoints = 0;
+                                let numberOfEdges = 0;
+                                let numberOfProperties = 0;
+                                let numberOfPolygons = 0;
+                                if(this.parameters[0]) {
+                                    numberOfPoints = parseInt(firstLine[i]);
+                                    i+= 1;
+                                }
+
+                                if(this.parameters[1]) {
+                                    numberOfEdges = parseInt(firstLine[i]);
+                                    i+= 1;
+                                }
+
+                                if(this.parameters[2]) {
+                                    numberOfProperties = parseInt(firstLine[i]);
+                                    i+= 1;
+                                }
+
+                                if(this.parameters[3]) {
+                                    numberOfPolygons = parseInt(firstLine[i]);
+                                    i+= 1;
+                                }
+
                                 let points = {};
                                 let propertiesFile = {};
                                 let polygons = [];
-                                let height = 0;
-                                let width = 0;
+                                let minX = Number.MAX_VALUE;
+                                let minY = Number.MAX_VALUE;
                                 lines.forEach((line, index) => {
-                                    if(index > 0) {
+                                    if (index > 0) {
                                         if (index <= numberOfPoints) {
                                             let pnt = line.split(" ");
                                             let x = parseFloat(pnt[0]);
                                             let y = parseFloat(pnt[1]);
-                                            width = (width < x) ? x : width;
-                                            height = (height < y) ? y : height;
+
+                                            if(minX > x) minX = x;
+                                            if(minY > y) minY = y;
                                             points[index] = {
                                                 x: x,
                                                 y: y
@@ -100,48 +131,65 @@
                                             let vertices = parseInt(polygonLine[0]);
                                             let pointsArray = [];
                                             let propertiesArray = [];
-                                            let numberOfProperties = parseInt(polygonLine[vertices + 3]);
+                                            let numberOfProperties2 = ((vertices + 3) < polygonLine.length)?  parseInt(polygonLine[vertices + 3]): 0;
 
                                             Array(vertices).fill(undefined).map((_, i) => {
                                                 pointsArray.push(points[polygonLine[i + 1]]);
                                             });
 
-                                            Array(numberOfProperties).fill(undefined).map((_, i) => {
+                                            Array(numberOfProperties2).fill(undefined).map((_, i) => {
                                                 let aProperty = propertiesFile[polygonLine[i + vertices + 4]];
                                                 propertiesArray.push({key: aProperty.label, value: aProperty.default});
                                             });
 
                                             let triangulation = [];
-                                            if (propertiesArray.length > 0) {
-                                                let contour = [];
-                                                pointsArray.forEach(pnt => {
-                                                    contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                            let contour = [];
+                                            pointsArray.forEach(pnt => {
+                                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                            });
+                                            let swctx = new poly2tri.SweepContext(contour);
+                                            swctx.triangulate();
+                                            let triangles = swctx.getTriangles();
+                                            triangles.forEach(function (t) {
+                                                let triangle = [];
+                                                t.getPoints().forEach(function (p) {
+                                                    triangle.push({x: p.x, y: p.y});
                                                 });
-                                                let swctx = new poly2tri.SweepContext(contour);
-                                                swctx.triangulate();
-                                                let triangles = swctx.getTriangles();
-                                                triangles.forEach(function (t) {
-                                                    let triangle = [];
-                                                    t.getPoints().forEach(function (p) {
-                                                        triangle.push({x: p.x, y: p.y});
-                                                    });
+                                                triangulation.push(triangle);
+                                            });
 
-                                                    triangulation.push(triangle);
-                                                });
-                                            }
 
                                             polygons.push({
                                                 label: "",
                                                 radius: null,
                                                 points: pointsArray,
-                                                area: parseFloat(polygonLine[vertices + 1]),
-                                                hole: parseInt(polygonLine[vertices + 2]) === 1,
+                                                area: ((vertices + 1) < polygonLine.length)? parseFloat(polygonLine[vertices + 1]): 0,
+                                                hole: ((vertices + 1) < polygonLine.length)? parseInt(polygonLine[vertices + 2]) === 1: true,
                                                 properties: propertiesArray,
                                                 triangulation: triangulation
                                             });
                                         }
                                     }
                                 });
+
+
+                                let maxX = 0;
+                                let maxY = 0;
+                                polygons.forEach(pol => {
+                                    pol.points.forEach(pnt => {
+                                        if(!pnt.visited) {
+                                            pnt.x -= minX;
+                                            pnt.y -= minY;
+                                            pnt.visited = true;
+                                            if(pnt.x > maxX) maxX = pnt.x;
+                                            if(pnt.y > maxY) maxY = pnt.y;
+                                        }
+
+                                    })
+                                });
+
+                                let height = maxY;
+                                let width = maxX;
 
                                 this.close();
                                 this.$emit("loadtxtpacking", {
@@ -151,7 +199,7 @@
                                 });
                             } catch (e) {
                                 console.log(e);
-                                alert("Cannot load file (wrong format)");
+                                this.$toast("Cannot load file (wrong format)");
                             }
                         });
                     } else {
@@ -169,6 +217,7 @@
                 this.dialog = false;
             },
             resetValidation() {
+                this.parameters = [true, true, true, true];
                 this.$refs.fileImportForm.resetValidation();
             },
         }
