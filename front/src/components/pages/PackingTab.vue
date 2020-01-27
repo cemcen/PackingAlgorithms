@@ -284,7 +284,7 @@
                     locked = false;
                     let height = this.packing.height;
                     let width = this.packing.width;
-                    if (dragged) {
+                    if (dragged && !this.dialogBoundaryConditions) {
                         if(Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
                             if (this.packing.graph) {
                                 this.packing.polygons.forEach(pol => {
@@ -349,7 +349,7 @@
                     p.background(255, 255, 255);
                     p.noFill();
                     p.push();
-                    if (this.packing) {
+                    if (this.packing && !this.dialogBoundaryConditions) {
                         if (this.packing.polygons) {
                             this.packing.polygons.forEach(pol => {
                                 this.drawPolygon(pol, this.packing.width, this.packing.height, p)

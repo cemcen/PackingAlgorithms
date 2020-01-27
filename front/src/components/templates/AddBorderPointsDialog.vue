@@ -45,7 +45,10 @@
     export default {
         name: "AddBorderPoints",
         props: {
-            bs: Array,
+            bs: {
+                type: Array,
+                defaultValue: []
+            },
         },
         data() {
             return {
@@ -81,7 +84,7 @@
             addBorderPoints() {
                 if(this.$refs.addBorderPointsForm.validate()) {
                     this.bs.forEach(bsI => {
-                        if(bsI.isSelected()) {
+                        if((bsI.isSelected() && this.selectedOptionType.value === 1) || this.selectedOptionType.value === 0) {
                             let polygon = this.packing.polygons[bsI.getPolygonIndex()];
                             let indices = [];
                             polygon.points.forEach((pnt, index) => {

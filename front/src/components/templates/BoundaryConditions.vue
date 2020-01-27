@@ -8,7 +8,7 @@
             <v-spacer></v-spacer>
             <v-tooltip left>
                 <template v-slot:activator="{ on }">
-                    <v-btn color="white"  v-on="on" icon @click.native="loadOriginal">
+                    <v-btn color="white" v-on="on" icon @click.native="loadOriginal">
                         <v-icon>mdi-backup-restore</v-icon>
                     </v-btn>
                 </template>
@@ -77,10 +77,10 @@
             }
         },
         computed: {
-            properties () {
+            properties() {
                 return this.$store.getters.getProperties;
             },
-            packing () {
+            packing() {
                 return this.$store.getters.getPacking;
             }
         },
@@ -115,6 +115,48 @@
                     }
                 };
 
+                let locked = false;
+                let dragged = false;
+                let xInit = 0;
+                let yInit = 0;
+                let bx = 0;
+                let by = 0;
+                p.mousePressed = () => {
+                    if (p.mouseX > -10 && p.mouseY > -10 && p.mouseX < p.width + 10 && p.mouseY < p.height + 10 && this.dialog) {
+                        locked = true;
+                        xInit = p.mouseX;
+                        yInit = p.mouseY;
+                        bx = p.mouseX;
+                        by = p.mouseY;
+                    }
+                };
+
+                p.mouseDragged = () => {
+                    if (locked) {
+                        dragged = true;
+                        bx = p.mouseX;
+                        by = p.mouseY;
+                    }
+                };
+
+                p.mouseReleased = () => {
+                    locked = false;
+                    if (dragged && this.dialog) {
+                        this.borderSegments.forEach(seg => {
+                            seg.checkIntersectionWithBox(p, bx, by, xInit, yInit);
+                        });
+                        this.borderPoints.forEach(pnt => {
+                            pnt.isInsideBox(p, bx, by, xInit, yInit);
+                        });
+                    }
+
+                    xInit = 0;
+                    yInit = 0;
+                    bx = 0;
+                    by = 0;
+                };
+
+
                 // What's been drawn on the canvas
                 p.draw = () => {
                     if (this.dialog) {
@@ -123,6 +165,14 @@
                         p.push();
                         this.drawGraph(p);
                         this.drawBorderElements(p);
+                        if (locked) {
+                            p.strokeWeight(3);
+                            p.stroke(239, 83, 80);
+                            p.noFill();
+                            let x = Math.min(bx, xInit);
+                            let y = Math.min(by, yInit);
+                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                        }
                         p.pop();
                     }
                 };
@@ -169,7 +219,7 @@
             loadBorderElements() {
                 this.borderPoints = [];
                 this.borderSegments = [];
-                if(this.packing && this.packing.draw) {
+                if (this.packing && this.packing.draw) {
                     let borderPointsArray = this.packing.draw.borderPoints;
                     let bPDict = {};
                     Object.keys(borderPointsArray).forEach(bp => {
@@ -183,8 +233,8 @@
                         let pntA = bPDict[split[0]];
                         let pntB = bPDict[split[1]];
                         this.borderSegments.push(new Segment(pntA[0], pntA[1], pntB[0], pntB[1],
-                                                                this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties,
-                                                                    borderSegmentsArray[bs].indexPol));
+                            this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties,
+                            borderSegmentsArray[bs].indexPol));
                     });
                 }
             },
@@ -225,30 +275,36 @@
                 });
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
-                let sOP = selectedOptionProperties === "All"? 0 : 1;
-                let sOT = selectedOptionType === "All"? 0 : (selectedOptionType === "All Nodes"? 1 : 2);
+                let sOP = selectedOptionProperties === "All" ? 0 : 1;
+                let sOT = selectedOptionType === "All" ? 0 : (selectedOptionType === "All Nodes" ? 1 : 2);
                 let borderPointsArray = this.packing.draw.borderPoints;
                 let borderSegmentsArray = this.packing.draw.borderSegments;
                 let properties = this.properties;
                 this.borderPoints.forEach(pnt => {
-                    if(sOP === 0 || (pnt.isSelected() && sOP === 1)) {
-                        if(sOT === 0 || sOT === 1) {
+                    if (sOP === 0 || (pnt.isSelected() && sOP === 1)) {
+                        if (sOT === 0 || sOT === 1) {
                             borderPointsArray[pnt.getKey()].properties = [];
                             Object.keys(properties).forEach(function (item) {
                                 if (properties[item].selected) {
-                                    borderPointsArray[pnt.getKey()].properties.push({key: item, value: properties[item].default})
+                                    borderPointsArray[pnt.getKey()].properties.push({
+                                        key: item,
+                                        value: properties[item].default
+                                    })
                                 }
                             });
                         }
                     }
                 });
                 this.borderSegments.forEach(seg => {
-                    if(sOP === 0 || (seg.isSelected() && sOP === 1)) {
-                        if(sOT === 0 || sOT === 2) {
+                    if (sOP === 0 || (seg.isSelected() && sOP === 1)) {
+                        if (sOT === 0 || sOT === 2) {
                             borderSegmentsArray[seg.getKey()].properties = [];
                             Object.keys(properties).forEach(function (item) {
                                 if (properties[item].selected) {
-                                    borderSegmentsArray[seg.getKey()].properties.push({key: item, value: properties[item].default})
+                                    borderSegmentsArray[seg.getKey()].properties.push({
+                                        key: item,
+                                        value: properties[item].default
+                                    })
                                 }
                             });
                         }

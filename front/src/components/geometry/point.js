@@ -42,6 +42,44 @@ class Point {
             && Math.abs(p.mouseY - this.yTransform(this.y, p)) <= 4);
     }
 
+    isInsideBox(p, bx, by, xInit, yInit) {
+        let intersections = 0;
+        let x = this.xTransform(this.x, p);
+        let y = this.yTransform(this.y, p);
+        let points = [
+            [bx, by],
+            [bx, yInit],
+            [xInit, yInit],
+            [xInit, by]
+        ];
+
+        points.forEach((pnt, i) => {
+            let pntA = points[i];
+            let pntB = points[(i + 1) % points.length];
+
+            if(this.vectorIntersection(pntA[0], pntA[1], pntB[0], pntB[1], x, y, -1000, -1000)) {
+                intersections += 1;
+            }
+        });
+
+        if(intersections % 2 !== 0) {
+            this.selected = true;
+        }
+    }
+
+    vectorIntersection(a, b, c, d, p, q, r, s) {
+        let det, gamma, lambda;
+
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+
     static getWidth(p) {
         return p.width - Constant.WIDTH_OFFSET;
     }
