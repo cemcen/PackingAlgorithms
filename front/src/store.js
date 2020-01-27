@@ -77,6 +77,11 @@ const store = new Vuex.Store({
                 Vue.set(state.packing, "rGraph", changes.cEdgesG);
             }
         },
+        updateOnlyPackingPolygons: (state, polygons) => {
+            if(polygons) {
+                Vue.set(state.packing, "polygons", polygons);
+            }
+        },
         assignProperties: (state, changes) => {
             if(changes) {
                 Vue.set(state.packing, "draw", changes.draw);

@@ -108,7 +108,8 @@
                                             if(minY > y) minY = y;
                                             points[index] = {
                                                 x: x,
-                                                y: y
+                                                y: y,
+                                                index: index,
                                             }
                                         } else if (index <= numberOfPoints + numberOfEdges) {
 
@@ -142,22 +143,6 @@
                                                 propertiesArray.push({key: aProperty.label, value: aProperty.default});
                                             });
 
-                                            let triangulation = [];
-                                            let contour = [];
-                                            pointsArray.forEach(pnt => {
-                                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
-                                            });
-                                            let swctx = new poly2tri.SweepContext(contour);
-                                            swctx.triangulate();
-                                            let triangles = swctx.getTriangles();
-                                            triangles.forEach(function (t) {
-                                                let triangle = [];
-                                                t.getPoints().forEach(function (p) {
-                                                    triangle.push({x: p.x, y: p.y});
-                                                });
-                                                triangulation.push(triangle);
-                                            });
-
 
                                             polygons.push({
                                                 label: "",
@@ -166,7 +151,7 @@
                                                 area: ((vertices + 1) < polygonLine.length)? parseFloat(polygonLine[vertices + 1]): 0,
                                                 hole: ((vertices + 1) < polygonLine.length)? parseInt(polygonLine[vertices + 2]) === 1: true,
                                                 properties: propertiesArray,
-                                                triangulation: triangulation
+                                                triangulation: []
                                             });
                                         }
                                     }
@@ -184,8 +169,24 @@
                                             if(pnt.x > maxX) maxX = pnt.x;
                                             if(pnt.y > maxY) maxY = pnt.y;
                                         }
+                                    });
+                                    let triangulation = [];
+                                    let contour = [];
+                                    pol.points.forEach(pnt => {
+                                        contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                    });
+                                    let swctx = new poly2tri.SweepContext(contour);
+                                    swctx.triangulate();
+                                    let triangles = swctx.getTriangles();
+                                    triangles.forEach(function (t) {
+                                        let triangle = [];
+                                        t.getPoints().forEach(function (p) {
+                                            triangle.push({x: p.x, y: p.y});
 
-                                    })
+                                        });
+                                        triangulation.push(triangle);
+                                    });
+                                    pol.triangulation = triangulation;
                                 });
 
                                 let height = maxY;

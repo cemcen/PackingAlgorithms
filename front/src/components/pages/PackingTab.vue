@@ -257,7 +257,7 @@
                     canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(32);
+                    p.frameRate(1);
                     //console.log(canvas);
                 };
 
@@ -360,46 +360,48 @@
                     p.background(255, 255, 255);
                     p.noFill();
                     p.push();
-                    if (this.packing && !this.dialogBoundaryConditions) {
-                        if (this.packing.polygons) {
-                            this.packing.polygons.forEach(pol => {
-                                this.drawPolygon(pol, this.packing.width, this.packing.height, p)
-                            });
-                        }
-                        let graph = this.packing.graph;
-                        let height = this.packing.height;
-                        let width = this.packing.width;
-                        let widthContainer = this.getWidth(p);
-                        let heightContainer = this.getHeight(p);
-                        let xAxisOffset = this.getOffsetXAxis();
-                        let yAxisOffset = this.getOffsetYAxis();
-
-                        if (graph) {
-                            Object.keys(graph).forEach(function (pointA) {
-                                Object.keys(graph[pointA]).forEach(function (pointB) {
-                                    const pntA = pointA.split(",");
-                                    const pntB = pointB.split(",");
-
-                                    p.stroke(33, 33, 33);
-                                    p.strokeWeight(3);
-
-                                    p.line(
-                                        ((pntA[0] / width) * widthContainer) + xAxisOffset,
-                                        (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
-                                        ((pntB[0] / width) * widthContainer) + xAxisOffset,
-                                        (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
-                                    );
+                    if(!this.dialogBoundaryConditions || this.$refs.uploadResultsRef.dialog) {
+                        if (this.packing) {
+                            if (this.packing.polygons) {
+                                this.packing.polygons.forEach(pol => {
+                                    this.drawPolygon(pol, this.packing.width, this.packing.height, p)
                                 });
-                            });
+                            }
+                            let graph = this.packing.graph;
+                            let height = this.packing.height;
+                            let width = this.packing.width;
+                            let widthContainer = this.getWidth(p);
+                            let heightContainer = this.getHeight(p);
+                            let xAxisOffset = this.getOffsetXAxis();
+                            let yAxisOffset = this.getOffsetYAxis();
+
+                            if (graph) {
+                                Object.keys(graph).forEach(function (pointA) {
+                                    Object.keys(graph[pointA]).forEach(function (pointB) {
+                                        const pntA = pointA.split(",");
+                                        const pntB = pointB.split(",");
+
+                                        p.stroke(33, 33, 33);
+                                        p.strokeWeight(3);
+
+                                        p.line(
+                                            ((pntA[0] / width) * widthContainer) + xAxisOffset,
+                                            (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
+                                            ((pntB[0] / width) * widthContainer) + xAxisOffset,
+                                            (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
+                                        );
+                                    });
+                                });
+                            }
                         }
-                    }
-                    if (locked) {
-                        p.strokeWeight(3);
-                        p.stroke(239, 83, 80);
-                        p.noFill();
-                        let x = Math.min(bx, xInit);
-                        let y = Math.min(by, yInit);
-                        p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                        if (locked) {
+                            p.strokeWeight(3);
+                            p.stroke(239, 83, 80);
+                            p.noFill();
+                            let x = Math.min(bx, xInit);
+                            let y = Math.min(by, yInit);
+                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                        }
                     }
                     p.pop();
                 };
@@ -964,6 +966,7 @@
             },
             uploadResults() {
                 this.$refs.uploadResultsRef.openDialog();
+                this.$refs.uploadResultsRef.reDraw();
             }
         },
     }
