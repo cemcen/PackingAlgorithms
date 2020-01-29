@@ -7,7 +7,8 @@ let dict = {
         requiredPositive: 'El valor ingresado debe ser positivo.',
         email: "Debe ingresar un email válido.",
         betweenValues: (v1, v2) => ('El valor ingresado debe estar entre ' + v1  + ' y ' + v2),
-        atLeastOneSelected: 'Debe seleccionar al menos un item.'
+        atLeastOneSelected: 'Debe seleccionar al menos un item.',
+        greaterThanAndPositive: (v1) => ('El valor debe ser mayor que ' + v1),
     },
     'en': {
         required: 'You must enter this field.',
@@ -15,7 +16,8 @@ let dict = {
         requiredPositive: 'The value must be positive.',
         email: "You must enter a valid email.",
         betweenValues: (v1, v2) => ('The value must be between ' + v1  + ' and ' + v2),
-        atLeastOneSelected: 'Must select at least one item.'
+        atLeastOneSelected: 'Must select at least one item.',
+        greaterThanAndPositive: (v1) => ('The value must be greater than ' + v1),
     }
 };
 
@@ -37,6 +39,7 @@ export default {
     required: text => value => !!value || text || dict[language].required,
     requiredBooleanValue: text => value => value != null || text || dict[language].requiredBooleanValue,
     requiredPositive: text => value => (value != null && value > 0) || text || dict[language].requiredPositive,
+    greaterThanAndPositive: (greaterThanValue, text) => value => (value != null && value > greaterThanValue && value > 0) || text || dict[language].greaterThanAndPositive(greaterThanValue),
     email: text => value => {
         const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return pattern.test(value) || text || dict[language].email;

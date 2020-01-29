@@ -14,35 +14,37 @@ class GravityPackingTest extends FlatSpec with Matchers {
   //val heights: List[Double] = List(50.0, 100.0, 150.0, 200.0)
   //val widths: List[Double] = List(75.0, 150.0, 225.0)
   //val heights: List[Double] = List(75.0, 150.0, 225.0)
-  val widths: List[Double] = List(300.0, 500.0)
-  val heights: List[Double] = List(300.0, 500.0)
+//  val widths: List[Double] = List(300.0, 500.0)
+//  val heights: List[Double] = List(300.0, 500.0)
+  val widths: List[Double] = List(100.0, 150.0, 200.0, 300.0)
+  val heights: List[Double] = List(100.0, 150.0, 200.0, 300.0)
 
-  val repetitions: Int = 10
+  val repetitions: Int = 3
 
-  "Gravity Packing" should "Test same polygon bigger container" in {
-    Experiment.debugModeOn()
-    Experiment.startNewExperiment("debug/experiments/gravity_packing/", "test_1")
+//  "Gravity Packing" should "Test same polygon bigger container" in {
+//    Experiment.debugModeOn()
+//    Experiment.startNewExperiment("debug/experiments/gravity_packing/", "test_1")
+//
+//    widths.foreach(width => {
+//      heights.foreach(height => {
+//        for(i <- 1 to repetitions) {
+//          println("----------------------------------------------")
+//          println("Repetition: " + i)
+//          println("Width: " + width)
+//          println("Height: " + height)
+//          val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
+//          val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
+//          packingAlgorithm.setPackingTechnique(new RockFallingPacking)
+//          Packing2D.setPackingAlgorithm(packingAlgorithm)
+//          Packing2D.createMesh(polygons, width, height, randomShape = false, 36)
+//        }
+//      })
+//    })
+//
+//    Experiment.writeToFile()
+//  }
 
-    widths.foreach(width => {
-      heights.foreach(height => {
-        for(i <- 1 to repetitions) {
-          println("----------------------------------------------")
-          println("Repetition: " + i)
-          println("Width: " + width)
-          println("Height: " + height)
-          val packingAlgorithm: PackingAlgorithm = new AdvanceFrontPacking
-          val polygons: List[InputPolygon] = List(new InputPolygon("5_10", 5, 100, 10))
-          packingAlgorithm.setPackingTechnique(new RockFallingPacking)
-          Packing2D.setPackingAlgorithm(packingAlgorithm)
-          Packing2D.createMesh(polygons, width, height, randomShape = false, 36)
-        }
-      })
-    })
-
-    Experiment.writeToFile()
-  }
-
-  it should "Test two polygon different vertex bigger container" in {
+  "Gravity Packing" should "Test two polygon different vertex bigger container" in {
     Experiment.debugModeOn()
     Experiment.startNewExperiment("debug/experiments/gravity_packing/", "test_2")
 

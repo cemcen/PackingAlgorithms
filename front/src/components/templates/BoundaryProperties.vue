@@ -27,9 +27,9 @@
                 </v-col>
             </v-row>
             <v-row justify="center">
-                <v-list style="width: 100%" two-line>
+                <v-list style="width: 100%; display: contents;" two-line>
                     <div class="text-centered font-weight-light grey--text title mb-2"
-                         v-show="properties.length === 0">
+                         v-show="Object.keys(properties).length === 0">
                         No properties registered.
                     </div>
                     <template v-for="(key, value) in Object.entries(properties)">
@@ -100,8 +100,8 @@
                 this.$refs.propertiesForm.openDialog();
             },
             assignProperties() {
-                this.$emit("assign-properties", this.selectedOptionProperties, this.selectedOptionType)
-            }
+                this.$emit("assign-properties", this.selectedOptionProperties, this.selectedOptionType);
+            },
         }
     }
 </script>

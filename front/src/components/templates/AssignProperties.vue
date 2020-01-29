@@ -76,10 +76,6 @@
                 type: Boolean,
                 defaultValue: false,
             },
-            properties: {
-                type: Object,
-                defaultValue: {},
-            },
         },
         components: {
             Swatches,
@@ -122,11 +118,25 @@
         },
         methods: {
             closeDialog() {
+                this.resetSelectedProperties();
                 this.$emit('closeDialog', false);
             },
             assignProperties() {
                 this.$emit('assignProperties', this.selectedOptionProperties, this.selectedOptionType);
+                this.resetSelectedProperties();
+            },
+            resetSelectedProperties() {
+                let nProperties = this.properties;
+                Object.keys(nProperties).forEach(function (item) {
+                    nProperties[item].selected = false;
+                });
+                this.$store.commit("editProperties", nProperties);
             }
+        },
+        computed: {
+            properties() {
+                return this.$store.getters.getProperties;
+            },
         }
     }
 </script>

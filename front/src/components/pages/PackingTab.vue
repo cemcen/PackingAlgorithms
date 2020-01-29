@@ -6,7 +6,6 @@
                     <v-toolbar color="#eeeeee">
                         <v-toolbar-title>Options</v-toolbar-title>
                         <v-divider class="mx-2" inset vertical></v-divider>
-
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
                                 <v-btn color="teal lighten-2" text :disabled="executing" @click="dialog = true" icon
@@ -15,6 +14,14 @@
                                 </v-btn>
                             </template>
                             <span>Create New Packing</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="loadOriginal">
+                                    <v-icon>mdi-backup-restore</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Load Original Packing</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
@@ -33,7 +40,7 @@
                                     <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </template>
-                            <span>Download Mesh</span>
+                            <span>Export Mesh File</span>
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
@@ -72,6 +79,15 @@
                             <span>Boundary Conditions</span>
                         </v-tooltip>
 
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="uploadResults">
+                                    <v-icon>mdi-chart-bar</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Upload Results</span>
+                        </v-tooltip>
+
                         <v-spacer></v-spacer>
 
                         <v-progress-circular v-show="executing" indeterminate
@@ -82,7 +98,6 @@
 
                         <assign-properties :dialog="dialog2"
                                            @closeDialog="dialog2 = false"
-                                           :properties="properties"
                                            @assignProperties="assignProperties"/>
 
                         <v-dialog eager v-model="dialogAngle" persistent max-width="500px">
@@ -108,8 +123,6 @@
                                     <v-spacer></v-spacer>
                                     <v-btn color="teal lighten-2" text @click.native="dialogAngle = false">Close
                                     </v-btn>
-                                    <v-btn color="teal lighten-2" text @click.native="loadOriginal">Load Original
-                                    </v-btn>
                                     <v-btn dark color="teal lighten-2" @keyup.enter="optimizeAngle"
                                            @click.native="optimizeAngle">Optimize
                                     </v-btn>
@@ -118,10 +131,11 @@
                         </v-dialog>
 
                         <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
-                                             :properties="properties"
+                                             @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
                                              @closeDialog="dialogBoundaryConditions = false"/>
                         <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
                         <download-packing ref="refExportPacking"/>
+                        <upload-results-dialog ref="uploadResultsRef"/>
 
                     </v-toolbar>
                     <div id='myContainer' ref="polygonContainer" class="polygon">
@@ -139,12 +153,12 @@
                         </v-tab>-->
 
                         <v-tab id="tab-polygon" @click="selectTab(1)">
-                            <v-icon>mdi-shape</v-icon>
+                            <v-icon class="mr-1">mdi-shape-plus</v-icon>
                             Polygons
                         </v-tab>
 
                         <v-tab id="tab-distribution" @click="selectTab(0)">
-                            <v-icon>mdi-clipboard-text</v-icon>
+                            <v-icon class="mr-1">mdi-clipboard-text</v-icon>
                             Properties
                         </v-tab>
                     </v-tabs>
@@ -176,6 +190,7 @@
     import ImportPacking from "../templates/ImportPacking.vue";
     import DownloadPacking from "../templates/DownloadPacking.vue";
     import DialogNewPacking from "../templates/DialogNewPacking.vue";
+    import UploadResultsDialog from "../templates/UploadResultsDialog.vue";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -184,6 +199,7 @@
             validator: 'new'
         },
         components: {
+            UploadResultsDialog,
             DialogNewPacking,
             DownloadPacking,
             ImportPacking,
@@ -241,7 +257,7 @@
                     canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
                     canvas.parent(this.$refs.polygonDrawer);
                     // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(1);
+                    p.frameRate(32);
                     //console.log(canvas);
                 };
 
@@ -270,7 +286,6 @@
                 p.mouseDragged = () => {
                     if (locked) {
                         dragged = true;
-                        p.draw();
                         bx = p.mouseX;
                         by = p.mouseY;
                     }
@@ -278,39 +293,60 @@
 
                 p.mouseReleased = () => {
                     locked = false;
-                    if (dragged) {
-                        let box = {
-                            points: [
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.min(by, yInit)
-                                },
-                                {
-                                    x: Math.max(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                                {
-                                    x: Math.min(bx, xInit),
-                                    y: Math.max(by, yInit)
-                                },
-                            ]
-                        };
-                        let height = this.packing.height;
-                        let width = this.packing.width;
+                    let height = this.packing.height;
+                    let width = this.packing.width;
+                    if (dragged && !this.dialogBoundaryConditions) {
+                        if(Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
+                            if (this.packing.graph) {
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = false;
+                                });
+                                this.packing.polygons.forEach(pol => {
+                                    let pnt = [p.mouseX, p.mouseY];
+                                    pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
+                                });
+                            }
+                        } else {
+                            let box = {
+                                points: [
+                                    {
+                                        x: Math.min(bx, xInit),
+                                        y: Math.min(by, yInit)
+                                    },
+                                    {
+                                        x: Math.max(bx, xInit),
+                                        y: Math.min(by, yInit)
+                                    },
+                                    {
+                                        x: Math.max(bx, xInit),
+                                        y: Math.max(by, yInit)
+                                    },
+                                    {
+                                        x: Math.min(bx, xInit),
+                                        y: Math.max(by, yInit)
+                                    },
+                                ]
+                            };
+                            if (this.packing.graph) {
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = false;
+                                });
+                                this.packing.polygons.forEach(pol => {
+                                    pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                                });
+                            }
+                            dragged = false;
+                        }
+                    } else {
                         if (this.packing.graph) {
                             this.packing.polygons.forEach(pol => {
                                 pol.selected = false;
                             });
                             this.packing.polygons.forEach(pol => {
-                                pol.selected = this.polygonIntersection(pol, box, width, height, p);
+                                let pnt = [p.mouseX, p.mouseY];
+                                pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
                             });
                         }
-                        dragged = false;
-                        p.draw();
                     }
 
                     xInit = 0;
@@ -324,46 +360,48 @@
                     p.background(255, 255, 255);
                     p.noFill();
                     p.push();
-                    if (this.packing) {
-                        if (this.packing.polygons) {
-                            this.packing.polygons.forEach(pol => {
-                                this.drawPolygon(pol, this.packing.width, this.packing.height, p)
-                            });
-                        }
-                        let graph = this.packing.graph;
-                        let height = this.packing.height;
-                        let width = this.packing.width;
-                        let widthContainer = this.getWidth(p);
-                        let heightContainer = this.getHeight(p);
-                        let xAxisOffset = this.getOffsetXAxis();
-                        let yAxisOffset = this.getOffsetYAxis();
-
-                        if (graph) {
-                            Object.keys(graph).forEach(function (pointA) {
-                                Object.keys(graph[pointA]).forEach(function (pointB) {
-                                    const pntA = JSON.parse("[" + pointA + "]");
-                                    const pntB = JSON.parse("[" + pointB + "]");
-
-                                    p.stroke(33, 33, 33);
-                                    p.strokeWeight(3);
-
-                                    p.line(
-                                        ((pntA[0] / width) * widthContainer) + xAxisOffset,
-                                        (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
-                                        ((pntB[0] / width) * widthContainer) + xAxisOffset,
-                                        (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
-                                    );
+                    if(!this.dialogBoundaryConditions || this.$refs.uploadResultsRef.dialog) {
+                        if (this.packing) {
+                            if (this.packing.polygons) {
+                                this.packing.polygons.forEach(pol => {
+                                    this.drawPolygon(pol, this.packing.width, this.packing.height, p)
                                 });
-                            });
+                            }
+                            let graph = this.packing.graph;
+                            let height = this.packing.height;
+                            let width = this.packing.width;
+                            let widthContainer = this.getWidth(p);
+                            let heightContainer = this.getHeight(p);
+                            let xAxisOffset = this.getOffsetXAxis();
+                            let yAxisOffset = this.getOffsetYAxis();
+
+                            if (graph) {
+                                Object.keys(graph).forEach(function (pointA) {
+                                    Object.keys(graph[pointA]).forEach(function (pointB) {
+                                        const pntA = pointA.split(",");
+                                        const pntB = pointB.split(",");
+
+                                        p.stroke(33, 33, 33);
+                                        p.strokeWeight(3);
+
+                                        p.line(
+                                            ((pntA[0] / width) * widthContainer) + xAxisOffset,
+                                            (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
+                                            ((pntB[0] / width) * widthContainer) + xAxisOffset,
+                                            (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
+                                        );
+                                    });
+                                });
+                            }
                         }
-                    }
-                    if (locked) {
-                        p.strokeWeight(3);
-                        p.stroke(239, 83, 80);
-                        p.noFill();
-                        let x = Math.min(bx, xInit);
-                        let y = Math.min(by, yInit);
-                        p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                        if (locked) {
+                            p.strokeWeight(3);
+                            p.stroke(239, 83, 80);
+                            p.noFill();
+                            let x = Math.min(bx, xInit);
+                            let y = Math.min(by, yInit);
+                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                        }
                     }
                     p.pop();
                 };
@@ -449,10 +487,12 @@
                 }
             },
             loadOriginal() {
+                this.executing = true;
                 this.packing.polygons = JSON.parse(JSON.stringify(this.packing.originalPacking.polygons));
                 this.triangulateMesh();
                 this.parseMesh(this.packing);
-                this.dialogAngle = false;
+                this.$refs.boundaryConditionsComponent.updatePacking();
+                this.executing = false;
             },
             triangulateMesh() {
                 this.packing.polygons.forEach(pol => {
@@ -578,7 +618,7 @@
             },
             execute(packingOptions) {
                 if (this.polygons.length === 0) {
-                    alert('Must insert at least one polygon')
+                    this.$toast('Must insert at least one polygon');
                 } else {
 
                     let data = {
@@ -599,20 +639,23 @@
                     this.executing = true;
                     api.sendMesh(data).then(resp => {
                         this.executing = false;
-                        this.$store.commit("newPacking", resp.body.mesh);
-                        this.parseMesh(resp.body.mesh);
+                        let packing = this.triangulatePacking(resp.body.mesh);
+                        packing.xAxisOrigin = 0;
+                        packing.yAxisOrigin = 0;
+                        this.$store.commit("newPacking", packing);
+                        this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
-                        alert("Error executing algorithm.");
+                        this.$toast("Error executing algorithm.");
                     });
                 }
                 this.dialog = false;
             },
             executeMultiLayer(packingOptions) {
                 if (this.polygons.length === 0) {
-                    alert('Must insert at least one polygon')
+                    this.$toast('Must insert at least one polygon');
                 } else {
 
                     let data = {
@@ -639,16 +682,44 @@
                     this.executing = true;
                     api.sendMeshMultiLayers(data).then(resp => {
                         this.executing = false;
-                        this.$store.commit("newPacking", resp.body.mesh);
-                        this.parseMesh(resp.body.mesh);
+                        let packing = this.triangulatePacking(resp.body.mesh);
+                        packing.xAxisOrigin = 0;
+                        packing.yAxisOrigin = 0;
+                        this.$store.commit("newPacking", packing);
+                        this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
-                        alert("Error executing algorithm.");
+                        this.$toast("Error executing algorithm.");
                     });
                 }
                 this.dialog = false;
+            },
+            triangulatePacking(mesh) {
+                mesh.polygons.forEach(pol => {
+                    pol.triangulation = [];
+                    let contour = [];
+                    pol.points.forEach(pnt => {
+                        contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                    });
+                    let swctx = new poly2tri.SweepContext(contour);
+                    swctx.triangulate();
+                    let triangles = swctx.getTriangles();
+                    triangles.forEach(function (t) {
+                        let triangle = [];
+                        t.getPoints().forEach(function (p) {
+                            triangle.push({x: p.x, y: p.y});
+                        });
+
+                        pol.triangulation.push(triangle);
+                    });
+                });
+                return mesh;
+            },
+            changedBoundary() {
+                this.parseMesh(this.packing);
+                this.$refs.boundaryConditionsComponent.updatePacking();
             },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
@@ -715,7 +786,7 @@
                     return nPoint;
                 }
 
-                function checkBorderSegment(pointA, pointB, borderSegments, width, height, bsCount, polCount) {
+                function checkBorderSegment(pointA, pointB, borderSegments, width, height, bsCount, polCount, indexPol) {
                     let nSegment = false;
                     // Check if one of the points is on the border of the container.
                     if (isBorderPoint(pointA, 0, width, 0, height)
@@ -727,7 +798,8 @@
                             borderSegments[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = {
                                 index: bsCount,
                                 segmentIndex: edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]],
-                                polygons: []
+                                polygons: [],
+                                indexPol: indexPol
                             };
                             nSegment = true;
                         }
@@ -740,7 +812,7 @@
                     return nSegment;
                 }
 
-                mesh.polygons.forEach(pol => {
+                mesh.polygons.forEach((pol, indexPol) => {
 
                     let polygonPoints = [];
 
@@ -771,7 +843,7 @@
                             edges[[points[[pointA.x, pointA.y]], points[[pointB.x, pointB.y]]]] = e;
 
                             // Check if the segment is on the border of the container.
-                            if (checkBorderSegment(pointA, pointB, borderSegments, width, height, bs, polCount)) {
+                            if (checkBorderSegment(pointA, pointB, borderSegments, width, height, bs, polCount, indexPol)) {
                                 bs += 1
                             }
 
@@ -874,6 +946,28 @@
             openAssignProp() {
                 this.dialog2 = true;
             },
+            pointInsidePolygon(polygon, mousePoint,  width, height, p) {
+                let intersections = 0;
+                for (let i = 0; i < polygon.points.length; i++) {
+
+                    let pntA = polygon.points[i];
+                    let pntB = polygon.points[(i + 1) % polygon.points.length];
+                    let xi = ((pntA.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yi = (((height - pntA.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+                    let xj = ((pntB.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yj = (((height - pntB.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+
+                    if(this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
+                        intersections += 1;
+                    }
+                }
+
+                return intersections % 2 !== 0;
+            },
+            uploadResults() {
+                this.$refs.uploadResultsRef.openDialog();
+                this.$refs.uploadResultsRef.reDraw();
+            }
         },
     }
 </script>

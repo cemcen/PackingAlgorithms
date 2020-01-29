@@ -32,6 +32,11 @@ const store = new Vuex.Store({
                 Vue.set(state.properties, item.label, item);
             }
         },
+        editProperties: (state, item) => {
+            if(item) {
+                Object.assign(state.properties, item);
+            }
+        },
         addProperty: (state, item) => {
             if(item) {
                 Vue.set(state.properties, item.label, item);
@@ -70,6 +75,11 @@ const store = new Vuex.Store({
                 Vue.set(state.packing, "draw", draw);
                 Vue.set(state.packing, "graph", changes.edgesG);
                 Vue.set(state.packing, "rGraph", changes.cEdgesG);
+            }
+        },
+        updateOnlyPackingPolygons: (state, polygons) => {
+            if(polygons) {
+                Vue.set(state.packing, "polygons", polygons);
             }
         },
         assignProperties: (state, changes) => {
