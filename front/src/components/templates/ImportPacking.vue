@@ -215,6 +215,7 @@
             },
             close() {
                 this.resetValidation();
+                this.$emit("closedDialog");
                 this.dialog = false;
             },
             resetValidation() {

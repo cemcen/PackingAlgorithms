@@ -20,7 +20,7 @@
                         <v-icon>mdi-shape-square-plus</v-icon>
                     </v-btn>
                 </template>
-                <span>Add more border points</span>
+                <span>Add more border nodes</span>
             </v-tooltip>
             <v-tooltip left>
                 <template v-slot:activator="{ on }">
@@ -35,7 +35,7 @@
             <v-row class="fill-height" no-gutters>
                 <v-col md="6" class="fill-height">
                     <v-flex class="d-flex justify-center">
-                        <span class="hint-style">You can select multiple border elements holding the OPTION/ALT button.</span>
+                        <span class="hint-style">Multiples segments and nodes on the boundary can be selected by holding down the OPTION/ALT button.</span>
                     </v-flex>
 
                     <div id='myContainerBC' ref="pCont" class="polygon">
@@ -72,6 +72,8 @@
         data() {
             return {
                 ps: null,
+                drawPacking: false,
+                drawSelectionBox: false,
                 borderPoints: [],
                 borderSegments: [],
             }
@@ -112,6 +114,8 @@
                 p.windowResized = () => {
                     if (typeof this.$refs.pCont !== "undefined") {
                         p.resizeCanvas(this.$refs.pCont.clientWidth, this.$refs.pCont.clientHeight);
+                        this.drawPacking = true;
+                        p.draw();
                     }
                 };
 
@@ -136,6 +140,8 @@
                         dragged = true;
                         bx = p.mouseX;
                         by = p.mouseY;
+                        this.drawSelectionBox = true;
+                        p.draw();
                     }
                 };
 
@@ -148,6 +154,8 @@
                         this.borderPoints.forEach(pnt => {
                             pnt.isInsideBox(p, bx, by, xInit, yInit);
                         });
+                        this.drawPacking = true;
+                        p.draw();
                     }
 
                     xInit = 0;
@@ -159,13 +167,16 @@
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    if (this.dialog) {
+                    if (this.dialog && (this.drawPacking || this.drawSelectionBox)) {
                         p.background(255, 255, 255);
                         p.noFill();
                         p.push();
+                        this.drawPacking = false;
                         this.drawGraph(p);
                         this.drawBorderElements(p);
-                        if (locked) {
+
+                        if (locked && this.drawSelectionBox) {
+                            this.drawSelectionBox = false;
                             p.strokeWeight(3);
                             p.stroke(239, 83, 80);
                             p.noFill();
@@ -236,6 +247,8 @@
                             this.packing.width, this.packing.height, bs, borderSegmentsArray[bs].properties,
                             borderSegmentsArray[bs].indexPol));
                     });
+                    this.drawPacking = true;
+                    this.ps.draw();
                 }
             },
             drawGraph(p) {

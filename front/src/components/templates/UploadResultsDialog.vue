@@ -41,6 +41,7 @@
         data() {
             return {
                 dialog: false,
+                drawPacking: false,
                 ps: null,
             }
         },
@@ -61,13 +62,16 @@
                 p.windowResized = () => {
                     if (typeof this.$refs.pCont !== "undefined") {
                         p.resizeCanvas(this.$refs.pCont.clientWidth, this.$refs.pCont.clientHeight);
+                        this.drawPacking = true;
+                        this.ps.draw();
                     }
                 };
 
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    if (this.dialog) {
+                    if (this.dialog && this.drawPacking) {
+                        this.drawPacking = false;
                         p.background(255, 255, 255);
                         p.noFill();
                         p.push();
@@ -94,6 +98,7 @@
             },
             closeDialog() {
                 this.dialog = false;
+                this.$emit("closedDialog");
             },
             downloadImage() {
                 let filename = 'results.png';
@@ -177,6 +182,7 @@
                 });
             },
             refresh(){
+                this.drawPacking = true;
                 this.ps.draw();
             }
         }
