@@ -9,7 +9,7 @@
                 <v-form ref="fileDownloadForm">
                     <v-row justify="center">
                         <v-col class="pa-0 pr-3 pl-3">
-                            <v-select v-model="selectedFileOption" :items="fileOptions" item-text="name" label="Filename"
+                            <v-select v-model="selectedFileOption" :items="fileOptions" item-text="name" label="File Type"
                                           :rules="[validation.required()]" return-object></v-select>
                         </v-col>
                     </v-row>
@@ -106,6 +106,7 @@
                 this.selectedOption = {type: ".txt", value: 0};
                 this.filename = 'packing';
                 this.dialog = false;
+                this.$emit("closedDialog");
             },
             resetValidation() {
                 this.$refs.fileDownloadForm.resetValidation();
@@ -121,7 +122,8 @@
 
                 file += Object.keys(points).length
                     + ' ' + triangles
-                    + ' ' + this.packing.polygons.length
+                    + ' ' + Object.keys(sortedPolygons.filter(pol => !pol[2].hole)).length
+                    + ' ' + Object.keys(sortedPolygons.filter(pol => pol[2].hole)).length
                     + '\n';
 
                 sortedPoints.forEach(point => {
@@ -145,7 +147,17 @@
                     });
                 });
 
-                sortedPolygons.forEach(pol => {
+                sortedPolygons.filter(pol => !pol[2].hole).forEach(pol => {
+                    file += pol[1] + ' ';
+                    file += pol[2].triangulation.length + ' ';
+                    pol[2].triangulation.forEach(triang => {
+                        file += triang[0].triangle + ' ';
+                    });
+                    file = file.slice(0, -1);
+                    file += '\n';
+                });
+
+                sortedPolygons.filter(pol => pol[2].hole).forEach(pol => {
                     file += pol[1] + ' ';
                     file += pol[2].triangulation.length + ' ';
                     pol[2].triangulation.forEach(triang => {
@@ -204,7 +216,8 @@
                 file += Object.keys(points).length
                     + ' ' + Object.keys(edges).length
                     + ' ' + propertiesArray.length
-                    + ' ' + Object.keys(polygons).length
+                    + ' ' + Object.keys(sortedPolygons.filter(pol => !pol[2].hole)).length
+                    + ' ' + Object.keys(sortedPolygons.filter(pol => pol[2].hole)).length
                     + ' ' + borderPointsWithProperties
                     + ' ' + borderSegmentsWithProperties
                     + '\n';
@@ -220,17 +233,36 @@
                 });
 
                 propertiesArray.forEach(prop => {
-                    file += prop + ' ' + this.properties[prop].default + '\n';
+                    file += this.properties[prop].default + '\n';
                 });
 
-                sortedPolygons.forEach(polygon => {
+                sortedPolygons.filter(pol => !pol[2].hole).forEach(polygon => {
                     let splitted = polygon[0].split(",");
                     file += (splitted.length + ' ');
                     splitted.forEach(s => {
                         file += (s + ' ');
                     });
                     file += (polygon[2].area + ' ');
-                    file += ((polygon[2].hole ? 1 : 0) + ' ');
+
+                    if (polygon[2].properties && polygon[2].properties.length > 0) {
+                        file += (polygon[2].properties.length + ' ');
+                        polygon[2].properties.forEach(prop => {
+                            file += ((propertiesArray.indexOf(prop.key) + 1) + ' ');
+                        })
+                    } else {
+                        file += (0 + ' ');
+                    }
+                    file = file.slice(0, -1);
+                    file += '\n';
+                });
+
+                sortedPolygons.filter(pol => pol[2].hole).forEach(polygon => {
+                    let splitted = polygon[0].split(",");
+                    file += (splitted.length + ' ');
+                    splitted.forEach(s => {
+                        file += (s + ' ');
+                    });
+                    file += (polygon[2].area + ' ');
 
                     if (polygon[2].properties && polygon[2].properties.length > 0) {
                         file += (polygon[2].properties.length + ' ');

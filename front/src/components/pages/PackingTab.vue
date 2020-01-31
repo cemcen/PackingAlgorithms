@@ -8,7 +8,8 @@
                         <v-divider class="mx-2" inset vertical></v-divider>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn color="teal lighten-2" text :disabled="executing" @click="dialog = true" icon
+                                <v-btn color="teal lighten-2" text :disabled="executing" @click="openNewPackingDialog()"
+                                       icon
                                        v-on="on">
                                     <v-icon>mdi-plus-circle</v-icon>
                                 </v-btn>
@@ -17,7 +18,8 @@
                         </v-tooltip>
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="loadOriginal">
+                                <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
+                                       @click.native="loadOriginal">
                                     <v-icon>mdi-backup-restore</v-icon>
                                 </v-btn>
                             </template>
@@ -81,7 +83,8 @@
 
                         <v-tooltip top>
                             <template v-slot:activator="{ on }">
-                                <v-btn color="teal lighten-2"  v-on="on" :disabled="executing" icon text @click.native="uploadResults">
+                                <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
+                                       @click.native="uploadResults">
                                     <v-icon>mdi-chart-bar</v-icon>
                                 </v-btn>
                             </template>
@@ -93,11 +96,11 @@
                         <v-progress-circular v-show="executing" indeterminate
                                              color="teal lighten-2"></v-progress-circular>
 
-                        <dialog-new-packing :dialog="dialog" @close="dialog = false"
+                        <dialog-new-packing :dialog="dialog" @close="closedDialog()"
                                             @execute="execute" @execute-multi-layer="executeMultiLayer"/>
 
                         <assign-properties :dialog="dialog2"
-                                           @closeDialog="dialog2 = false"
+                                           @closeDialog="closedDialog"
                                            @assignProperties="assignProperties"/>
 
                         <v-dialog eager v-model="dialogAngle" persistent max-width="500px">
@@ -121,7 +124,7 @@
 
                                 <v-card-actions>
                                     <v-spacer></v-spacer>
-                                    <v-btn color="teal lighten-2" text @click.native="dialogAngle = false">Close
+                                    <v-btn color="teal lighten-2" text @click.native="closedDialog()">Close
                                     </v-btn>
                                     <v-btn dark color="teal lighten-2" @keyup.enter="optimizeAngle"
                                            @click.native="optimizeAngle">Optimize
@@ -132,10 +135,11 @@
 
                         <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
                                              @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
-                                             @closeDialog="dialogBoundaryConditions = false"/>
-                        <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"/>
-                        <download-packing ref="refExportPacking"/>
-                        <upload-results-dialog ref="uploadResultsRef"/>
+                                             @closeDialog="closedDialog()"/>
+                        <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"
+                                        @closedDialog="closedDialog()"/>
+                        <download-packing ref="refExportPacking" @closedDialog="closedDialog()"/>
+                        <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
 
                     </v-toolbar>
                     <div id='myContainer' ref="polygonContainer" class="polygon">
@@ -213,6 +217,9 @@
         data() {
             return {
                 validation: validation,
+                openedDialog: false,
+                drawSelectionBox: false,
+                drawPacking: true,
                 selectedTab: 1,
                 ps: null,
                 dialogBoundaryConditions: false,
@@ -263,7 +270,9 @@
 
                 p.windowResized = () => {
                     if (typeof this.$refs.polygonContainer !== "undefined") {
-                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight)
+                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);
+                        this.drawPacking = true;
+                        p.draw();
                     }
                 };
 
@@ -274,7 +283,7 @@
                 let bx = 0;
                 let by = 0;
                 p.mousePressed = () => {
-                    if (p.mouseX > -10 && p.mouseY > -10 && p.mouseX < p.width + 10 && p.mouseY < p.height + 10 && !this.dialog2) {
+                    if (p.mouseX > -10 && p.mouseY > -10 && p.mouseX < p.width + 10 && p.mouseY < p.height + 10 && !this.openedDialog) {
                         locked = true;
                         xInit = p.mouseX;
                         yInit = p.mouseY;
@@ -288,15 +297,17 @@
                         dragged = true;
                         bx = p.mouseX;
                         by = p.mouseY;
+                        this.drawSelectionBox = true;
+                        p.draw();
                     }
                 };
 
                 p.mouseReleased = () => {
-                    locked = false;
                     let height = this.packing.height;
                     let width = this.packing.width;
-                    if (dragged && !this.dialogBoundaryConditions) {
-                        if(Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
+                    if (locked && dragged && !this.openedDialog) {
+                        locked = false;
+                        if (Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
                             if (this.packing.graph) {
                                 this.packing.polygons.forEach(pol => {
                                     pol.selected = false;
@@ -337,17 +348,23 @@
                             }
                             dragged = false;
                         }
-                    } else {
-                        if (this.packing.graph) {
-                            this.packing.polygons.forEach(pol => {
-                                pol.selected = false;
-                            });
-                            this.packing.polygons.forEach(pol => {
-                                let pnt = [p.mouseX, p.mouseY];
-                                pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
-                            });
-                        }
+                        this.drawPacking = true;
+                        p.draw();
+
+                    } else if (locked && this.packing.graph && !this.openedDialog) {
+                        locked = false;
+                        this.packing.polygons.forEach(pol => {
+                            pol.selected = false;
+                        });
+                        this.packing.polygons.forEach(pol => {
+                            let pnt = [p.mouseX, p.mouseY];
+                            pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
+                        });
+
+                        this.drawPacking = true;
+                        p.draw();
                     }
+                    locked = false;
 
                     xInit = 0;
                     yInit = 0;
@@ -357,10 +374,10 @@
 
                 // What's been drawn on the canvas
                 p.draw = () => {
-                    p.background(255, 255, 255);
-                    p.noFill();
-                    p.push();
-                    if(!this.dialogBoundaryConditions || this.$refs.uploadResultsRef.dialog) {
+                    if (!this.openedDialog && (this.drawPacking || this.drawSelectionBox)) {
+                        p.background(255, 255, 255);
+                        p.push();
+
                         if (this.packing) {
                             if (this.packing.polygons) {
                                 this.packing.polygons.forEach(pol => {
@@ -393,17 +410,19 @@
                                     });
                                 });
                             }
+                            this.drawPacking = false;
                         }
-                        if (locked) {
+                        if (locked && this.drawSelectionBox) {
                             p.strokeWeight(3);
                             p.stroke(239, 83, 80);
                             p.noFill();
                             let x = Math.min(bx, xInit);
                             let y = Math.min(by, yInit);
-                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit))
+                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit));
+                            this.drawSelectionBox = false;
                         }
+                        p.pop();
                     }
-                    p.pop();
                 };
             };
             const P5 = require('p5');
@@ -426,16 +445,29 @@
                 this.selectedTab = i;
                 this.$router.push(routes[i]);
             },
+            openNewPackingDialog() {
+                this.dialog = true;
+                this.openedDialog = true;
+            },
+            closedDialog() {
+                this.dialog = false;
+                this.dialog2 = false;
+                this.dialogAngle = false;
+                this.dialogBoundaryConditions = false;
+                this.openedDialog = false;
+            },
             openAngleDialog() {
                 this.$refs.minimumAngleForm.resetValidation();
                 this.dialogAngle = true;
+                this.openedDialog = true;
             },
             openBorderConditions() {
                 this.dialogBoundaryConditions = true;
+                this.openedDialog = true;
                 this.$refs.boundaryConditionsComponent.reDraw();
             },
             optimizeAngle() {
-                if(this.$refs.minimumAngleForm.validate()) {
+                if (this.$refs.minimumAngleForm.validate()) {
                     let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
                     let changed = false;
                     this.packing.polygons.map(pol => {
@@ -521,9 +553,11 @@
             },
             importPacking() {
                 this.$refs.refImportPacking.openDialog();
+                this.openedDialog = true;
             },
             exportPacking() {
                 this.$refs.refExportPacking.openDialog();
+                this.openedDialog = true;
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
                 let polygons = this.packing.polygons;
@@ -576,6 +610,8 @@
                     polygons: polygons
                 });
 
+                this.drawPacking = true;
+                this.openedDialog = false;
                 this.ps.draw();
                 this.dialog2 = false;
             },
@@ -640,11 +676,12 @@
                     api.sendMesh(data).then(resp => {
                         this.executing = false;
                         let packing = this.triangulatePacking(resp.body.mesh);
-                        packing.xAxisOrigin = 0;
-                        packing.yAxisOrigin = 0;
                         this.$store.commit("newPacking", packing);
                         this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
+                        this.drawPacking = true;
+                        this.openedDialog = false;
+                        this.ps.draw();
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
@@ -683,11 +720,12 @@
                     api.sendMeshMultiLayers(data).then(resp => {
                         this.executing = false;
                         let packing = this.triangulatePacking(resp.body.mesh);
-                        packing.xAxisOrigin = 0;
-                        packing.yAxisOrigin = 0;
                         this.$store.commit("newPacking", packing);
                         this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
+                        this.drawPacking = true;
+                        this.openedDialog = false;
+                        this.ps.draw();
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
@@ -945,8 +983,9 @@
             },
             openAssignProp() {
                 this.dialog2 = true;
+                this.openedDialog = true;
             },
-            pointInsidePolygon(polygon, mousePoint,  width, height, p) {
+            pointInsidePolygon(polygon, mousePoint, width, height, p) {
                 let intersections = 0;
                 for (let i = 0; i < polygon.points.length; i++) {
 
@@ -957,7 +996,7 @@
                     let xj = ((pntB.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
                         yj = (((height - pntB.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
 
-                    if(this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
+                    if (this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
                         intersections += 1;
                     }
                 }
@@ -965,6 +1004,7 @@
                 return intersections % 2 !== 0;
             },
             uploadResults() {
+                this.openedDialog = true;
                 this.$refs.uploadResultsRef.openDialog();
                 this.$refs.uploadResultsRef.reDraw();
             }

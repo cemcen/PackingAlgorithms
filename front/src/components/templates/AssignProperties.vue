@@ -8,7 +8,7 @@
             <v-card-text>
                 <v-row justify="center">
                     <v-col class="pa-0 pr-3 pl-3">
-                        <v-select label="Choose which polygons should have these properties"
+                        <v-select label="Choose which entities should have these properties"
                                   item-text="name"
                                   v-model="selectedOptionProperties" :items="optionProperties"
                                   return-object>
@@ -17,7 +17,7 @@
                 </v-row>
                 <v-row justify="center">
                     <v-col class="pa-0 pr-3 pl-3">
-                        <v-select label="Choose which type of polygon should have these properties"
+                        <v-select label="From the selected entities choose where to assign"
                                   item-text="name"
                                   v-model="selectedOptionType" :items="optionType" return-object>
                         </v-select>
@@ -85,25 +85,25 @@
                 optionProperties: [
                     {
                         value: 0,
-                        name: "Selected Polygons"
+                        name: "Selected Polygons and Holes"
                     },
                     {
                         value: 1,
-                        name: "All Polygons"
+                        name: "All Polygons and Holes"
                     }
                 ],
                 optionType: [
                     {
                         value: 0,
-                        name: "All Polygons"
+                        name: "Polygons and Holes"
                     },
                     {
                         value: 1,
-                        name: "Only polygons"
+                        name: "Polygons Only"
                     },
                     {
                         value: 2,
-                        name: "Only holes"
+                        name: "Holes Only"
                     }
                 ],
                 selectedOptionProperties: {
