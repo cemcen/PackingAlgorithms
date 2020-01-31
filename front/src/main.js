@@ -1,20 +1,21 @@
 import Vue from 'vue';
-import VueRouter from 'vue-router'
+import VueRouter from 'vue-router';
 import Vuetify from 'vuetify';
-import VueResource from 'vue-resource'
-import colors from 'vuetify/es5/util/colors'
+import VueResource from 'vue-resource';
+import VueKonva from 'vue-konva';
+import colors from 'vuetify/es5/util/colors';
 import store from './store';
-import VuetifyToast from 'vuetify-toast-snackbar'
+import VuetifyToast from 'vuetify-toast-snackbar';
 
-import router from './router'
-import VeeValidate from 'vee-validate'
+import router from './router';
+import VeeValidate from 'vee-validate';
 import App from './components/App.vue';
-
 
 Vue.use(VeeValidate);
 Vue.use(VueResource);
 Vue.use(VueRouter);
 Vue.use(Vuetify);
+Vue.use(VueKonva);
 
 Vue.use(VuetifyToast, {
     x: 'center',

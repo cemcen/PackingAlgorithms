@@ -169,21 +169,27 @@
                     });
 
 
+                    this.packing.resultType = 'Displacements';
                     this.packing.polygons.forEach(pol => {
-                        pol.type = 'Displacements';
                         pol.points.forEach(pnt => {
                             pnt.color = item.vertices[pnt.index - 1].color;
                         });
                     });
 
                 } else if (item.type === 'Stresses') {
+                    this.packing.resultType = 'Stresses';
                     item.polygons.forEach(pol => {
+                        let colors = [];
                         let minHue = 240, maxHue=0;
+                        for (const x of Array(17).keys()) {
+                            colors.push((x/16)*(maxHue - minHue) + minHue)
+                        }
+
                         let min = item.minValue;
                         let max = item.maxValue;
-                        this.packing.polygons[pol.index - 1].color = [((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue, 100, 100];
-                        this.packing.polygons[pol.index - 1].type = 'Stresses';
+                        this.packing.polygons[pol.index - 1].color = colors[parseInt(((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue) % 17];
                     });
+
                 }
 
                 this.$emit("reDraw");

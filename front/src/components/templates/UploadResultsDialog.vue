@@ -18,8 +18,11 @@
         <v-card class="fill-height">
             <v-row class="fill-height" no-gutters>
                 <v-col md="6" class="fill-height">
-                    <div id='myContainerUR' ref="pCont" class="polygon">
+                    <!--<div id='myContainerUR' ref="pCont" class="polygon">
                         <div id="polygonDrawerUpdateResults" ref="polygonDrawer"></div>
+                    </div>-->
+                    <div id='myContainerKonvas' ref="pKonvas" style="height: 80%; width: 100%">
+
                     </div>
                 </v-col>
                 <v-col md="6" class="fill-height">
@@ -34,6 +37,10 @@
 
     import Constant from "../geometry/constants";
     import UploadResultsFile from "./UploadResultsFile.vue";
+    import Point from "../geometry/point";
+    import Segment from "../geometry/segment";
+    import Polygon from "../geometry/polygon";
+
 
     export default {
         name: "UploadResultsDialog",
@@ -43,53 +50,40 @@
                 dialog: false,
                 drawPacking: false,
                 ps: null,
+                stage: null,
+                polygonsShape: [],
+                configStage: {}
             }
         },
         mounted() {
-            this.script = p => {
-                let canvas = null;
-                // Settings of the canvas.
-                p.setup = () => {
-                    // We use the div size as the canvas size.
-                    //console.log(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
-                    canvas = p.createCanvas(this.$refs.pCont.clientWidth, this.$refs.pCont.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
-                    canvas.parent(this.$refs.polygonDrawer);
 
-                    // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(32);
-                    //console.log(canvas);
-                };
-                p.windowResized = () => {
-                    if (typeof this.$refs.pCont !== "undefined") {
-                        p.resizeCanvas(this.$refs.pCont.clientWidth, this.$refs.pCont.clientHeight);
-                        this.drawPacking = true;
-                        this.ps.draw();
-                    }
-                };
+            this.stage = new Konva.Stage({
+                container: 'myContainerKonvas',
+                width: 100,
+                height: 100
+            });
 
+            this.createNewPacking();
 
-                // What's been drawn on the canvas
-                p.draw = () => {
-                    if (this.dialog && this.drawPacking) {
-                        this.drawPacking = false;
-                        p.background(255, 255, 255);
-                        p.noFill();
-                        p.push();
-                        this.drawGraph(p);
-                        this.colorPolygons(p);
-                        p.pop();
-                    }
-                };
+            // adapt the stage on any window resize
+            window.addEventListener('resize', () => {
+                let container = this.$refs.pKonvas;
 
-
-            };
-
-            const P5 = require('p5');
-            this.ps = new P5(this.script, 'myContainerUR');
+                this.stage.height(container.clientHeight);
+                this.stage.width(container.clientWidth);
+                this.stage.draw();
+            });
         },
         computed: {
             packing() {
                 return this.$store.getters.getPacking;
+            }
+        },
+        watch: {
+            dialog(val){
+                if(val) {
+                    this.reDraw();
+                }
             }
         },
         methods: {
@@ -105,10 +99,10 @@
                 this.ps.save(filename);
             },
             reDraw() {
-                let ps = this.ps;
-                setTimeout(function () {
-                    ps.windowResized();
+                setTimeout(() => {
+                    this.drawNewPacking();
                 }, 310);
+
             },
             getWidth(p) {
                 return p.width - Constant.WIDTH_OFFSET;
@@ -122,69 +116,84 @@
             getOffsetYAxis() {
                 return Constant.Y_OFFSET;
             },
-            drawGraph(p) {
-                let graph = this.packing.graph;
-                let height = this.packing.height;
-                let width = this.packing.width;
-                let widthContainer = this.getWidth(p);
-                let heightContainer = this.getHeight(p);
-                let xAxisOffset = this.getOffsetXAxis();
-                let yAxisOffset = this.getOffsetYAxis();
-
-                if (graph) {
-                    Object.keys(graph).forEach(function (pointA) {
-                        Object.keys(graph[pointA]).forEach(function (pointB) {
-                            const pntA = JSON.parse("[" + pointA + "]");
-                            const pntB = JSON.parse("[" + pointB + "]");
-                            p.stroke(33, 33, 33);
-                            p.strokeWeight(2);
-                            p.line(
-                                ((pntA[0] / width) * widthContainer) + xAxisOffset,
-                                (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
-                                ((pntB[0] / width) * widthContainer) + xAxisOffset,
-                                (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
-                            );
-                        });
+            drawNewPacking() {
+                window.dispatchEvent(new Event('resize'));
+            },
+            createNewPacking() {
+                if (this.packing && this.packing.polygons) {
+                    this.stage.destroyChildren();
+                    let layer = new Konva.Layer();
+                    this.polygonsShape = [];
+                    this.packing.polygons.forEach(pol => {
+                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer));
                     });
+                    this.stage.add(layer);
                 }
             },
             colorPolygons(p) {
                 let width =  this.packing.width;
-                let height =  this.packing.height;
-                this.packing.polygons.forEach(pol => {
-                    let polygon = pol;
-                    p.stroke(33, 33, 33);
-                    p.strokeWeight(1);
-                    p.colorMode(p.HSB);
-                    if (polygon.type) {
-                        if(polygon.color && polygon.type === 'Stresses') {
-                            let color = polygon.color;
-                            if (isNaN(color[0])) color[0] = 0;
-                            p.fill(color[0], 100, 100);
-                            p.stroke(color[0], 100, 100);
-                        }
+                let height = this.packing.height;
+                if (this.packing.resultType === 'Stresses') {
+                    this.packing.polygons.forEach(pol => {
+                        let polygon = pol;
+                        p.stroke(33, 33, 33);
+                        p.strokeWeight(1);
+                        p.colorMode(p.HSB);
+                        let color = polygon.color;
+                        if (isNaN(color)) color = 0;
+                        p.fill(color, 100, 100);
+                        p.stroke(color, 100, 100);
                         p.beginShape();
                         polygon.points.forEach(pnt => {
-                            if(pnt.color && polygon.type === 'Displacements') {
-                                let color = pnt.color;
-                                if (isNaN(color)) color = 0;
-                                p.fill(color, 100, 100);
-                                p.stroke(color, 100, 100);
-                            }
                             let sx = ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis();
                             let sy = (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis();
-
                             p.vertex(sx, sy);
                         });
                         p.endShape(p.CLOSE);
-                    }
+                    });
+                }
 
-                });
+                if(this.packing.resultType === 'Displacements') {
+                    p.noFill();
+                    p.colorMode(p.HSB);
+                    for(let i = 0; i <= p.width; i++) {
+                        for(let j = 0; j <= p.height; j++) {
+
+
+                        }
+                    }
+                }
             },
-            refresh(){
-                this.drawPacking = true;
-                this.ps.draw();
-            }
+            pointInsidePolygon(polygon, mousePoint, width, height, p) {
+                let intersections = 0;
+                for (let i = 0; i < polygon.points.length; i++) {
+
+                    let pntA = polygon.points[i];
+                    let pntB = polygon.points[(i + 1) % polygon.points.length];
+                    let xi = ((pntA.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yi = (((height - pntA.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+                    let xj = ((pntB.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
+                        yj = (((height - pntB.y) / height) * this.getHeight(p)) + this.getOffsetYAxis();
+
+                    if (this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
+                        intersections += 1;
+                    }
+                }
+
+                return intersections % 2 !== 0;
+            },
+            vectorIntersection(a, b, c, d, p, q, r, s) {
+                let det, gamma, lambda;
+
+                det = (c - a) * (s - q) - (r - p) * (d - b);
+                if (det === 0) {
+                    return false;
+                } else {
+                    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+                    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+                    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+                }
+            },
         }
     }
 </script>

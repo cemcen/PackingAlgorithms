@@ -91,6 +91,16 @@
                             <span>Upload Results</span>
                         </v-tooltip>
 
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
+                                       @click.native="convertMeshToAllConvexPolygons">
+                                    <v-icon>mdi-shape-polygon-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Convert All Polygons to Convex</span>
+                        </v-tooltip>
+
                         <v-spacer></v-spacer>
 
                         <v-progress-circular v-show="executing" indeterminate
@@ -136,7 +146,7 @@
                         <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
                                              @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
                                              @closeDialog="closedDialog()"/>
-                        <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking"
+                        <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"
                                         @closedDialog="closedDialog()"/>
                         <download-packing ref="refExportPacking" @closedDialog="closedDialog()"/>
                         <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
@@ -524,6 +534,9 @@
                 this.triangulateMesh();
                 this.parseMesh(this.packing);
                 this.$refs.boundaryConditionsComponent.updatePacking();
+                this.$refs.uploadResultsRef.createNewPacking();
+                this.drawPacking = true;
+                this.ps.draw();
                 this.executing = false;
             },
             triangulateMesh() {
@@ -679,6 +692,7 @@
                         this.$store.commit("newPacking", packing);
                         this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
+                        this.$refs.uploadResultsRef.createNewPacking();
                         this.drawPacking = true;
                         this.openedDialog = false;
                         this.ps.draw();
@@ -723,6 +737,7 @@
                         this.$store.commit("newPacking", packing);
                         this.parseMesh(packing);
                         this.$refs.boundaryConditionsComponent.updatePacking();
+                        this.$refs.uploadResultsRef.createNewPacking();
                         this.drawPacking = true;
                         this.openedDialog = false;
                         this.ps.draw();
@@ -758,11 +773,15 @@
             changedBoundary() {
                 this.parseMesh(this.packing);
                 this.$refs.boundaryConditionsComponent.updatePacking();
+                this.$refs.uploadResultsRef.createNewPacking();
             },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
                 this.parseMesh(data);
                 this.$refs.boundaryConditionsComponent.updatePacking();
+                this.$refs.uploadResultsRef.createNewPacking();
+                this.drawPacking = true;
+                this.ps.draw();
             },
             parseMesh(mesh) {
                 //console.log(resp);
@@ -1006,7 +1025,55 @@
             uploadResults() {
                 this.openedDialog = true;
                 this.$refs.uploadResultsRef.openDialog();
-                this.$refs.uploadResultsRef.reDraw();
+            },
+            convertMeshToAllConvexPolygons() {
+                this.executing = true;
+                let packingToChange = JSON.parse(JSON.stringify(this.packing.originalPacking));
+                let nPacking = {
+                    polygons: [],
+                    width: packingToChange.width,
+                    height: packingToChange.height
+                };
+                let decomp = require('poly-decomp');
+                try {
+                    packingToChange.polygons.forEach(pol => {
+                        if (pol.hole) {
+                            let concavePol = pol.points.map(pnt => [pnt.x, pnt.y]);
+                            decomp.makeCCW(concavePol);
+                            let convexPolygons = decomp.quickDecomp(concavePol);
+                            convexPolygons.forEach(cnx => {
+                                nPacking.polygons.push({
+                                    label: '',
+                                    radius: -1,
+                                    hole: pol.hole,
+                                    area: pol.area,
+                                    points: cnx.map(pnt => {
+                                        return {'x': pnt[0], 'y': pnt[1]};
+                                    })
+                                })
+                            });
+                        } else {
+                            nPacking.polygons.push(pol);
+                        }
+                    });
+                } catch (e) {
+                    console.log(e);
+                    this.executing = false;
+                }
+                let packing = this.triangulatePacking(nPacking);
+                this.$store.commit('updateOnlyPackingPolygons', packing.polygons);
+                this.parseMesh(packing);
+                this.$refs.boundaryConditionsComponent.updatePacking();
+                this.$refs.uploadResultsRef.createNewPacking();
+                this.drawPacking = true;
+                this.openedDialog = false;
+                this.executing = false;
+                this.ps.draw();
+            },
+            loadedJSON() {
+                this.openedDialog = false;
+                this.drawPacking = true;
+                this.ps.draw();
             }
         },
     }

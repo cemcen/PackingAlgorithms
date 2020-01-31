@@ -36,6 +36,17 @@
     import validation from './../../services/validation.service';
     import * as poly2tri from 'poly2tri';
 
+    String.prototype.hashCode = function() {
+        let hash = 0, i, chr;
+        if (this.length === 0) return hash;
+        for (i = 0; i < this.length; i++) {
+            chr   = this.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };
+
     export default {
         name: "ImportPacking",
         data() {
@@ -60,6 +71,7 @@
                     if (this.file.type === 'application/json') {
                         this.file.text().then(res => {
                             this.$store.commit("loadPacking", JSON.parse(res));
+                            this.$emit("loadJSON");
                             this.close();
                         });
                     } else if (this.file.type === 'text/plain') {
@@ -115,16 +127,16 @@
 
                                         } else if (index <= numberOfPoints + numberOfEdges + numberOfProperties) {
                                             if (line in this.properties) {
-                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line];
+                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line.hashCode()];
                                             } else {
                                                 this.$store.commit("addProperty", {
-                                                    label: lines[i],
+                                                    label: line.hashCode(),
                                                     typeOfValue: "Number",
                                                     color: "#F44336",
-                                                    default: "11",
+                                                    default: line,
                                                     selected: false
                                                 });
-                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line];
+                                                propertiesFile[index - (numberOfPoints + numberOfEdges)] = this.properties[line.hashCode()];
                                             }
 
                                         } else if (index <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons) {
