@@ -108,11 +108,11 @@
                 ],
                 selectedOptionProperties: {
                     value: 0,
-                    name: "Selected Polygons"
+                    name: "Selected Polygons and Holes"
                 },
                 selectedOptionType: {
                     value: 0,
-                    name: "All Polygons"
+                    name: "Polygons and Holes"
                 },
             }
         },

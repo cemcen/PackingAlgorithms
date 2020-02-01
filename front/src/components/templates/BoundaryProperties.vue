@@ -84,10 +84,10 @@
         data() {
             return {
                 isEditing: false,
-                selectedOptionProperties: "All",
-                selectedOptionType: "All",
-                optionProperties: ["All", "Only selected"],
-                optionType: ["All", "All Nodes", "All Segments"],
+                selectedOptionProperties: "Entire Boundary",
+                selectedOptionType: "All Entities",
+                optionProperties: ["Entire Boundary", "Selected Entities Only"],
+                optionType: ["All Entities", "Nodes Only", "Segments Only"],
             }
         },
         computed: {

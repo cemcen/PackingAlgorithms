@@ -91,6 +91,15 @@
                 this.dialog = false;
                 this.$emit("closedDialog");
             },
+            downloadFile(blob, filename, type) {
+                const e = document.createEvent('MouseEvents'),
+                    a = document.createElement('a');
+                a.download = filename;
+                a.href = window.URL.createObjectURL(blob);
+                a.dataset.downloadurl = [type, a.download, a.href].join(':');
+                e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(e);
+            },
             downloadURI(uri, name) {
                 let link = document.createElement('a');
                 link.download = name;
@@ -101,8 +110,10 @@
             },
             downloadImage() {
                 let filename = 'results.png';
-                let dataURL = this.stage.toDataURL({ pixelRatio: 3 });
-                this.downloadURI(dataURL, filename);
+                let dataURL = this.stage.toCanvas({ pixelRatio: 3 });
+                dataURL.toBlob((blob) => {
+                    this.downloadFile(blob,filename, 'png');
+                });
             },
             reDraw() {
                 setTimeout(() => {
