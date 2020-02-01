@@ -119,6 +119,17 @@ class PolygonGraph(private val nodes: mutable.HashMap[Point, PolygonNode], priva
     var polygons: ArrayBuffer[Polygon] = new ArrayBuffer[Polygon]()
     nodes.foreach(node => {
       if(!node._2.value.isContainer) {
+        val cPolygon = node._2.value
+        val neighbours = getNeighbours(cPolygon)
+
+        neighbours.foreach(neigh => {
+          val intersections = neigh.intersectPolygon(cPolygon)
+          intersections.foreach(pnt => {
+            if(!cPolygon.points.contains(pnt)) {
+              cPolygon.addPointToPolygon(pnt);
+            }
+          })
+        });
         polygons += node._2.value
       }
     })

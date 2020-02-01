@@ -369,6 +369,9 @@
                         this.packing.polygons.forEach(pol => {
                             let pnt = [p.mouseX, p.mouseY];
                             pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
+                            if(pol.selected) {
+                                console.log(pol);
+                            }
                         });
 
                         this.drawPacking = true;

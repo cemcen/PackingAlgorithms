@@ -446,6 +446,15 @@ class Polygon(var points: List[Point], val radius: Double, val label: String) {
     route
   }
 
+  def addPointToPolygon(point: Point): Unit = {
+    val nearestPoints = this.getNearestPointsFromPoint(point)
+    if(nearestPoints.length > 1) {
+      val index = this.points.indexOf(this.getNearestPointsFromPoint(point).tail.head)
+      val (front, back) = this.points.splitAt(index)
+      this.points = front ++ List(point) ++ back
+    }
+  }
+
   def simplePolygon: Boolean = {
     var simplePolygon: Boolean = true
     for(i <- points.indices) {

@@ -1,6 +1,7 @@
 import Constant from "./constants";
 import Point from "./point";
 import Delaunator from 'delaunator';
+import PaintTriangles from "./paintTriangles";
 
 class Polygon {
 
@@ -16,28 +17,49 @@ class Polygon {
         this.type = 'Stresses';
         this.pol = pol;
         this.colors = [];
+        this.triangles = [];
 
-        let pointsP = [];
+        // let pointsP = [];
+        // let maxY = 0, maxX = 0;
+        // // let minX = Number.MAX_VALUE, minY = Number.MAX_VALUE;
         pol.points.forEach(pnt => {
-            pointsP.push([pnt.x, pnt.y]);
+        //     pointsP.push([pnt.x, pnt.y]);
             this.points.push({
                 x: pnt.x,
                 y: pnt.y,
                 index: pnt.index,
                 color: '#ffffff'
-            })
+            });
+        //     if(minX > pnt.x) minX = pnt.x;
+        //     if(minY > pnt.y) minY = pnt.y;
+        //     if(maxX < pnt.x) maxX = pnt.x;
+        //     if(maxY < pnt.y) maxY = pnt.y;
         });
-
-        let numberOfRandomPointsAdded = 100;
-
-        const delaunay = Delaunator.from(pointsP);
-        console.log(delaunay.triangles);
+        //
+        // let numberOfRandomPointsAdded = 4;
+        // for(let i = 0; i < numberOfRandomPointsAdded; i++) {
+        //     let inside = false;
+        //     let pnt = [];
+        //     while(!inside) {
+        //         let randomX = Math.random();
+        //         let randomY = Math.random();
+        //         pnt = [randomX*(maxX-minX)+minX, randomY*(maxY-minY)+minY];
+        //         inside = this.pointInsidePolygon(this.pol, [this.xTransform(pnt[0]), this.yTransform(pnt[1])], this.width, this.height);
+        //     }
+        //
+        //     pointsP.push(pnt);
+        // }
+        //
+        // const delaunay = Delaunator.from(pointsP);
+        // for (let i = 0; i < delaunay.triangles.length; i += 3) {
+        //     let pointsT =  [pointsP[delaunay.triangles[i]], pointsP[delaunay.triangles[i + 1]], pointsP[delaunay.triangles[i + 2]]];
+        //     this.triangles.push(new PaintTriangles(pointsT, this.width, this.height, this.stage, this.layer));
+        // }
 
         this.shape = new Konva.Shape({
             sceneFunc: (context, shape) => this.drawPolygon(context, shape, this.points),
-            fill: this.fill,
+            fill: 'rgba(255,255,255,0)',
             stroke: this.stroke,
-            filters: [ Konva.Filters.Pixelate ],
             strokeWidth: 1
         });
 
@@ -120,6 +142,9 @@ class Polygon {
         this.shape.fill('rgb(' + color + ')');
         this.shape.stroke('rgb(' + color + ')');
         this.shape.draw();
+        // this.triangles.forEach(triang => {
+        //     triang.setTriangleColor(this.points, vertices);
+        // });
     }
 
     paintLinearGradient(e) {
@@ -145,6 +170,39 @@ class Polygon {
             case 5: r = v, g = p, b = q; break;
         }
         return [ Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    pointInsidePolygon(polygon, mousePoint, width, height) {
+        let intersections = 0;
+        for (let i = 0; i < polygon.points.length; i++) {
+
+            let pntA = polygon.points[i];
+            let pntB = polygon.points[(i + 1) % polygon.points.length];
+            let xi = ((pntA.x / width) * this.getWidth()) + Constant.X_OFFSET,
+                yi = (((height - pntA.y) / height) * this.getHeight()) + Constant.Y_OFFSET;
+            let xj = ((pntB.x / width) * this.getWidth()) + Constant.X_OFFSET,
+                yj = (((height - pntB.y) / height) * this.getHeight()) + Constant.Y_OFFSET;
+
+            if (this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
+                intersections += 1;
+            }
+        }
+
+        return intersections % 2 !== 0;
+    }
+
+
+    vectorIntersection(a, b, c, d, p, q, r, s) {
+        let det, gamma, lambda;
+
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
     }
 }
 
