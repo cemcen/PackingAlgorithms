@@ -160,6 +160,7 @@
                                                 label: "",
                                                 radius: null,
                                                 points: pointsArray,
+                                                indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
                                                 area: ((vertices + 1) < polygonLine.length)? parseFloat(polygonLine[vertices + 1]): 0,
                                                 hole: ((vertices + 1) < polygonLine.length)? parseInt(polygonLine[vertices + 2]) === 1: true,
                                                 properties: propertiesArray,
@@ -175,6 +176,8 @@
                                 polygons.forEach(pol => {
                                     pol.points.forEach(pnt => {
                                         if(!pnt.visited) {
+                                            pnt.oldX = pnt.x;
+                                            pnt.oldY = pnt.y;
                                             pnt.x -= minX;
                                             pnt.y -= minY;
                                             pnt.visited = true;

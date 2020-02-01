@@ -60,6 +60,12 @@
                 results: [],
             }
         },
+        props: {
+            polygons: {
+                type: Array,
+                defaultValue: []
+            }
+        },
         computed: {
             packing() {
                 return this.$store.getters.getPacking;
@@ -128,9 +134,10 @@
                                             resultsPerComponent[index - 1].polygons.push({
                                                 index: parseInt(line[0]),
                                                 value: cValue
-                                            })
+                                            });
                                         }
                                     });
+
                                 }
                                 this.results = this.results.concat(resultsPerComponent);
                             } catch (e) {
@@ -160,34 +167,27 @@
                 this.$forceUpdate();
             },
             loadResults(item) {
+                let colors = [];
+                let minHue = 240, maxHue=0;
+                for (const x of Array(17).keys()) {
+                    colors.push((x/16)*(maxHue - minHue) + minHue)
+                }
                 if(item.type === 'Displacements') {
                     item.vertices.forEach(vert => {
-                        let minHue = 240, maxHue=0;
                         let min = item.minValue;
                         let max = item.maxValue;
                         vert.color = ((vert.value - min) / (max - min)) * (maxHue - minHue) + minHue;
                     });
 
-
-                    this.packing.resultType = 'Displacements';
-                    this.packing.polygons.forEach(pol => {
-                        pol.points.forEach(pnt => {
-                            pnt.color = item.vertices[pnt.index - 1].color;
-                        });
+                    this.polygons.forEach(pol => {
+                        pol.setVertexColors(item.vertices);
                     });
 
                 } else if (item.type === 'Stresses') {
-                    this.packing.resultType = 'Stresses';
                     item.polygons.forEach(pol => {
-                        let colors = [];
-                        let minHue = 240, maxHue=0;
-                        for (const x of Array(17).keys()) {
-                            colors.push((x/16)*(maxHue - minHue) + minHue)
-                        }
-
                         let min = item.minValue;
                         let max = item.maxValue;
-                        this.packing.polygons[pol.index - 1].color = colors[parseInt(((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue) % 17];
+                        this.polygons.find(polShape => polShape.getIndex() === (pol.index)).setColor(pol.value, colors[parseInt(((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue) % 17]);
                     });
 
                 }

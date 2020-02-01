@@ -26,7 +26,7 @@
                     </div>
                 </v-col>
                 <v-col md="6" class="fill-height">
-                    <upload-results-file @reDraw="refresh"/>
+                    <upload-results-file :polygons="polygonsShape"/>
                 </v-col>
             </v-row>
         </v-card>
@@ -37,10 +37,7 @@
 
     import Constant from "../geometry/constants";
     import UploadResultsFile from "./UploadResultsFile.vue";
-    import Point from "../geometry/point";
-    import Segment from "../geometry/segment";
     import Polygon from "../geometry/polygon";
-
 
     export default {
         name: "UploadResultsDialog",
@@ -94,9 +91,18 @@
                 this.dialog = false;
                 this.$emit("closedDialog");
             },
+            downloadURI(uri, name) {
+                let link = document.createElement('a');
+                link.download = name;
+                link.href = uri;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
             downloadImage() {
                 let filename = 'results.png';
-                this.ps.save(filename);
+                let dataURL = this.stage.toDataURL({ pixelRatio: 3 });
+                this.downloadURI(dataURL, filename);
             },
             reDraw() {
                 setTimeout(() => {
@@ -128,40 +134,6 @@
                         this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer));
                     });
                     this.stage.add(layer);
-                }
-            },
-            colorPolygons(p) {
-                let width =  this.packing.width;
-                let height = this.packing.height;
-                if (this.packing.resultType === 'Stresses') {
-                    this.packing.polygons.forEach(pol => {
-                        let polygon = pol;
-                        p.stroke(33, 33, 33);
-                        p.strokeWeight(1);
-                        p.colorMode(p.HSB);
-                        let color = polygon.color;
-                        if (isNaN(color)) color = 0;
-                        p.fill(color, 100, 100);
-                        p.stroke(color, 100, 100);
-                        p.beginShape();
-                        polygon.points.forEach(pnt => {
-                            let sx = ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis();
-                            let sy = (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis();
-                            p.vertex(sx, sy);
-                        });
-                        p.endShape(p.CLOSE);
-                    });
-                }
-
-                if(this.packing.resultType === 'Displacements') {
-                    p.noFill();
-                    p.colorMode(p.HSB);
-                    for(let i = 0; i <= p.width; i++) {
-                        for(let j = 0; j <= p.height; j++) {
-
-
-                        }
-                    }
                 }
             },
             pointInsidePolygon(polygon, mousePoint, width, height, p) {
