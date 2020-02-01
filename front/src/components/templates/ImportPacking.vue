@@ -84,6 +84,7 @@
                                 let numberOfEdges = 0;
                                 let numberOfProperties = 0;
                                 let numberOfPolygons = 0;
+                                let numberOfHoles = 0;
                                 if(this.parameters[0]) {
                                     numberOfPoints = parseInt(firstLine[i]);
                                     i+= 1;
@@ -102,6 +103,10 @@
                                 if(this.parameters[3]) {
                                     numberOfPolygons = parseInt(firstLine[i]);
                                     i+= 1;
+                                    if(firstLine.length > i) {
+                                        numberOfHoles = parseInt(firstLine[i]);
+                                        i+=1;
+                                    }
                                 }
 
                                 let points = {};
@@ -163,6 +168,33 @@
                                                 indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
                                                 area: ((vertices + 1) < polygonLine.length)? parseFloat(polygonLine[vertices + 1]): 0,
                                                 hole: ((vertices + 1) < polygonLine.length)? parseInt(polygonLine[vertices + 2]) === 1: true,
+                                                properties: propertiesArray,
+                                                triangulation: []
+                                            });
+                                        }  else if (index <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons + numberOfHoles) {
+                                            let polygonLine = line.split(" ");
+                                            let vertices = parseInt(polygonLine[0]);
+                                            let pointsArray = [];
+                                            let propertiesArray = [];
+                                            let numberOfProperties2 = ((vertices + 3) < polygonLine.length)?  parseInt(polygonLine[vertices + 3]): 0;
+
+                                            Array(vertices).fill(undefined).map((_, i) => {
+                                                pointsArray.push(points[polygonLine[i + 1]]);
+                                            });
+
+                                            Array(numberOfProperties2).fill(undefined).map((_, i) => {
+                                                let aProperty = propertiesFile[polygonLine[i + vertices + 4]];
+                                                propertiesArray.push({key: aProperty.label, value: aProperty.default});
+                                            });
+
+
+                                            polygons.push({
+                                                label: "",
+                                                radius: null,
+                                                points: pointsArray,
+                                                indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
+                                                area: ((vertices + 1) < polygonLine.length)? parseFloat(polygonLine[vertices + 1]): 0,
+                                                hole: true,
                                                 properties: propertiesArray,
                                                 triangulation: []
                                             });
