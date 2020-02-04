@@ -72,6 +72,11 @@
             }
         },
         methods: {
+            clearResults() {
+                this.results = [];
+                this.file = null;
+                this.$refs.resultsFileForm.resetValidation();
+            },
             uploadResultsFile() {
                 if(this.$refs.resultsFileForm.validate()) {
                     if (this.file.type === 'text/plain') {

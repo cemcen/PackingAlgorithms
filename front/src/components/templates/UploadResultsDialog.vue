@@ -26,7 +26,7 @@
                     </div>
                 </v-col>
                 <v-col md="6" class="fill-height">
-                    <upload-results-file :polygons="polygonsShape"/>
+                    <upload-results-file ref="uploadResultsFileRef" :polygons="polygonsShape"/>
                 </v-col>
             </v-row>
         </v-card>
@@ -146,6 +146,8 @@
                     });
                     this.stage.add(layer);
                 }
+
+                this.$refs.uploadResultsFileRef.clearResults();
             },
             pointInsidePolygon(polygon, mousePoint, width, height, p) {
                 let intersections = 0;
