@@ -288,8 +288,8 @@
                 });
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
-                let sOP = selectedOptionProperties === "All" ? 0 : 1;
-                let sOT = selectedOptionType === "All" ? 0 : (selectedOptionType === "All Nodes" ? 1 : 2);
+                let sOP = selectedOptionProperties.value;
+                let sOT = selectedOptionType.value;
                 let borderPointsArray = this.packing.draw.borderPoints;
                 let borderSegmentsArray = this.packing.draw.borderSegments;
                 let properties = this.properties;

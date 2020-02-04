@@ -14,15 +14,15 @@
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="All border elements or only selected ones."
-                              v-model="selectedOptionProperties"
-                              :items="optionProperties">
+                              v-model="selectedOptionProperties" item-text="name"
+                              :items="optionProperties" return-object>
                     </v-select>
                 </v-col>
             </v-row>
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
-                    <v-select label="All border elements, only segments or only vertices."
-                              v-model="selectedOptionType" :items="optionType">
+                    <v-select label="All border elements, only segments or only vertices." item-text="name"
+                              v-model="selectedOptionType" :items="optionType" return-object>
                     </v-select>
                 </v-col>
             </v-row>
@@ -84,10 +84,17 @@
         data() {
             return {
                 isEditing: false,
-                selectedOptionProperties: "Entire Boundary",
-                selectedOptionType: "All Entities",
-                optionProperties: ["Entire Boundary", "Selected Entities Only"],
-                optionType: ["All Entities", "Nodes Only", "Segments Only"],
+                selectedOptionProperties: {name: "Entire Boundary", value: 0},
+                selectedOptionType: {name: "All Entities", value: 0 },
+                optionProperties: [
+                    {name: "Entire Boundary", value: 0 },
+                    {name: "Selected Entities Only", value: 1 },
+                ],
+                optionType: [
+                    {name: "All Entities", value: 0 },
+                    {name: "Nodes Only", value: 1 },
+                    {name: "Segments Only", value: 2 },
+                ],
             }
         },
         computed: {

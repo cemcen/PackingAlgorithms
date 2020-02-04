@@ -53,6 +53,7 @@
 <script>
     import validation from './../../services/validation.service';
     import * as poly2tri from 'poly2tri';
+    import Delaunator from 'delaunator';
 
     String.prototype.hashCode = function() {
         let hash = 0, i, chr;
@@ -255,19 +256,31 @@
                                         let triangulation = [];
                                         let contour = [];
                                         pol.points.forEach(pnt => {
-                                            contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                            contour.push([pnt.x, pnt.y])
                                         });
-                                        let swctx = new poly2tri.SweepContext(contour);
-                                        swctx.triangulate();
-                                        let triangles = swctx.getTriangles();
-                                        triangles.forEach(function (t) {
-                                            let triangle = [];
-                                            t.getPoints().forEach(function (p) {
-                                                triangle.push({x: p.x, y: p.y});
-
-                                            });
-                                            triangulation.push(triangle);
-                                        });
+                                        const delaunay = Delaunator.from(contour);
+                                        for (let i = 0; i < delaunay.triangles.length; i += 3) {
+                                                let pointsT =  [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
+                                                let triangle = [];
+                                                pointsT.forEach(pnt => {
+                                                    triangle.push({x: pnt[0], y: pnt[1]});
+                                                });
+                                                triangulation.push(triangle);
+                                            }
+                                        // pol.points.forEach(pnt => {
+                                        //     contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                        // });
+                                        // let swctx = new poly2tri.SweepContext(contour);
+                                        // swctx.triangulate();
+                                        // let triangles = swctx.getTriangles();
+                                        // triangles.forEach(function (t) {
+                                        //     let triangle = [];
+                                        //     t.getPoints().forEach(function (p) {
+                                        //         triangle.push({x: p.x, y: p.y});
+                                        //
+                                        //     });
+                                        //     triangulation.push(triangle);
+                                        // });
                                         pol.triangulation = triangulation;
                                     });
 

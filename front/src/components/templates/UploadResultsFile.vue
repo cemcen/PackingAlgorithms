@@ -36,7 +36,7 @@
                             <v-list-item-content>
                                 <v-list-item-title v-html="item.name"></v-list-item-title>
                                 <v-list-item-subtitle>
-                                    <span>Type: {{ item.type }}</span>
+                                    <span>Type: {{ item.typeName }}</span>
                                 </v-list-item-subtitle>
                             </v-list-item-content>
                         </v-list-item>
@@ -79,7 +79,7 @@
                             this.results = [];
                             try {
                                 let lines = res.split("\n");
-                                let type = lines[0].split(" ")[1];
+                                let typeName = lines[0].split(" ")[1];
                                 let componentsNames = lines[2].split(" ");
                                 componentsNames = componentsNames.splice(1, componentsNames.length - 1);
                                 let numberOfVertices = parseInt(lines[3].split(" ")[1]);
@@ -87,7 +87,8 @@
                                 let resultsPerComponent = Array(componentsNames.length).fill(undefined).map((_, i) => {
                                     return {
                                         name: componentsNames[i],
-                                        type: type,
+                                        type: 0,
+                                        typeName: typeName,
                                         vertices: [],
                                         minValue: Number.MAX_VALUE,
                                         maxValue: 0
@@ -110,7 +111,7 @@
                                 this.results = this.results.concat(resultsPerComponent);
 
                                 lines = lines.splice(numberOfVertices, lines.length - numberOfVertices);
-                                type = lines[0].split(" ")[1];
+                                typeName = lines[0].split(" ")[1];
                                 componentsNames = lines[2].split(" ");
                                 componentsNames = componentsNames.splice(1, componentsNames.length - 1);
                                 let numberOfPolygons = parseInt(lines[3].split(" ")[1]);
@@ -118,7 +119,8 @@
                                 resultsPerComponent = Array(componentsNames.length).fill(undefined).map((_, i) => {
                                     return {
                                         name: componentsNames[i],
-                                        type: type,
+                                        type: 1,
+                                        typeName: typeName,
                                         polygons: [],
                                         minValue: Number.MAX_VALUE,
                                         maxValue: 0
@@ -166,13 +168,44 @@
 
                 this.$forceUpdate();
             },
+            convertToRGB(hex) {
+                const color = [];
+                color[0] = parseInt((trim(hex)).substring(0, 2), 16);
+                color[1] = parseInt((trim(hex)).substring(2, 4), 16);
+                color[2] = parseInt((trim(hex)).substring(4, 6), 16);
+                return color;
+            },
+            generateColor(colorStart, colorEnd, colorCount) {
+
+                // The beginning of your gradient
+                const start = this.convertToRGB(colorStart);
+                // The end of your gradient
+                const end = this.convertToRGB(colorEnd);
+                // The number of colors to compute
+                const len = colorCount;
+                //Alpha blending amount
+                let alpha = 0.0;
+                const saida = [];
+                for (i = 0; i < len; i++) {
+                    var c = [];
+                    alpha += (1.0 / len);
+
+                    c[0] = start[0] * alpha + (1 - alpha) * end[0];
+                    c[1] = start[1] * alpha + (1 - alpha) * end[1];
+                    c[2] = start[2] * alpha + (1 - alpha) * end[2];
+
+                    saida.push(c);
+                }
+                return saida;
+            },
             loadResults(item) {
                 let colors = [];
                 let minHue = 240, maxHue=0;
-                for (const x of Array(17).keys()) {
-                    colors.push((x/16)*(maxHue - minHue) + minHue)
+                let number = 12;
+                for (const x of Array(number + 1).keys()) {
+                    colors.push((x/number)*(maxHue - minHue) + minHue)
                 }
-                if(item.type === 'Displacements') {
+                if(item.type === 0) {
                     item.vertices.forEach(vert => {
                         let min = item.minValue;
                         let max = item.maxValue;
@@ -183,11 +216,13 @@
                         pol.setVertexColors(item.vertices);
                     });
 
-                } else if (item.type === 'Stresses') {
+                } else if (item.type === 1) {
                     item.polygons.forEach(pol => {
                         let min = item.minValue;
                         let max = item.maxValue;
-                        this.polygons.find(polShape => polShape.getIndex() === (pol.index)).setColor(pol.value, colors[parseInt(((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue) % 17]);
+                        let value = ((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue;
+                        let hsl = parseInt(Math.round((value - minHue)/(maxHue - minHue)*number));
+                        this.polygons.find(polShape => polShape.getIndex() === (pol.index)).setColor(pol.value, colors[hsl]);
                     });
 
                 }

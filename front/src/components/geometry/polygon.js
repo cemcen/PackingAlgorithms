@@ -64,7 +64,8 @@ class Polygon {
         });
 
         this.shape.on('click', () => {
-           //console.log(this.pol, this.indexPol, this.value, this.shape.fill());
+
+           console.log(this.pol, this.indexPol, this.value, this.hsl);
         });
 
         layer.add(this.shape);
@@ -122,6 +123,7 @@ class Polygon {
 
     setColor(value, hsl) {
         this.value = value;
+        this.hsl = hsl;
         let rgbColor = this.HSVtoRGB(hsl/360, 1, 1);
         this.shape.fill('rgb(' + rgbColor + ')');
         this.shape.stroke('rgb(' + rgbColor + ')');
