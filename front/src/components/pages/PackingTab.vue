@@ -1031,7 +1031,7 @@
             },
             convertMeshToAllConvexPolygons() {
                 this.executing = true;
-                let packingToChange = JSON.parse(JSON.stringify(this.packing.originalPacking));
+                let packingToChange = JSON.parse(JSON.stringify(this.packing));
                 let nPacking = {
                     polygons: [],
                     width: packingToChange.width,
