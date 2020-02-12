@@ -17,7 +17,7 @@
                 </v-col>
             </v-row>
         </v-form>
-        <v-card-text style="max-height: 80%; overflow: auto;">
+        <v-card-text style="max-height: 75%; overflow: auto;">
             <v-row justify="center">
                 <v-list style="width: 100%; display: contents;" two-line>
                     <div class="text-centered font-weight-light grey--text title mb-2"
