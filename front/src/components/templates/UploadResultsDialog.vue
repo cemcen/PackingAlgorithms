@@ -21,9 +21,10 @@
                     <!--<div id='myContainerUR' ref="pCont" class="polygon">
                         <div id="polygonDrawerUpdateResults" ref="polygonDrawer"></div>
                     </div>-->
-                    <div id='myContainerKonvas' ref="pKonvas" style="height: 80%; width: 100%">
+                    <!--<div id='myContainerKonvas' ref="pKonvas" style="height: 80%; width: 100%">
 
-                    </div>
+                    </div>-->
+                    <div class="scene" ref="scene"  style="height: 80%; width: 100%"/>
                 </v-col>
                 <v-col md="6" class="fill-height">
                     <upload-results-file ref="uploadResultsFileRef" :polygons="polygonsShape"/>
@@ -38,6 +39,8 @@
     import Constant from "../geometry/constants";
     import UploadResultsFile from "./UploadResultsFile.vue";
     import Polygon from "../geometry/polygon";
+    import * as THREE from "three";
+
 
     export default {
         name: "UploadResultsDialog",
@@ -49,12 +52,15 @@
                 ps: null,
                 stage: null,
                 polygonsShape: [],
-                configStage: {}
+                configStage: {},
+                renderer: new THREE.WebGLRenderer(),
+                scene: new THREE.Scene(),
+                camera: null
             }
         },
         mounted() {
 
-            this.stage = new Konva.Stage({
+            /*this.stage = new Konva.Stage({
                 container: 'myContainerKonvas',
                 width: 100,
                 height: 100
@@ -70,6 +76,7 @@
                 this.stage.width(container.clientWidth);
                 this.stage.draw();
             });
+            */
         },
         computed: {
             packing() {
@@ -135,6 +142,34 @@
             },
             drawNewPacking() {
                 window.dispatchEvent(new Event('resize'));
+                /// THREEJS
+                const el = this.$refs.scene;
+                console.log(el.clientWidth);
+                console.log(el.clientHeight);
+                this.camera = new THREE.PerspectiveCamera(
+                    75,
+                    el.clientWidth / el.clientHeight,
+                    0.1,
+                    1000
+                );
+                this.renderer.setSize(el.clientWidth, el.clientHeight);
+                el.appendChild(this.renderer.domElement);
+
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const cube = new THREE.Mesh(geometry, material);
+
+                this.scene.add(cube);
+                this.camera.position.z = 5;
+
+                const animate = () => {
+                    requestAnimationFrame(animate);
+
+
+                    this.renderer.render(this.scene, this.camera);
+                };
+
+                animate();
             },
             createNewPacking() {
                 if (this.packing && this.packing.polygons) {
