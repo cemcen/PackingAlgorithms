@@ -18,13 +18,8 @@
         <v-card class="fill-height">
             <v-row class="fill-height" no-gutters>
                 <v-col md="6" class="fill-height">
-                    <!--<div id='myContainerUR' ref="pCont" class="polygon">
-                        <div id="polygonDrawerUpdateResults" ref="polygonDrawer"></div>
-                    </div>-->
-                    <!--<div id='myContainerKonvas' ref="pKonvas" style="height: 80%; width: 100%">
-
-                    </div>-->
-                    <div class="scene" ref="scene"  style="height: 80%; width: 100%"/>
+                    <div class="scene" ref="scene"  style="height: 80%; width: 100%">
+                    </div>
                 </v-col>
                 <v-col md="6" class="fill-height">
                     <upload-results-file ref="uploadResultsFileRef" :polygons="polygonsShape"/>
@@ -49,34 +44,12 @@
             return {
                 dialog: false,
                 drawPacking: false,
-                ps: null,
-                stage: null,
                 polygonsShape: [],
                 configStage: {},
                 renderer: new THREE.WebGLRenderer(),
                 scene: new THREE.Scene(),
                 camera: null
             }
-        },
-        mounted() {
-
-            /*this.stage = new Konva.Stage({
-                container: 'myContainerKonvas',
-                width: 100,
-                height: 100
-            });
-
-            this.createNewPacking();
-
-            // adapt the stage on any window resize
-            window.addEventListener('resize', () => {
-                let container = this.$refs.pKonvas;
-
-                this.stage.height(container.clientHeight);
-                this.stage.width(container.clientWidth);
-                this.stage.draw();
-            });
-            */
         },
         computed: {
             packing() {

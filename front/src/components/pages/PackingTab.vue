@@ -197,7 +197,6 @@
     import Swatches from 'vue-swatches';
     import validation from './../../services/validation.service';
 
-    // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
     import BoundaryConditions from "../templates/BoundaryConditions.vue";
     import AssignProperties from "../templates/AssignProperties.vue";
@@ -205,6 +204,7 @@
     import DownloadPacking from "../templates/DownloadPacking.vue";
     import DialogNewPacking from "../templates/DialogNewPacking.vue";
     import UploadResultsDialog from "../templates/UploadResultsDialog.vue";
+    import Polygon from "../geometry/konvas/polygon";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -231,7 +231,8 @@
                 drawSelectionBox: false,
                 drawPacking: true,
                 selectedTab: 1,
-                ps: null,
+                stage: null,
+                polygonsShape: [],
                 dialogBoundaryConditions: false,
                 timeout: 1200,
                 dialog: false,
@@ -265,194 +266,105 @@
             }
         },
         mounted() {
-            this.script = p => {
-                let canvas = null;
-                // Settings of the canvas.
-                p.setup = () => {
-                    // We use the div size as the canvas size.
-                    //console.log(this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
-                    canvas = p.createCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);//this.$refs.polygonContainer.clientWidth,this.$refs.polygonContainer.clientHeight);
-                    canvas.parent(this.$refs.polygonDrawer);
-                    // Amount of frames per second, how many times per second it's drawn.
-                    p.frameRate(32);
-                    //console.log(canvas);
-                };
 
-                p.windowResized = () => {
-                    if (typeof this.$refs.polygonContainer !== "undefined") {
-                        p.resizeCanvas(this.$refs.polygonContainer.clientWidth, this.$refs.polygonContainer.clientHeight);
-                        this.drawPacking = true;
-                        p.draw();
-                    }
-                };
+            this.stage = new Konva.Stage({
+                container: 'myContainer',
+                width: 100,
+                height: 100
+            });
 
-                let locked = false;
-                let dragged = false;
-                let xInit = 0;
-                let yInit = 0;
-                let bx = 0;
-                let by = 0;
-                p.mousePressed = () => {
-                    if (p.mouseX > -10 && p.mouseY > -10 && p.mouseX < p.width + 10 && p.mouseY < p.height + 10 && !this.openedDialog) {
-                        locked = true;
-                        xInit = p.mouseX;
-                        yInit = p.mouseY;
-                        bx = p.mouseX;
-                        by = p.mouseY;
-                    }
-                };
+            this.createNewPacking();
 
-                p.mouseDragged = () => {
-                    if (locked) {
-                        dragged = true;
-                        bx = p.mouseX;
-                        by = p.mouseY;
-                        this.drawSelectionBox = true;
-                        p.draw();
-                    }
-                };
+            // adapt the stage on any window resize
+            window.addEventListener('resize', () => {
+                let container = this.$refs.polygonContainer;
 
-                p.mouseReleased = () => {
-                    let height = this.packing.height;
-                    let width = this.packing.width;
-                    if (locked && dragged && !this.openedDialog) {
-                        locked = false;
-                        if (Math.abs(xInit - bx) * Math.abs(yInit - by) < 0.1) {
-                            if (this.packing.graph) {
-                                this.packing.polygons.forEach(pol => {
-                                    pol.selected = false;
-                                });
-                                this.packing.polygons.forEach(pol => {
-                                    let pnt = [p.mouseX, p.mouseY];
-                                    pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
-                                });
-                            }
-                        } else {
-                            let box = {
-                                points: [
-                                    {
-                                        x: Math.min(bx, xInit),
-                                        y: Math.min(by, yInit)
-                                    },
-                                    {
-                                        x: Math.max(bx, xInit),
-                                        y: Math.min(by, yInit)
-                                    },
-                                    {
-                                        x: Math.max(bx, xInit),
-                                        y: Math.max(by, yInit)
-                                    },
-                                    {
-                                        x: Math.min(bx, xInit),
-                                        y: Math.max(by, yInit)
-                                    },
-                                ]
-                            };
-                            if (this.packing.graph) {
-                                this.packing.polygons.forEach(pol => {
-                                    pol.selected = false;
-                                });
-                                this.packing.polygons.forEach(pol => {
-                                    pol.selected = this.polygonIntersection(pol, box, width, height, p);
-                                });
-                            }
-                            dragged = false;
-                        }
-                        this.drawPacking = true;
-                        p.draw();
-
-                    } else if (locked && this.packing.graph && !this.openedDialog) {
-                        locked = false;
-                        this.packing.polygons.forEach(pol => {
-                            pol.selected = false;
-                        });
-                        this.packing.polygons.forEach(pol => {
-                            let pnt = [p.mouseX, p.mouseY];
-                            pol.selected = this.pointInsidePolygon(pol, pnt, width, height, p);
-                            if(pol.selected) {
-                                console.log(pol);
-                            }
-                        });
-
-                        this.drawPacking = true;
-                        p.draw();
-                    }
-                    locked = false;
-
-                    xInit = 0;
-                    yInit = 0;
-                    bx = 0;
-                    by = 0;
-                };
-
-                // What's been drawn on the canvas
-                p.draw = () => {
-                    if (!this.openedDialog && (this.drawPacking || this.drawSelectionBox)) {
-                        p.background(255, 255, 255);
-                        p.push();
-
-                        if (this.packing) {
-                            if (this.packing.polygons) {
-                                this.packing.polygons.forEach(pol => {
-                                    this.drawPolygon(pol, this.packing.width, this.packing.height, p)
-                                });
-                            }
-                            let graph = this.packing.graph;
-                            let height = this.packing.height;
-                            let width = this.packing.width;
-                            let widthContainer = this.getWidth(p);
-                            let heightContainer = this.getHeight(p);
-                            let xAxisOffset = this.getOffsetXAxis();
-                            let yAxisOffset = this.getOffsetYAxis();
-
-                            if (graph) {
-                                Object.keys(graph).forEach(function (pointA) {
-                                    Object.keys(graph[pointA]).forEach(function (pointB) {
-                                        const pntA = pointA.split(",");
-                                        const pntB = pointB.split(",");
-
-                                        p.stroke(33, 33, 33);
-                                        p.strokeWeight(3);
-
-                                        p.line(
-                                            ((pntA[0] / width) * widthContainer) + xAxisOffset,
-                                            (((height - pntA[1]) / height) * heightContainer) + yAxisOffset,
-                                            ((pntB[0] / width) * widthContainer) + xAxisOffset,
-                                            (((height - pntB[1]) / height) * heightContainer) + yAxisOffset
-                                        );
-                                    });
-                                });
-                            }
-                            this.drawPacking = false;
-                        }
-                        if (locked && this.drawSelectionBox) {
-                            p.strokeWeight(3);
-                            p.stroke(239, 83, 80);
-                            p.noFill();
-                            let x = Math.min(bx, xInit);
-                            let y = Math.min(by, yInit);
-                            p.rect(x, y, Math.abs(bx - xInit), Math.abs(by - yInit));
-                            this.drawSelectionBox = false;
-                        }
-                        p.pop();
-                    }
-                };
-            };
-            const P5 = require('p5');
-            this.ps = new P5(this.script, 'myContainer');
+                this.stage.height(container.clientHeight);
+                this.stage.width(container.clientWidth);
+                this.stage.draw();
+            });
+            window.dispatchEvent(new Event('resize'));
         },
         methods: {
-            getWidth(p) {
-                return p.width - 30;
-            },
-            getHeight(p) {
-                return p.height - 30;
-            },
-            getOffsetXAxis() {
-                return 10;
-            },
-            getOffsetYAxis() {
-                return 10;
+            createNewPacking() {
+                if (this.packing && this.packing.polygons) {
+                    this.stage.destroyChildren();
+                    let layer = new Konva.Layer();
+
+                    // draw a background rect to catch events.
+                    let r1 = new Konva.Rect({x: 1, y: 1,
+                        width: this.$refs.polygonContainer.clientWidth - 10,
+                        height: this.$refs.polygonContainer.clientHeight - 10, fill: null });
+
+                    // draw a rectangle to be used as the rubber area
+                    let r2 = new Konva.Rect({x: 0, y: 0, width: 0, height: 0, stroke: 'red', dash: [2,2]})
+                    r2.listening(false); // stop r2 catching our mouse events.
+
+                    let mode = '';
+                    let posStart;
+                    let posNow;
+                    function startDrag(posIn){
+                        posStart = {x: posIn.x, y: posIn.y};
+                        posNow = {x: posIn.x, y: posIn.y};
+                    }
+
+                    function reverse(r1, r2){
+                        let r1x = r1.x, r1y = r1.y, r2x = r2.x,  r2y = r2.y, d;
+                        if (r1x > r2x ){
+                            d = Math.abs(r1x - r2x);
+                            r1x = r2x; r2x = r1x + d;
+                        }
+                        if (r1y > r2y ){
+                            d = Math.abs(r1y - r2y);
+                            r1y = r2y; r2y = r1y + d;
+                        }
+                        return ({x1: r1x, y1: r1y, x2: r2x, y2: r2y}); // return the corrected rect.
+                    }
+
+                    function updateDrag(posIn, polygons, stage){
+
+                        // update rubber rect position
+                        posNow = {x: posIn.x, y: posIn.y};
+                        let posRect = reverse(posStart,posNow);
+                        r2.x(posRect.x1);
+                        r2.y(posRect.y1);
+                        r2.width(posRect.x2 - posRect.x1);
+                        r2.height(posRect.y2 - posRect.y1);
+                        r2.visible(true);
+
+                        stage.draw();
+                    }
+                    this.polygonsShape = [];
+
+
+                    r1.on('mousedown', (e) => {
+                        mode = 'drawing';
+                        startDrag({x: e.evt.layerX, y: e.evt.layerY});
+                    });
+
+                    r1.on('click', (e) => {
+                        console.log("hola");
+                    });
+
+                    r1.on('mousemove', (e) => {
+                        if (mode === 'drawing'){
+                            updateDrag({x: e.evt.layerX, y: e.evt.layerY}, this.polygonsShape, this.stage);
+                        }
+                    });
+
+                    r1.on('mouseup', (e) => {
+                        mode = '';
+                        r2.visible(false);
+                        this.stage.draw();
+                    });
+
+                    this.packing.polygons.forEach(pol => {
+                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.$refs.polygonContainer));
+                    });
+                    layer.add(r1);
+                    layer.add(r2);
+                    this.stage.add(layer);
+                }
             },
             selectTab(i) {
                 this.selectedTab = i;
