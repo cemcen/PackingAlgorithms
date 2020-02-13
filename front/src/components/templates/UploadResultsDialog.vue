@@ -117,8 +117,6 @@
                 window.dispatchEvent(new Event('resize'));
                 /// THREEJS
                 const el = this.$refs.scene;
-                console.log(el.clientWidth);
-                console.log(el.clientHeight);
                 this.camera = new THREE.PerspectiveCamera(
                     75,
                     el.clientWidth / el.clientHeight,

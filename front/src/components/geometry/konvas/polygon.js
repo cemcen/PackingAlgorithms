@@ -88,21 +88,26 @@ class Polygon {
         return this.shape.getClientRect(1);
     }
 
-    setStroke(color){
-        this.shape.stroke(color);
+    mouseClick(mouse) {
+        if(this.pointInsidePolygon(mouse)) {
+            this.shape.fill('#cccccc');
+        } else {
+            this.shape.fill('#ffffff');
+        }
+        this.shape.draw();
     }
 
 
-    pointInsidePolygon(polygon, mousePoint, width, height) {
+    pointInsidePolygon(mousePoint) {
         let intersections = 0;
-        for (let i = 0; i < polygon.points.length; i++) {
+        for (let i = 0; i < this.points.length; i++) {
 
-            let pntA = polygon.points[i];
-            let pntB = polygon.points[(i + 1) % polygon.points.length];
-            let xi = ((pntA.x / width) * this.getWidth()) + Constant.X_OFFSET,
-                yi = (((height - pntA.y) / height) * this.getHeight()) + Constant.Y_OFFSET;
-            let xj = ((pntB.x / width) * this.getWidth()) + Constant.X_OFFSET,
-                yj = (((height - pntB.y) / height) * this.getHeight()) + Constant.Y_OFFSET;
+            let pntA = this.points[i];
+            let pntB = this.points[(i + 1) % this.points.length];
+            let xi = ((pntA.x / this.width) * this.getWidth()) + Constant.X_OFFSET,
+                yi = (((this.height - pntA.y) / this.height) * this.getHeight()) + Constant.Y_OFFSET;
+            let xj = ((pntB.x / this.width) * this.getWidth()) + Constant.X_OFFSET,
+                yj = (((this.height - pntB.y) / this.height) * this.getHeight()) + Constant.Y_OFFSET;
 
             if (this.vectorIntersection(xi, yi, xj, yj, mousePoint[0], mousePoint[1], -1000, -1000)) {
                 intersections += 1;

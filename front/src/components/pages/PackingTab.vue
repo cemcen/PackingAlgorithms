@@ -205,6 +205,7 @@
     import DialogNewPacking from "../templates/DialogNewPacking.vue";
     import UploadResultsDialog from "../templates/UploadResultsDialog.vue";
     import Polygon from "../geometry/konvas/polygon";
+    import DragBox from "../geometry/konvas/dragBox";
 
     const routes = ["/properties", "/polygons", "/info"];
 
@@ -232,6 +233,7 @@
                 drawPacking: true,
                 selectedTab: 1,
                 stage: null,
+                dragBox: null,
                 polygonsShape: [],
                 dialogBoundaryConditions: false,
                 timeout: 1200,
@@ -290,79 +292,11 @@
                 if (this.packing && this.packing.polygons) {
                     this.stage.destroyChildren();
                     let layer = new Konva.Layer();
-
-                    // draw a background rect to catch events.
-                    let r1 = new Konva.Rect({x: 1, y: 1,
-                        width: this.$refs.polygonContainer.clientWidth - 10,
-                        height: this.$refs.polygonContainer.clientHeight - 10, fill: null });
-
-                    // draw a rectangle to be used as the rubber area
-                    let r2 = new Konva.Rect({x: 0, y: 0, width: 0, height: 0, stroke: 'red', dash: [2,2]})
-                    r2.listening(false); // stop r2 catching our mouse events.
-
-                    let mode = '';
-                    let posStart;
-                    let posNow;
-                    function startDrag(posIn){
-                        posStart = {x: posIn.x, y: posIn.y};
-                        posNow = {x: posIn.x, y: posIn.y};
-                    }
-
-                    function reverse(r1, r2){
-                        let r1x = r1.x, r1y = r1.y, r2x = r2.x,  r2y = r2.y, d;
-                        if (r1x > r2x ){
-                            d = Math.abs(r1x - r2x);
-                            r1x = r2x; r2x = r1x + d;
-                        }
-                        if (r1y > r2y ){
-                            d = Math.abs(r1y - r2y);
-                            r1y = r2y; r2y = r1y + d;
-                        }
-                        return ({x1: r1x, y1: r1y, x2: r2x, y2: r2y}); // return the corrected rect.
-                    }
-
-                    function updateDrag(posIn, polygons, stage){
-
-                        // update rubber rect position
-                        posNow = {x: posIn.x, y: posIn.y};
-                        let posRect = reverse(posStart,posNow);
-                        r2.x(posRect.x1);
-                        r2.y(posRect.y1);
-                        r2.width(posRect.x2 - posRect.x1);
-                        r2.height(posRect.y2 - posRect.y1);
-                        r2.visible(true);
-
-                        stage.draw();
-                    }
                     this.polygonsShape = [];
-
-
-                    r1.on('mousedown', (e) => {
-                        mode = 'drawing';
-                        startDrag({x: e.evt.layerX, y: e.evt.layerY});
-                    });
-
-                    r1.on('click', (e) => {
-                        console.log("hola");
-                    });
-
-                    r1.on('mousemove', (e) => {
-                        if (mode === 'drawing'){
-                            updateDrag({x: e.evt.layerX, y: e.evt.layerY}, this.polygonsShape, this.stage);
-                        }
-                    });
-
-                    r1.on('mouseup', (e) => {
-                        mode = '';
-                        r2.visible(false);
-                        this.stage.draw();
-                    });
-
                     this.packing.polygons.forEach(pol => {
                         this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.$refs.polygonContainer));
                     });
-                    layer.add(r1);
-                    layer.add(r2);
+                    this.dragBox = new DragBox(this.polygonsShape, this.stage, layer, this.$refs.polygonContainer);
                     this.stage.add(layer);
                 }
             },
