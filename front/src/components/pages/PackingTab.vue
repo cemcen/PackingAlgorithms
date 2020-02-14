@@ -152,7 +152,7 @@
                         <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
 
                     </v-toolbar>
-                    <div id='myContainer' ref="polygonContainer" class="polygon">
+                    <div id='myContainer' ref="polygonContainer" class="polygon" style="height: 95%; width: 100%">
                         <div ref="polygonDrawer"></div>
                     </div>
                 </v-card>
@@ -275,7 +275,7 @@
                 height: 100
             });
 
-            this.createNewPacking();
+            this.createPackingPolygons();
 
             // adapt the stage on any window resize
             window.addEventListener('resize', () => {
@@ -288,7 +288,7 @@
             window.dispatchEvent(new Event('resize'));
         },
         methods: {
-            createNewPacking() {
+            createPackingPolygons() {
                 if (this.packing && this.packing.polygons) {
                     this.stage.destroyChildren();
                     let layer = new Konva.Layer();
@@ -296,7 +296,7 @@
                     this.packing.polygons.forEach(pol => {
                         this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.$refs.polygonContainer));
                     });
-                    this.dragBox = new DragBox(this.polygonsShape, this.stage, layer, this.$refs.polygonContainer);
+                    this.dragBox = new DragBox(this.polygonsShape, this.packing.width, this.packing.height, this.stage, layer);
                     this.stage.add(layer);
                 }
             },
@@ -514,6 +514,16 @@
                     p.endShape(p.CLOSE);
                 }
             },
+            updatePacking(resp) {
+                this.executing = false;
+                let packing = this.triangulatePacking(resp.body.mesh);
+                this.$store.commit("newPacking", packing);
+                this.parseMesh(packing);
+                //this.$refs.boundaryConditionsComponent.updatePacking();
+                //this.$refs.uploadResultsRef.createNewPacking();
+                this.createPackingPolygons();
+                this.openedDialog = false;
+            },
             execute(packingOptions) {
                 if (this.polygons.length === 0) {
                     this.$toast('Must insert at least one polygon');
@@ -536,15 +546,7 @@
                     };
                     this.executing = true;
                     api.sendMesh(data).then(resp => {
-                        this.executing = false;
-                        let packing = this.triangulatePacking(resp.body.mesh);
-                        this.$store.commit("newPacking", packing);
-                        this.parseMesh(packing);
-                        this.$refs.boundaryConditionsComponent.updatePacking();
-                        this.$refs.uploadResultsRef.createNewPacking();
-                        this.drawPacking = true;
-                        this.openedDialog = false;
-                        this.ps.draw();
+                        this.updatePacking(resp);
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
@@ -581,15 +583,7 @@
 
                     this.executing = true;
                     api.sendMeshMultiLayers(data).then(resp => {
-                        this.executing = false;
-                        let packing = this.triangulatePacking(resp.body.mesh);
-                        this.$store.commit("newPacking", packing);
-                        this.parseMesh(packing);
-                        this.$refs.boundaryConditionsComponent.updatePacking();
-                        this.$refs.uploadResultsRef.createNewPacking();
-                        this.drawPacking = true;
-                        this.openedDialog = false;
-                        this.ps.draw();
+                        this.updatePacking(resp);
                     }).catch(error => {
                         this.executing = false;
                         console.log(error);
