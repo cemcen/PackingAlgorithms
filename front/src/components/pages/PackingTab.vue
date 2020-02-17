@@ -446,7 +446,7 @@
                 });
                 this.layer.draw();
 
-                // LEGACY
+                // TODO: FIX LEGACY
                 polygons = this.packing.polygons;
                 polygons.forEach(polygon => {
                     if ((selectedOptionProperties.value === 0 && polygon.selected) || selectedOptionProperties.value === 1) {
@@ -477,43 +477,6 @@
 
                 this.openedDialog = false;
                 this.dialog2 = false;
-            },
-            drawPolygon(polygon, width, height, p) {
-                p.stroke(33, 33, 33);
-                p.strokeWeight(1);
-                if (polygon.properties != null && polygon.properties.length > 0) {
-                    if (polygon.triangulation != null && polygon.triangulation.length >= polygon.properties.length) {
-                        let properties = this.properties;
-                        polygon.properties = polygon.properties.filter(prop => Object.keys(properties).includes(prop.key));
-
-                        if (polygon.properties.length > 0) {
-                            let painted_triangles_each_step = Math.floor(polygon.triangulation.length / polygon.properties.length);
-                            for (let i = 0; i < polygon.triangulation.length; i += 1) {
-                                p.fill(properties[polygon.properties[(Math.floor(i / painted_triangles_each_step)) % polygon.properties.length].key].color);
-                                p.stroke(properties[polygon.properties[(Math.floor(i / painted_triangles_each_step)) % polygon.properties.length].key].color);
-                                p.beginShape();
-                                polygon.triangulation[i].forEach(pnt => {
-                                    let sx = ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis();
-                                    let sy = (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis();
-
-                                    p.vertex(sx, sy);
-                                });
-                                p.endShape(p.CLOSE);
-                            }
-                        }
-                    }
-                }
-                if (polygon.selected) {
-                    p.fill('rgba(0,0,0, 0.25)');
-                    p.beginShape();
-                    polygon.points.forEach(pnt => {
-                        p.vertex(
-                            ((pnt.x / width) * this.getWidth(p)) + this.getOffsetXAxis(),
-                            (((height - pnt.y) / height) * this.getHeight(p)) + +this.getOffsetYAxis()
-                        );
-                    });
-                    p.endShape(p.CLOSE);
-                }
             },
             updatePacking(resp) {
                 this.executing = false;
