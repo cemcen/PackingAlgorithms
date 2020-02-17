@@ -1,15 +1,15 @@
 <template>
     <div id="app">
         <v-app id="inspire">
-            <v-app-bar app color="teal lighten-2" dark>
+            <v-app-bar app dense color="teal lighten-2" dark>
                 <v-toolbar-title>Convex Polygon Packing</v-toolbar-title>
             </v-app-bar>
-            <v-content class="content-style">
-                <v-layout class="all-height">
-                    <v-flex sm12 pa-2>
+            <v-content>
+                <v-row style="height: 93vh">
+                    <v-col style="height: 93vh">
                         <packing-tab></packing-tab>
-                    </v-flex>
-                </v-layout>
+                    </v-col>
+                </v-row>
             </v-content>
         </v-app>
     </div>
@@ -38,15 +38,4 @@
 </script>
 
 <style scoped>
-    .content-style {
-        background-color: #ffffff;
-    }
-
-    .all-height {
-        height: 100%;
-    }
-
-    .my-card {
-        height: 100%;
-    }
 </style>

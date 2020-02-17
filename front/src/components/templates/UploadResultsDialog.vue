@@ -115,10 +115,11 @@
                     0.1,
                     1000
                 );
+
                 this.renderer.setSize(el.clientWidth, el.clientHeight);
                 el.appendChild(this.renderer.domElement);
 
-                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const geometry = new THREE.PlaneGeometry( 1, 1 );
                 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                 const cube = new THREE.Mesh(geometry, material);
 

@@ -1,5 +1,5 @@
 <template>
-    <v-card color="#ffffff" class="ma-3 fill-height" style="max-height: 80%">
+    <v-card color="#ffffff" class="ma-3">
         <v-card-title>
             <span class="headline">Assign Properties</span>
             <v-spacer></v-spacer>
@@ -10,7 +10,7 @@
         </v-card-title>
         <properties-form ref="propertiesForm" :is-editing="isEditing"/>
 
-        <v-card-text style="max-height: 80%; overflow: auto;">
+        <v-card-text>
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="All border elements or only selected ones."
@@ -26,7 +26,7 @@
                     </v-select>
                 </v-col>
             </v-row>
-            <v-row justify="center">
+            <v-row justify="center" style="max-height: 40vh; overflow: auto" >
                 <v-list style="width: 100%; display: contents;" two-line>
                     <div class="text-centered font-weight-light grey--text title mb-2"
                          v-show="Object.keys(properties).length === 0">

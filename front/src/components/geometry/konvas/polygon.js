@@ -58,6 +58,10 @@ class Polygon {
         return this.stage.height() - Constant.HEIGHT_OFFSET;
     }
 
+    getPoints() {
+        return this.points;
+    }
+
     xTransform(x){
         let width = this.width;
         let widthContainer = this.getWidth();
@@ -219,7 +223,7 @@ class Polygon {
     }
 
     assignProperties(aProperties, properties) {
-        if (this.triangles != null) {
+        if (this.triangles != null && aProperties) {
             this.properties = aProperties.filter(prop => Object.keys(properties).includes(prop.key));
 
             if (this.properties.length > 0) {
