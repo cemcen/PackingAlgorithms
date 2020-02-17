@@ -233,6 +233,7 @@
                 drawPacking: true,
                 selectedTab: 1,
                 stage: null,
+                layer: null,
                 dragBox: null,
                 polygonsShape: [],
                 dialogBoundaryConditions: false,
@@ -294,9 +295,10 @@
                     let layer = new Konva.Layer();
                     this.polygonsShape = [];
                     this.packing.polygons.forEach(pol => {
-                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.$refs.polygonContainer));
+                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.properties));
                     });
                     this.dragBox = new DragBox(this.polygonsShape, this.packing.width, this.packing.height, this.stage, layer);
+                    this.layer = layer;
                     this.stage.add(layer);
                 }
             },
@@ -422,32 +424,35 @@
                 this.openedDialog = true;
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
-                let polygons = this.packing.polygons;
+                let polygons = this.polygonsShape;
                 let draw = Object.assign({}, this.packing.draw);
+                polygons.forEach(polygon => {
+                    if ((selectedOptionProperties.value === 0 && polygon.isSelected()) || selectedOptionProperties.value === 1) {
+                        if (selectedOptionType.value === 0
+                            || (selectedOptionType.value === 1 && !polygon.isHole())
+                            || (selectedOptionType.value === 2 && polygon.isHole())) {
+
+                            let assignProperties = [];
+                            let properties = this.properties;
+                            Object.keys(properties).forEach(function (item) {
+                                if (properties[item].selected) {
+                                    assignProperties.push({key: item, value: properties[item].default})
+                                }
+                            });
+
+                            polygon.assignProperties(assignProperties, this.properties);
+                        }
+                    }
+                });
+                this.layer.draw();
+
+                // LEGACY
+                polygons = this.packing.polygons;
                 polygons.forEach(polygon => {
                     if ((selectedOptionProperties.value === 0 && polygon.selected) || selectedOptionProperties.value === 1) {
                         if (selectedOptionType.value === 0
                             || (selectedOptionType.value === 1 && !polygon.hole)
                             || (selectedOptionType.value === 2 && polygon.hole)) {
-                            if (polygon.triangulation == null) {
-                                polygon.triangulation = [];
-                                let contour = [];
-                                polygon.points.forEach(pnt => {
-                                    contour.push(new poly2tri.Point(pnt.x, pnt.y))
-                                });
-                                let swctx = new poly2tri.SweepContext(contour);
-                                swctx.triangulate();
-                                let triangles = swctx.getTriangles();
-                                triangles.forEach(function (t) {
-                                    let triangle = [];
-                                    t.getPoints().forEach(function (p) {
-                                        triangle.push({x: p.x, y: p.y});
-                                    });
-
-                                    polygon.triangulation.push(triangle);
-                                });
-                            }
-
                             polygon.properties = [];
                             let properties = this.properties;
                             Object.keys(properties).forEach(function (item) {
@@ -455,13 +460,11 @@
                                     polygon.properties.push({key: item, value: properties[item].default})
                                 }
                             });
-
                             let polygonPoints = [];
                             for (let i = 0; i < polygon.points.length; i++) {
                                 let pointA = polygon.points[i];
                                 polygonPoints.push(this.packing.draw.points[[pointA.x, pointA.y]]);
                             }
-
                             draw.polygons[polygonPoints].polygon.properties = polygon.properties;
                         }
                     }
@@ -472,9 +475,7 @@
                     polygons: polygons
                 });
 
-                this.drawPacking = true;
                 this.openedDialog = false;
-                this.ps.draw();
                 this.dialog2 = false;
             },
             drawPolygon(polygon, width, height, p) {
@@ -791,9 +792,21 @@
                     cEdgesG: cEdgesG,
                 });
             },
+            downloadFile(blob, filename, type) {
+                const e = document.createEvent('MouseEvents'),
+                    a = document.createElement('a');
+                a.download = filename;
+                a.href = window.URL.createObjectURL(blob);
+                a.dataset.downloadurl = [type, a.download, a.href].join(':');
+                e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(e);
+            },
             downloadImage() {
-                let filename = 'packing.png';
-                this.ps.save(filename);
+                let filename = 'results.png';
+                let dataURL = this.stage.toCanvas({ pixelRatio: 3 });
+                dataURL.toBlob((blob) => {
+                    this.downloadFile(blob,filename, 'png');
+                });
             },
             polygonIntersection(polygon, box, width, height, p) {
                 let intersects = false;

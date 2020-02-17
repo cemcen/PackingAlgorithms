@@ -80,14 +80,6 @@
                 e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
                 a.dispatchEvent(e);
             },
-            downloadURI(uri, name) {
-                let link = document.createElement('a');
-                link.download = name;
-                link.href = uri;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            },
             downloadImage() {
                 let filename = 'results.png';
                 let dataURL = this.stage.toCanvas({ pixelRatio: 3 });

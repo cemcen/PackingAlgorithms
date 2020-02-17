@@ -71,8 +71,8 @@ class DragBox {
                     pol.dragBoxIntersect(this.r2);
                 });
                 this.r2.visible(false);
-                this.stage.draw();
             }
+            this.layer.draw();
             mode = '';
 
         });

@@ -1,8 +1,9 @@
 import Constant from "./../constants";
+import Triangle from "./triangle";
 
 class Polygon {
 
-    constructor(pol, width, height, stage, layer, el) {
+    constructor(pol, width, height, stage, layer, properties) {
         this.points = [];
         this.stage = stage;
         this.layer = layer;
@@ -14,6 +15,8 @@ class Polygon {
         this.pol = pol;
         this.selected = false;
         this.polygonCentroid = {x: 0, y: 0};
+        this.triangles = [];
+        this.hole = pol.hole;
 
         pol.points.forEach(pnt => {
             this.points.push({
@@ -29,6 +32,11 @@ class Polygon {
         this.polygonCentroid.x = this.polygonCentroid.x / pol.points.length;
         this.polygonCentroid.y = this.polygonCentroid.y / pol.points.length;
 
+        pol.triangulation.forEach(triang => {
+            this.triangles.push(new Triangle(triang, width, height, stage, layer));
+        });
+
+        this.assignProperties(pol.properties, properties);
 
         this.shape = new Konva.Shape({
             sceneFunc: (context, shape) => this.drawPolygon(context, shape, this.points),
@@ -36,6 +44,7 @@ class Polygon {
             strokeWidth: 1,
         });
 
+        this.shape.fill(null);
         this.shape.listening(false);
 
         layer.add(this.shape);
@@ -87,10 +96,10 @@ class Polygon {
     mouseClick(mouse) {
         if(this.pointInsidePolygon(this.points, mouse)) {
             this.selected = true;
-            this.shape.fill('#cccccc');
+            this.trianglesFillSelected();
         } else {
             this.selected = false;
-            this.shape.fill('#ffffff');
+            this.trianglesNoFill();
         }
         this.shape.draw();
     }
@@ -98,7 +107,7 @@ class Polygon {
 
     dragBoxIntersect(rect) {
         this.selected = false;
-        this.shape.fill('#ffffff');
+        this.trianglesNoFill();
         let rectArray = [
             {x: rect.x(), y: rect.y()},
             {x: rect.x(), y: rect.y() + rect.height()},
@@ -107,7 +116,7 @@ class Polygon {
         ];
         if(this.pointInsidePolygonV2(rectArray, [this.xTransform(this.polygonCentroid.x), this.yTransform(this.polygonCentroid.y)])) {
             this.selected = true;
-            this.shape.fill('#cccccc');
+            this.trianglesFillSelected();
         } else {
             for (let i = 0; i < this.points.length; i++) {
 
@@ -124,8 +133,7 @@ class Polygon {
 
                     if (this.vectorIntersection(xi, yi, xj, yj, pntC.x, pntC.y, pntD.x, pntD.y)) {
                         this.selected = true;
-                        this.shape.fill('#cccccc');
-                        this.shape.draw();
+                        this.trianglesFillSelected();
                         return;
                     }
                 }
@@ -187,6 +195,43 @@ class Polygon {
             lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
             return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+
+    isSelected() {
+        return this.selected;
+    }
+
+    isHole() {
+        return this.hole;
+    }
+
+    trianglesFillSelected() {
+        this.triangles.forEach(triangle => {
+            triangle.fillSelected();
+        });
+    }
+
+    trianglesNoFill() {
+        this.triangles.forEach(triangle => {
+            triangle.noFill();
+        })
+    }
+
+    assignProperties(aProperties, properties) {
+        if (this.triangles != null) {
+            this.properties = aProperties.filter(prop => Object.keys(properties).includes(prop.key));
+
+            if (this.properties.length > 0) {
+                let painted_triangles_each_step = Math.floor(this.triangles.length / this.properties.length);
+                for (let i = 0; i < this.triangles.length; i += 1) {
+                    this.triangles[i].fillTriangle(properties[this.properties[(Math.floor(i / painted_triangles_each_step)) % this.properties.length].key].color);
+                }
+            } else {
+                for (let i = 0; i < this.triangles.length; i += 1) {
+                    this.triangles[i].noProperties();
+                }
+            }
         }
     }
 }
