@@ -88,6 +88,10 @@ class Segment {
             if(this.vectorIntersection(pntA[0], pntA[1], pntB[0], pntB[1], x2, y2, -1000, -1000)) {
                 intersections2 += 1;
             }
+            if(this.vectorIntersection(pntA[0], pntA[1], pntB[0], pntB[1], x1, y1, x2, y2)) {
+                this.selected = true;
+                this.shape.stroke('teal');
+            }
         });
 
         if(intersections1 % 2 !== 0 || intersections2 % 2 !== 0) {
