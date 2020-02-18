@@ -64,6 +64,11 @@ const store = new Vuex.Store({
                  Vue.set(state.packing, "originalPacking", JSON.parse(JSON.stringify(packing)))
             }
         },
+        borderElements: (state, borderElements) => {
+            if(borderElements) {
+                 Vue.set(state.packing, "borderElements", borderElements);
+            }
+        },
         updatePacking: (state, changes) => {
             if(changes) {
                 let draw = {};

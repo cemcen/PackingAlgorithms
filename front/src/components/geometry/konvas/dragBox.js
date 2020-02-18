@@ -5,10 +5,10 @@ class DragBox {
     constructor(polygons, width, height, stage, layer) {
         // draw a background rect to catch events.
         let rectArray = [
-            {x: -10, y: -10},
-            {x: -10, y: height + 10},
-            {x: width + 10, y: height + 10},
-            {x: width + 10, y: -10},
+            {x: -10, y: -100},
+            {x: -100, y: height + 100},
+            {x: width + 100, y: height + 100},
+            {x: width + 100, y: -100},
         ];
         this.r1 = new Konva.Shape({
             sceneFunc: (context, shape) => {
@@ -134,6 +134,10 @@ class DragBox {
         let heightContainer = this.getHeight();
         let yAxisOffset = Constant.Y_OFFSET;
         return (((height - y) / height) * heightContainer) + yAxisOffset
+    }
+
+    setElements(elements) {
+        this.polygons = elements;
     }
 
 }

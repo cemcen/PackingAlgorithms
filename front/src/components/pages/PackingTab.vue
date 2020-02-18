@@ -377,12 +377,13 @@
                 this.$store.commit('newPacking', packing);
                 this.triangulateMesh();
                 this.createPackingPolygons();
+                this.findBoundaryElements();
+                this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.uploadResultsRef.createNewPacking();
                 this.executing = false;
             },
             loadMesh() {
-                this.triangulateMesh();
                 this.createPackingPolygons();
             },
             triangulateMesh() {
@@ -447,10 +448,61 @@
                 this.executing = false;
                 let packing = this.triangulatePacking(resp.body.mesh);
                 this.$store.commit("newPacking", packing);
-                //this.$refs.boundaryConditionsComponent.updatePacking();
+                this.findBoundaryElements();
+                this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.uploadResultsRef.createNewPacking();
                 this.createPackingPolygons();
                 this.openedDialog = false;
+            },
+            findBoundaryElements() {
+                let segmentsCount = {};
+                this.packing.polygons.forEach((pol, index) => {
+                    for(let i = 0; i < pol.points.length; i++) {
+                        let pntA = pol.points[i];
+                        let pntB = pol.points[(i + 1) % pol.points.length];
+
+                        let x1 = parseFloat(pntA.x.toFixed(6));
+                        let y1 = parseFloat(pntA.y.toFixed(6));
+                        let x2 = parseFloat(pntB.x.toFixed(6));
+                        let y2 = parseFloat(pntB.y.toFixed(6));
+
+                        if ([x1, y1] in segmentsCount && [x2, y2] in segmentsCount[[x1, y1]]) {
+                            segmentsCount[[x1, y1]][[x2, y2]].count += 1;
+                        } else if ([x2, y2] in segmentsCount && [x1, y1] in segmentsCount[[x2, y2]]) {
+                            segmentsCount[[x2, y2]][[x1, y1]].count += 1;
+                        } else {
+                            if(!([x1, y1] in segmentsCount)) {
+                                segmentsCount[[x1, y1]] = {};
+                            }
+                            segmentsCount[[x1, y1]][[x2, y2]] = {
+                                count: 1,
+                                pntA: pntA,
+                                pntB: pntB,
+                                polIndex: index
+                            };
+                        }
+                    }
+                });
+
+                let borderSegments = [];
+                let borderPoints = [];
+                Object.keys(segmentsCount).forEach(k => {
+                    Object.keys(segmentsCount[k]).forEach(k2 => {
+                        if(segmentsCount[k][k2].count === 1) {
+                            borderSegments.push({
+                                pntA: segmentsCount[k][k2].pntA,
+                                pntB: segmentsCount[k][k2].pntB,
+                                polIndex: segmentsCount[k][k2].polIndex,
+                            });
+
+                            if(!borderPoints.includes(segmentsCount[k][k2].pntA)) borderPoints.push(segmentsCount[k][k2].pntA);
+                            if(!borderPoints.includes(segmentsCount[k][k2].pntB)) borderPoints.push(segmentsCount[k][k2].pntB);
+                        }
+                    });
+                });
+
+                this.$store.commit("borderElements", {segments: borderSegments, points: borderPoints});
+
             },
             execute(packingOptions) {
                 if (this.polygons.length === 0) {
@@ -542,15 +594,17 @@
                 return mesh;
             },
             changedBoundary() {
-                this.parseMesh(this.packing);
-                this.$refs.boundaryConditionsComponent.updatePacking();
-                this.$refs.uploadResultsRef.createNewPacking();
+                //this.parseMesh(this.packing);
+                //this.$refs.boundaryConditionsComponent.updatePacking();
+                //this.$refs.uploadResultsRef.createNewPacking();
             },
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
-                this.createPackingPolygons();
-                //this.$refs.boundaryConditionsComponent.updatePacking();
+                this.findBoundaryElements();
+                this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.uploadResultsRef.createNewPacking();
+                this.createPackingPolygons();
+                this.openedDialog = false;
             },
             downloadFile(blob, filename, type) {
                 const e = document.createEvent('MouseEvents'),
@@ -612,8 +666,9 @@
                 }
                 let packing = this.triangulatePacking(nPacking);
                 this.$store.commit('updateOnlyPackingPolygons', packing.polygons);
+                this.findBoundaryElements();
+                this.$refs.boundaryConditionsComponent.updatePacking();
                 this.createPackingPolygons();
-                //this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.uploadResultsRef.createNewPacking();
                 this.openedDialog = false;
                 this.executing = false;
@@ -621,7 +676,6 @@
             loadedJSON() {
                 this.openedDialog = false;
                 this.drawPacking = true;
-                this.ps.draw();
             }
         },
     }

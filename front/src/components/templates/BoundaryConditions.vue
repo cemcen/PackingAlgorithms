@@ -54,13 +54,12 @@
 
 <script>
 
-    import Constant from "../geometry/constants";
-    import Point from "../geometry/point";
-    import Segment from "../geometry/segment";
+    import Segment from "../geometry/konvas/segment";
     import BoundaryProperties from "./BoundaryProperties.vue";
     import AddBorderPoints from "./AddBorderPointsDialog.vue";
     import Polygon from "../geometry/konvas/polygon";
     import DragBox from "../geometry/konvas/dragBox";
+    import Point from "../geometry/konvas/point";
 
     export default {
         name: "BorderConditions",
@@ -75,6 +74,7 @@
             return {
                 borderPoints: [],
                 borderSegments: [],
+                borderElements: [],
                 stage: null,
                 layer: null,
                 dragBox: null,
@@ -118,9 +118,9 @@
                     this.packing.polygons.forEach(pol => {
                         this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.properties));
                     });
-                    this.dragBox = new DragBox([], this.packing.width, this.packing.height, this.stage, layer);
+                    this.dragBox = new DragBox(this.borderElements, this.packing.width, this.packing.height, this.stage, layer);
                     this.layer = layer;
-                    this.stage.add(layer);
+                    this.stage.add(this.layer);
                 }
             },
             closeDialog() {
@@ -140,14 +140,25 @@
                 }, 310);
             },
             updatePacking() {
-                this.loadBorderElements();
+                this.loadMesh();
             },
             loadMesh() {
                 this.createPackingPolygons();
                 this.loadBorderElements();
             },
             loadBorderElements() {
+                this.packing.borderElements.segments.forEach(be => {
+                    this.borderSegments.push(new Segment(be.pntA.x, be.pntA.y, be.pntB.x, be.pntB.y,
+                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties, be.indexPol));
+                });
+                this.packing.borderElements.points.forEach(be => {
+                    this.borderPoints.push(new Point(be.x, be.y,
+                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties));
+                });
 
+                this.borderElements = [...this.borderSegments, ...this.borderPoints];
+
+                this.dragBox.setElements(this.borderElements);
             },
             assignProperties(selectedOptionProperties, selectedOptionType) {
                 let sOP = selectedOptionProperties.value;
