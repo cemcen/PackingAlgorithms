@@ -140,6 +140,16 @@ class DragBox {
         this.polygons = elements;
     }
 
+    setPackingMeasures(width, height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    moveToTop() {
+        this.r1.moveToTop();
+        this.r2.moveToTop();
+    }
+
 }
 
 export default DragBox;

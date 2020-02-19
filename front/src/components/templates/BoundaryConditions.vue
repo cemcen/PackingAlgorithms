@@ -69,6 +69,10 @@
                 type: Boolean,
                 defaultValue: false,
             },
+            polygonShape: {
+                type: Array,
+                defaultValue: [],
+            }
         },
         data() {
             return {
@@ -112,14 +116,13 @@
         methods: {
             createPackingPolygons() {
                 if (this.packing && this.packing.polygons) {
-                    this.stage.destroyChildren();
-                    let layer = new Konva.Layer();
-                    this.polygonsShape = [];
-                    this.packing.polygons.forEach(pol => {
-                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.properties));
-                    });
-                    this.dragBox = new DragBox(this.borderElements, this.packing.width, this.packing.height, this.stage, layer);
-                    this.layer = layer;
+                    if(this.layer != null) {
+                        this.layer.destroyChildren();
+                    } else {
+                        this.layer = new Konva.Layer();
+                    }
+
+                    this.dragBox = new DragBox(this.borderElements, this.packing.width, this.packing.height, this.stage, this.layer);
                     this.stage.add(this.layer);
                 }
             },

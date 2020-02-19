@@ -142,7 +142,7 @@
                         </v-card>
                     </v-dialog>
 
-                    <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions"
+                    <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :polygon-shape="polygonsShape"
                                          @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
                                          @closeDialog="closedDialog()"/>
                     <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"
@@ -283,15 +283,19 @@
         methods: {
             createPackingPolygons() {
                 if (this.packing && this.packing.polygons) {
-                    this.stage.destroyChildren();
-                    let layer = new Konva.Layer();
+                    if(this.layer != null) {
+                        this.layer.destroyChildren();
+                    } else {
+                        this.layer = new Konva.Layer();
+                    }
+
                     this.polygonsShape = [];
                     this.packing.polygons.forEach(pol => {
-                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, layer, this.properties));
+                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, this.layer, this.properties));
                     });
-                    this.dragBox = new DragBox(this.polygonsShape, this.packing.width, this.packing.height, this.stage, layer);
-                    this.layer = layer;
-                    this.stage.add(layer);
+
+                    this.dragBox = new DragBox(this.polygonsShape, this.packing.width, this.packing.height, this.stage, this.layer);
+                    this.stage.add(this.layer);
                 }
             },
             selectTab(i) {
