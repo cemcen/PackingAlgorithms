@@ -141,10 +141,11 @@
                         geometry.faces.push( new THREE.Face3(0,i+1,i+2));
                     }
 
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.BackSide  });
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.FrontSide  });
                     const polygon = new THREE.Mesh(geometry, material);
                     this.scene.add(polygon);
                 });
+
 
                 /*const geometry2 = new THREE.PlaneGeometry( 1, 1 );
                 const material2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.FrontSide });
