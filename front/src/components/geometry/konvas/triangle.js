@@ -10,7 +10,7 @@ class Triangle {
         this.height = height;
         this.fill = '#ffffff';
         this.stroke = '#ffffff';
-        this.strokeWidth = 0;
+        this.strokeWidth = 1;
         this.opacity = 1;
 
 

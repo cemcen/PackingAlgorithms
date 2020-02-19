@@ -30,7 +30,7 @@ class Polygon {
         });
 
         this.shape.on('click', () => {
-           console.log(this.pol, this.indexPol, this.value, this.hsl, this.vertices, this.pntMax, this.pntMin, this.points);
+           //console.log(this.pol, this.indexPol, this.value, this.hsl, this.vertices, this.pntMax, this.pntMin, this.points);
         });
 
         layer.add(this.shape);

@@ -190,11 +190,83 @@
             },
             exportPackingTxt(){
                 let file = '';
-                let points = this.packing.draw.points;
-                let edges = this.packing.draw.edges;
-                let polygons = this.packing.draw.polygons;
-                let borderPoints = this.packing.draw.borderPoints;
-                let borderSegments = this.packing.draw.borderSegments;
+                let points = {};
+                let edges = {};
+                let polygons = {};
+                let borderPoints = {};
+                let borderSegments = {};
+                let meshPolygons = this.packing.polygons;
+                let meshBorderPoints = this.packing.borderElements.points;
+                let meshBorderSegments = this.packing.borderElements.segments;
+
+                let pointIndex = 1;
+                let edgeIndex = 1;
+                let polygonIndex = 1;
+
+                meshPolygons.forEach(pol => {
+                    let indexArray = [];
+                    pol.points.forEach((pnt, index) => {
+                        let pntA = pnt;
+                        let pntB = pol.points[(index + 1) % pol.points.length];
+
+                        let x1 = pntA.x;
+                        let y1 = pntA.y;
+                        let x2 = pntB.x;
+                        let y2 = pntB.y;
+
+                        if(!([x1, y1] in points)) {
+                            points[[x1, y1]] = pointIndex;
+                            pointIndex += 1;
+                        }
+
+                        if(!([x2, y2] in points)) {
+                            points[[x2, y2]] = pointIndex;
+                            pointIndex += 1;
+                        }
+
+                        if(!([points[[x1, y1]], points[[x2, y2]]] in edges) && !([points[[x2, y2]], points[[x1, y1]]] in edges)) {
+                            edges[[points[[x1, y1]], points[[x2, y2]]]] = edgeIndex;
+                            edgeIndex += 1;
+                        }
+                        indexArray.push(points[[x1, y1]]);
+                    });
+
+                    polygons[indexArray] = {
+                        count: polygonIndex,
+                        polygon: pol,
+                    };
+
+                    pol.indexExport = polygonIndex;
+
+                    polygonIndex += 1;
+                });
+
+                let borderPointsIndex = 1;
+                meshBorderPoints.forEach(mBP => {
+
+                    borderPoints[[mBP.x, mBP.y]] = {
+                        index: borderPointsIndex,
+                        pointIndex: points[[mBP.x, mBP.y]],
+                        properties: mBP.properties,
+                        point: [mBP.x, mBP.y]
+                    };
+
+                    borderPointsIndex += 1;
+                });
+
+                let borderSegmentsIndex = 1;
+                meshBorderSegments.forEach(mBS => {
+                    let seg = [mBS.pntA.x, mBS.pntA.y, mBS.pntB.x, mBS.pntB.y];
+
+                    borderSegments[[points[[seg[0], seg[1]]], points[[seg[2], seg[3]]]]] = {
+                        index: borderSegmentsIndex,
+                        segmentIndex: edges[[points[[seg[0], seg[1]]], points[[seg[2], seg[3]]]]],
+                        polygon: meshPolygons[mBS.polIndex].indexExport,
+                        properties: mBS.properties
+                    };
+
+                    borderSegmentsIndex += 1;
+                });
 
                 let sortedPoints = this.sortDictionary(points);
                 let sortedEdges = this.sortDictionary(edges);
@@ -295,11 +367,10 @@
                 Object.keys(borderSegments).forEach(bs => {
                     if(borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
                         file += (borderSegments[bs].segmentIndex + ' ');
-                        borderSegments[bs].polygons.forEach(pol => {
-                            file += (pol + ' ');
-                            file += ((sortedPolygons[pol - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1) + ' ');
 
-                        });
+                        file += (borderSegments[bs].polygon + ' ');
+                        file += ((sortedPolygons[borderSegments[bs].polygon - 1][0].split(",").indexOf(Object.keys(edges)[borderSegments[bs].segmentIndex - 1].split(",")[0]) + 1) + ' ');
+
                         if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
                             file += (borderSegments[bs].properties.length + ' ');
                             borderSegments[bs].properties.forEach(prop => {

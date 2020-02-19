@@ -156,7 +156,7 @@
                 </div>
             </v-card>
         </v-col>
-        <v-col sm="3" class="pt-0">
+        <v-col sm="3" class="pt-0 pr-9">
             <v-card class="my-card">
                 <v-tabs fixed-tabs color="teal lighten-2">
                     <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
@@ -383,7 +383,6 @@
                 this.createPackingPolygons();
                 this.findBoundaryElements();
                 this.$refs.boundaryConditionsComponent.updatePacking();
-                //this.$refs.boundaryConditionsComponent.updatePacking();
                 //this.$refs.uploadResultsRef.createNewPacking();
                 this.executing = false;
             },

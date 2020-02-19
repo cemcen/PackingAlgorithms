@@ -44,7 +44,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="teal lighten-2" text :disabled="isLoading" @click.native="close">Cancel</v-btn>
-                <v-btn dark color="teal lighten-2" :disabled="isLoading" @keyup.enter="loadPacking" @click.native="loadPacking">Load</v-btn>
+                <v-btn dark color="teal lighten-2" :loading="isLoading" @keyup.enter="loadPacking" @click.native="loadPacking">Load</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>

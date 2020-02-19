@@ -2,7 +2,7 @@ import Constant from "./../constants";
 
 class Segment {
 
-    constructor(x1, y1, x2, y2, width, height, layer, stage, properties, indexPol) {
+    constructor(x1, y1, x2, y2, width, height, layer, stage, properties, indexPol, segment, index) {
         this.line = [x1, y1, x2, y2];
         this.selected = false;
         this.properties = properties;
@@ -13,13 +13,16 @@ class Segment {
         this.stage = stage;
         this.width = width;
         this.height = height;
-
+        this.index = index;
+        this.properties = [];
+        this.segmentIndex = index;
 
         this.shape = new Konva.Shape({
             sceneFunc: (context, shape) => this.drawLine(context, shape, this.line),
             stroke: this.stroke,
             strokeWidth: this.strokeWidth,
         });
+        this.assignProperties(segment.properties? segment.properties: [], properties);
 
         this.shape.listening(false);
         layer.add(this.shape);
@@ -42,14 +45,8 @@ class Segment {
     }
 
     mouseClick(mouse) {
-        /*if(this.contains(mouse)) {
-            this.selected = true;
-            this.shape.stroke('teal');
-        } else {
-            this.selected = false;
-            this.shape.stroke('#202020');
-        }
-        this.shape.draw();*/
+        this.selected = false;
+        this.shape.stroke(this.stroke);
     }
 
     contains(pnt) {
@@ -60,9 +57,11 @@ class Segment {
     }
 
 
-    dragBoxIntersect(rect) {
-        this.selected = false;
-        this.shape.stroke('#202020');
+    dragBoxIntersect(rect, e) {
+        if(!(e.ctrlKey || (navigator.appVersion.indexOf("Mac")!==-1 && e.metaKey))) {
+            this.selected = false;
+            this.shape.stroke(this.stroke);
+        }
 
         let intersections1 = 0;
         let intersections2 = 0;
@@ -98,7 +97,6 @@ class Segment {
             this.selected = true;
             this.shape.stroke('teal');
         }
-        this.shape.draw();
     }
 
     getWidth() {
@@ -131,6 +129,18 @@ class Segment {
         return this.indexPol;
     }
 
+    getIndex() {
+        return this.segmentIndex;
+    }
+
+    getProperties() {
+        return this.properties;
+    }
+
+    getSegment() {
+        return this.line;
+    }
+
     vectorIntersection(a, b, c, d, p, q, r, s) {
         let det, gamma, lambda;
 
@@ -142,6 +152,17 @@ class Segment {
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
             return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
         }
+    }
+
+    assignProperties(aProperties, properties) {
+        this.properties = aProperties.filter(prop => Object.keys(properties).includes(prop.key));
+        if (this.properties.length > 0) {
+           this.stroke = properties[this.properties[0].key].color;
+        } else {
+            this.stroke = '#202020';
+        }
+        this.shape.stroke(this.stroke);
+        this.selected = false;
     }
 }
 

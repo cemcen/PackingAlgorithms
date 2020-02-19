@@ -35,7 +35,7 @@
             <v-row no-gutters>
                 <v-col md="6">
                     <v-flex class="d-flex justify-center pl-3">
-                        <span class="hint-style">Multiples segments and nodes on the boundary can be selected by holding down the OPTION/ALT button.</span>
+                        <span class="hint-style">Multiples segments and nodes on the boundary can be selected by holding down the COMMAND/CONTROL button.</span>
                     </v-flex>
 
                     <div id='myContainerBC' ref="pCont" class="polygon">
@@ -69,10 +69,6 @@
                 type: Boolean,
                 defaultValue: false,
             },
-            polygonShape: {
-                type: Array,
-                defaultValue: [],
-            }
         },
         data() {
             return {
@@ -122,6 +118,11 @@
                         this.layer = new Konva.Layer();
                     }
 
+                    this.polygonsShape = [];
+                    this.packing.polygons.forEach(pol => {
+                        this.polygonsShape.push(new Polygon(pol, this.packing.width, this.packing.height, this.stage, this.layer, this.properties));
+                    });
+
                     this.dragBox = new DragBox(this.borderElements, this.packing.width, this.packing.height, this.stage, this.layer);
                     this.stage.add(this.layer);
                 }
@@ -150,13 +151,13 @@
                 this.loadBorderElements();
             },
             loadBorderElements() {
-                this.packing.borderElements.segments.forEach(be => {
+                this.packing.borderElements.segments.forEach((be, index) => {
                     this.borderSegments.push(new Segment(be.pntA.x, be.pntA.y, be.pntB.x, be.pntB.y,
-                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties, be.indexPol));
+                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties, be.indexPol, be, index));
                 });
-                this.packing.borderElements.points.forEach(be => {
+                this.packing.borderElements.points.forEach((be, index) => {
                     this.borderPoints.push(new Point(be.x, be.y,
-                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties));
+                        this.packing.width, this.packing.height, this.layer, this.stage, this.properties, be, index));
                 });
 
                 this.borderElements = [...this.borderSegments, ...this.borderPoints];
@@ -166,44 +167,44 @@
             assignProperties(selectedOptionProperties, selectedOptionType) {
                 let sOP = selectedOptionProperties.value;
                 let sOT = selectedOptionType.value;
-                let borderPointsArray = this.packing.draw.borderPoints;
-                let borderSegmentsArray = this.packing.draw.borderSegments;
-                let properties = this.properties;
+                let borderSegments = this.packing.borderElements.segments;
+                let borderPoints = this.packing.borderElements.points;
                 this.borderPoints.forEach(pnt => {
                     if (sOP === 0 || (pnt.isSelected() && sOP === 1)) {
                         if (sOT === 0 || sOT === 1) {
-                            borderPointsArray[pnt.getKey()].properties = [];
+
+                            let assignProperties = [];
+                            let properties = this.properties;
                             Object.keys(properties).forEach(function (item) {
                                 if (properties[item].selected) {
-                                    borderPointsArray[pnt.getKey()].properties.push({
-                                        key: item,
-                                        value: properties[item].default
-                                    })
+                                    assignProperties.push({key: item, value: properties[item].default})
                                 }
                             });
+
+                            pnt.assignProperties(assignProperties, this.properties);
+                            borderPoints[pnt.getIndex()].properties = pnt.getProperties();
                         }
                     }
                 });
                 this.borderSegments.forEach(seg => {
                     if (sOP === 0 || (seg.isSelected() && sOP === 1)) {
                         if (sOT === 0 || sOT === 2) {
-                            borderSegmentsArray[seg.getKey()].properties = [];
+                            let assignProperties = [];
+                            let properties = this.properties;
                             Object.keys(properties).forEach(function (item) {
                                 if (properties[item].selected) {
-                                    borderSegmentsArray[seg.getKey()].properties.push({
-                                        key: item,
-                                        value: properties[item].default
-                                    })
+                                    assignProperties.push({key: item, value: properties[item].default})
                                 }
                             });
+
+                            seg.assignProperties(assignProperties, this.properties);
+                            borderSegments[seg.getIndex()].properties = seg.getProperties();
                         }
                     }
                 });
-                this.$store.commit("updateBorderConditions", {
-                    borderPointsArray: borderPointsArray,
-                    borderSegmentsArray: borderSegmentsArray,
-                });
-                this.loadBorderElements();
+                this.$store.commit("borderElements", {segments: borderSegments, points: borderPoints});
+
+                this.layer.draw();
             },
             downloadFile(blob, filename, type) {
                 const e = document.createEvent('MouseEvents'),
@@ -216,7 +217,7 @@
             },
             downloadImage() {
                 let filename = 'results.png';
-                let dataURL = this.stage.toCanvas({ pixelRatio: 3 });
+                let dataURL = this.stage.toCanvas({ pixelRatio: 5 });
                 dataURL.toBlob((blob) => {
                     this.downloadFile(blob,filename, 'png');
                 });

@@ -2,10 +2,11 @@ import Constant from "./../constants";
 
 class Point {
 
-    constructor(x, y, width, height, layer, stage, properties) {
+    constructor(x, y, width, height, layer, stage, properties, point, index) {
         this.point = [x, y];
         this.selected = false;
         this.properties = properties;
+        this.fill = 'black';
         this.stroke = '#202020';
         this.strokeWidth = 3;
         this.layer = layer;
@@ -13,7 +14,8 @@ class Point {
         this.width = width;
         this.height = height;
         this.radius = 4;
-
+        this.properties = [];
+        this.pointIndex = index;
 
         this.shape = new Konva.Shape({
             sceneFunc: (context, shape) => this.drawCircle(context, shape, this.point),
@@ -21,6 +23,7 @@ class Point {
             stroke: this.stroke,
             strokeWidth: this.strokeWidth
         });
+        this.assignProperties(point.properties? point.properties: [], properties);
 
         this.shape.listening(false);
         layer.add(this.shape);
@@ -43,6 +46,18 @@ class Point {
         return this.stage.height() - Constant.HEIGHT_OFFSET;
     }
 
+    getIndex() {
+        return this.pointIndex;
+    }
+
+    getProperties() {
+        return this.properties;
+    }
+
+    getPoint() {
+        return this.point;
+    }
+
     xTransform(x){
         let width = this.width;
         let widthContainer = this.getWidth();
@@ -61,14 +76,18 @@ class Point {
         return this.selected;
     }
 
-    mouseClick(mouse) {
-
+    mouseClick(mouse, e) {
+        this.selected = false;
+        this.shape.fill(this.fill);
+        this.shape.stroke(this.stroke);
     }
 
-    dragBoxIntersect(rect) {
-        this.selected = false;
-        this.shape.fill('black');
-        this.shape.stroke('#202020');
+    dragBoxIntersect(rect, e) {
+        if(!(e.ctrlKey || (navigator.appVersion.indexOf("Mac")!==-1 && e.metaKey))) {
+            this.selected = false;
+            this.shape.fill(this.fill);
+            this.shape.stroke(this.stroke);
+        }
 
         let intersections = 0;
         let x = this.xTransform(this.point[0]);
@@ -95,8 +114,6 @@ class Point {
             this.shape.fill('teal');
             this.shape.stroke('teal');
         }
-
-        this.shape.draw();
     }
 
     vectorIntersection(a, b, c, d, p, q, r, s) {
@@ -110,6 +127,20 @@ class Point {
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
             return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
         }
+    }
+
+    assignProperties(aProperties, properties) {
+        this.properties = aProperties.filter(prop => Object.keys(properties).includes(prop.key));
+        if (this.properties.length > 0) {
+            this.fill = properties[this.properties[0].key].color;
+            this.stroke = properties[this.properties[0].key].color;
+        } else {
+            this.fill = 'black';
+            this.stroke = '#202020';
+        }
+        this.shape.fill(this.fill);
+        this.shape.stroke(this.stroke);
+        this.selected = false;
     }
 }
 

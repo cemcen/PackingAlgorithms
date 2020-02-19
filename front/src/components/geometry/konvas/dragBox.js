@@ -64,11 +64,11 @@ class DragBox {
         this.r1.on('mouseup', (e) => {
             if (mode !== 'moving') {
                 this.polygons.forEach(pol => {
-                    pol.mouseClick([e.evt.layerX, e.evt.layerY]);
+                    pol.mouseClick([e.evt.layerX, e.evt.layerY], e.evt);
                 });
             } else {
                 this.polygons.forEach(pol => {
-                    pol.dragBoxIntersect(this.r2);
+                    pol.dragBoxIntersect(this.r2, e.evt);
                 });
                 this.r2.visible(false);
             }
