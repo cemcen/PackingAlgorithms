@@ -1,5 +1,5 @@
 <template>
-    <v-dialog eager v-model="dialog" fullscreen persistent max-width="500px" style="max-height: 100%">
+    <v-dialog eager v-model="dialog" persistent style="height: 93vh !important;">
         <v-toolbar dark color="primary">
             <v-btn icon dark @click="closeDialog()">
                 <v-icon>mdi-close</v-icon>
@@ -15,13 +15,13 @@
                 <span>Download Image</span>
             </v-tooltip>
         </v-toolbar>
-        <v-card class="fill-height">
-            <v-row class="fill-height" no-gutters>
-                <v-col md="6" class="fill-height">
-                    <div class="scene" ref="scene"  style="height: 80%; width: 100%">
+        <v-card>
+            <v-row no-gutters>
+                <v-col md="6">
+                    <div class="scene polygon" ref="scene">
                     </div>
                 </v-col>
-                <v-col md="6" class="fill-height">
+                <v-col md="6">
                     <upload-results-file ref="uploadResultsFileRef" :polygons="polygonsShape"/>
                 </v-col>
             </v-row>
@@ -107,8 +107,10 @@
             },
             drawNewPacking() {
                 window.dispatchEvent(new Event('resize'));
+                this.scene.background = new THREE.Color( 0xffffff );
                 /// THREEJS
                 const el = this.$refs.scene;
+
                 this.camera = new THREE.PerspectiveCamera(
                     75,
                     el.clientWidth / el.clientHeight,
@@ -119,12 +121,39 @@
                 this.renderer.setSize(el.clientWidth, el.clientHeight);
                 el.appendChild(this.renderer.domElement);
 
-                const geometry = new THREE.PlaneGeometry( 1, 1 );
-                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                const cube = new THREE.Mesh(geometry, material);
+                /*const geometry = new THREE.Geometry();
+                geometry.vertices.push( new THREE.Vector3(1,0,0));
+                geometry.vertices.push( new THREE.Vector3(0,1,0));
+                geometry.vertices.push( new THREE.Vector3(-1,0,0));
+                geometry.faces.push( new THREE.Face3(0,1,2));
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.FrontSide});
+                const polygon = new THREE.Mesh(geometry, material);
+                this.scene.add(polygon);*/
 
-                this.scene.add(cube);
+                this.packing.polygons.forEach(pol => {
+                    const geometry = new THREE.Geometry();
+
+                    pol.points.forEach(pnt => {
+                        geometry.vertices.push( new THREE.Vector3(pnt.oldX,pnt.oldY,0));
+                    });
+
+                    for ( let i = 0; i< pol.points.length-2; i++) {
+                        geometry.faces.push( new THREE.Face3(0,i+1,i+2));
+                    }
+
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.BackSide  });
+                    const polygon = new THREE.Mesh(geometry, material);
+                    this.scene.add(polygon);
+                });
+
+                /*const geometry2 = new THREE.PlaneGeometry( 1, 1 );
+                const material2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.FrontSide });
+                const cube = new THREE.Mesh(geometry2, material2);
+                this.scene.add(cube);*/
+
                 this.camera.position.z = 5;
+
+
 
                 const animate = () => {
                     requestAnimationFrame(animate);
@@ -186,7 +215,7 @@
     .polygon {
         padding: 0;
         margin: 0;
-        height: 80%;
+        height: 75vh;
         min-width: 100%;
     }
 

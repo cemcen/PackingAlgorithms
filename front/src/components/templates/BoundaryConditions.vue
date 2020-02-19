@@ -6,7 +6,7 @@
             </v-btn>
             <v-toolbar-title>Boundary Conditions</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-tooltip left>
+            <!--<v-tooltip left>
                 <template v-slot:activator="{ on }">
                     <v-btn color="white" v-on="on" icon @click.native="loadOriginal">
                         <v-icon>mdi-backup-restore</v-icon>
@@ -21,7 +21,7 @@
                     </v-btn>
                 </template>
                 <span>Add more border nodes</span>
-            </v-tooltip>
+            </v-tooltip>-->
             <v-tooltip left>
                 <template v-slot:activator="{ on }">
                     <v-btn icon color="white" v-on="on" @click="downloadImage">

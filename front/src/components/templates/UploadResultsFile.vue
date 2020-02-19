@@ -1,5 +1,5 @@
 <template>
-    <v-card color="#ffffff" class="ma-3 fill-height" style="max-height: 80%">
+    <v-card color="#ffffff" class="ma-3" style="height: 75vh; overflow: auto;">
         <v-card-title>
             <span class="headline">Upload results file</span>
             <v-spacer/>
@@ -17,7 +17,7 @@
                 </v-col>
             </v-row>
         </v-form>
-        <v-card-text style="max-height: 75%; overflow: auto;">
+        <v-card-text>
             <v-row justify="center">
                 <v-list style="width: 100%; display: contents;" two-line>
                     <div class="text-centered font-weight-light grey--text title mb-2"
