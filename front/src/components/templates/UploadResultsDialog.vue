@@ -22,7 +22,7 @@
                     </div>
                 </v-col>
                 <v-col md="6">
-                    <upload-results-file ref="uploadResultsFileRef" :polygons="polygonsShape"/>
+                    <upload-results-file ref="uploadResultsFileRef" :polygons="packing.polygons" @reDraw="drawNewPacking"/>
                 </v-col>
             </v-row>
         </v-card>
@@ -44,7 +44,6 @@
             return {
                 dialog: false,
                 drawPacking: false,
-                polygonsShape: [],
                 configStage: {},
                 renderer: new THREE.WebGLRenderer({preserveDrawingBuffer: true }),
                 scene: new THREE.Scene(),
@@ -106,14 +105,12 @@
                 el.appendChild(this.renderer.domElement);
 
 
-                this.camera.position.z = 5;
+                this.camera.position.z = 3;
                 this.camera.position.x = 0;
                 this.camera.position.y = 0;
                 this.camera.lookAt (new THREE.Vector3 (0.0, 0.0, 0.0));
-                console.log(this.packing.width);
-                console.log(this.packing.height);
-                this.camera.position.x = this.packing.width / 2;
-                this.camera.position.y = this.packing.height / 2;
+                this.camera.position.x = this.packing.width / 2.5;
+                this.camera.position.y = 0;
 
                 this.packing.polygons.forEach(pol => {
                     const geometry = new THREE.Geometry();
@@ -123,10 +120,17 @@
                     });
 
                     for ( let i = 0; i< pol.points.length-2; i++) {
-                        geometry.faces.push( new THREE.Face3(0,i+1,i+2));
+                        let face = new THREE.Face3(0,i+1,i+2);
+                        let color1 = pol.points[0].color? pol.points[0].color: [0,0,0];
+                        let color2 = pol.points[i+1].color? pol.points[i+1].color: [0,0,0];
+                        let color3 = pol.points[i+2].color? pol.points[i+2].color: [0,0,0];
+                        face.vertexColors[0] = new THREE.Color("rgb(" + color1[0] + "," + color1[1]  + "," +  color1[2] + ")"); // red
+                        face.vertexColors[1] = new THREE.Color("rgb(" + color2[0] + "," + color2[1]  + "," +  color2[2] + ")"); // green
+                        face.vertexColors[2] = new THREE.Color("rgb(" + color3[0] + "," + color3[1]  + "," +  color3[2] + ")"); // blue
+                        geometry.faces.push( face);
                     }
 
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.FrontSide, wireframe: true });
+                    const material = new THREE.MeshBasicMaterial({  vertexColors: THREE.VertexColors, side: THREE.FrontSide});
                     const polygon = new THREE.Mesh(geometry, material);
                     this.scene.add(polygon);
                 });
