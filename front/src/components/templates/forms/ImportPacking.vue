@@ -1,66 +1,69 @@
 <template>
-    <v-dialog eager v-model="dialog" persistent max-width="500px">
-        <v-card>
-            <v-card-title>
-                <span class="headline">Import Packing</span>
-            </v-card-title>
+    <v-card elevation="0">
+        <v-card-title>
+            <v-row justify="center">
+                <v-btn dark color="teal lighten-2" :loading="isLoading" @click.native="loadPacking">
+                    Load
+                </v-btn>
+            </v-row>
+        </v-card-title>
 
-            <v-card-text>
+        <v-card-text>
+            <v-row justify="center">
+                <v-col class="pa-0 pr-3 pl-3">
+                    <v-select label="Choose type of file you want to import"
+                              item-text="name"
+                              v-model="selectedFileType" :items="fileTypes"
+                              return-object>
+                    </v-select>
+                </v-col>
+            </v-row>
+            <v-form ref="triangulationFileImportForm" v-show="selectedFileType.value === 1">
                 <v-row justify="center">
                     <v-col class="pa-0 pr-3 pl-3">
-                        <v-select label="Choose type of file you want to import"
-                                  item-text="name"
-                                  v-model="selectedFileType" :items="fileTypes"
-                                  return-object>
-                        </v-select>
+                        <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
+                                      :rules="[validation.required()]" show-size
+                                      label="Upload mesh file"></v-file-input>
                     </v-col>
                 </v-row>
-                <v-form ref="triangulationFileImportForm" v-show="selectedFileType.value === 1">
-                    <v-row justify="center">
-                        <v-col class="pa-0 pr-3 pl-3">
-                            <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
-                                          :rules="[validation.required()]" show-size
-                                          label="Upload mesh file"></v-file-input>
-                        </v-col>
-                    </v-row>
-                </v-form>
-                <v-form ref="fileImportForm" v-show="selectedFileType.value === 0">
-                    <v-row justify="center">
-                        <v-checkbox color="primary" v-model="parameters[0]" class="mx-2" label="Vertices"></v-checkbox>
-                        <v-checkbox color="primary" v-model="parameters[1]" class="mx-2" label="Edges"></v-checkbox>
-                        <v-checkbox color="primary" v-model="parameters[2]" class="mx-2" label="Properties"></v-checkbox>
-                        <v-checkbox color="primary" v-model="parameters[3]" class="mx-2" label="Polygons"></v-checkbox>
-                    </v-row>
-                    <v-row justify="center">
-                        <v-col class="pa-0 pr-3 pl-3">
-                            <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
-                                          :rules="[validation.required()]" show-size
-                                          label="Upload mesh file"></v-file-input>
-                        </v-col>
-                    </v-row>
-                </v-form>
-            </v-card-text>
-
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="teal lighten-2" text :disabled="isLoading" @click.native="close">Cancel</v-btn>
-                <v-btn dark color="teal lighten-2" :loading="isLoading" @keyup.enter="loadPacking" @click.native="loadPacking">Load</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+            </v-form>
+            <v-form ref="fileImportForm" v-show="selectedFileType.value === 0">
+                <v-row>
+                    <v-col sm="12" class="pa-0 ma-0">
+                        <v-checkbox color="primary" v-model="parameters[0]" class="mx-2 mt-0" label="Vertices"></v-checkbox>
+                    </v-col>
+                    <v-col sm="12" class="pa-0 ma-0">
+                        <v-checkbox color="primary" v-model="parameters[1]" class="mx-2 mt-0" label="Edges"></v-checkbox>
+                    </v-col>
+                    <v-col sm="12" class="pa-0 ma-0">
+                        <v-checkbox color="primary" v-model="parameters[2]" class="mx-2 mt-0" label="Properties"></v-checkbox>
+                    </v-col>
+                    <v-col sm="12" class="pa-0 ma-0">
+                        <v-checkbox color="primary" v-model="parameters[3]" class="mx-2 mt-0" label="Polygons"></v-checkbox>
+                    </v-col>
+                </v-row>
+                <v-row justify="center">
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
+                                      :rules="[validation.required()]" show-size
+                                      label="Upload mesh file"></v-file-input>
+                    </v-col>
+                </v-row>
+            </v-form>
+        </v-card-text>
+    </v-card>
 </template>
 
 <script>
-    import validation from './../../services/validation.service';
-    import * as poly2tri from 'poly2tri';
+    import validation from '../../../services/validation.service';
     import Delaunator from 'delaunator';
 
-    String.prototype.hashCode = function() {
+    String.prototype.hashCode = function () {
         let hash = 0, i, chr;
         if (this.length === 0) return hash;
         for (i = 0; i < this.length; i++) {
-            chr   = this.charCodeAt(i);
-            hash  = ((hash << 5) - hash) + chr;
+            chr = this.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
             hash |= 0; // Convert to 32bit integer
         }
         return hash;
@@ -95,7 +98,7 @@
                 if ((this.selectedFileType.value === 0 && this.$refs.fileImportForm.validate()) || (this.selectedFileType.value === 1 && this.$refs.triangulationFileImportForm.validate())) {
                     this.isLoading = true;
                     if (this.file.type === 'application/json') {
-                        if(this.selectedFileType.value === 0) {
+                        if (this.selectedFileType.value === 0) {
                             this.file.text().then(res => {
                                 this.$store.commit("loadPacking", JSON.parse(res));
                                 this.$emit("loadJSON");
@@ -105,7 +108,7 @@
                         }
                     } else if (this.file.type === 'text/plain') {
                         this.file.text().then(res => {
-                            if(this.selectedFileType.value === 0) {
+                            if (this.selectedFileType.value === 0) {
                                 try {
                                     let i = 0;
                                     let lines = res.split("\n");
@@ -260,13 +263,13 @@
                                         });
                                         const delaunay = Delaunator.from(contour);
                                         for (let i = 0; i < delaunay.triangles.length; i += 3) {
-                                                let pointsT =  [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
-                                                let triangle = [];
-                                                pointsT.forEach(pnt => {
-                                                    triangle.push({x: pnt[0], y: pnt[1]});
-                                                });
-                                                triangulation.push(triangle);
-                                            }
+                                            let pointsT = [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
+                                            let triangle = [];
+                                            pointsT.forEach(pnt => {
+                                                triangle.push({x: pnt[0], y: pnt[1]});
+                                            });
+                                            triangulation.push(triangle);
+                                        }
                                         // pol.points.forEach(pnt => {
                                         //     contour.push(new poly2tri.Point(pnt.x, pnt.y))
                                         // });
@@ -384,19 +387,17 @@
                                         let triangulation = [];
                                         let contour = [];
                                         pol.points.forEach(pnt => {
-                                            contour.push(new poly2tri.Point(pnt.x, pnt.y))
+                                            contour.push([pnt.x, pnt.y])
                                         });
-                                        let swctx = new poly2tri.SweepContext(contour);
-                                        swctx.triangulate();
-                                        let triangles = swctx.getTriangles();
-                                        triangles.forEach(function (t) {
+                                        const delaunay = Delaunator.from(contour);
+                                        for (let i = 0; i < delaunay.triangles.length; i += 3) {
+                                            let pointsT = [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
                                             let triangle = [];
-                                            t.getPoints().forEach(function (p) {
-                                                triangle.push({x: p.x, y: p.y});
-
+                                            pointsT.forEach(pnt => {
+                                                triangle.push({x: pnt[0], y: pnt[1]});
                                             });
                                             triangulation.push(triangle);
-                                        });
+                                        }
                                         pol.triangulation = triangulation;
                                     });
 

@@ -1,7 +1,7 @@
 <template>
-    <v-card color="#ffffff" class="ma-3">
+    <v-card color="#ffffff" class="elevation-0">
         <v-card-title>
-            <span class="headline">Assign Properties</span>
+            <!--<span class="headline">Assign Properties</span>-->
             <v-spacer></v-spacer>
             <v-btn dark color="primary" @click.native="openDialog()" >
                 <v-icon class="mr-1">mdi-plus</v-icon>
@@ -73,7 +73,7 @@
 <script>
     import Swatches from 'vue-swatches';
     import "vue-swatches/dist/vue-swatches.min.css"
-    import PropertiesForm from "./PropertiesForm.vue";
+    import PropertiesForm from "./forms/PropertiesForm.vue";
     export default {
         name: "BorderProperties",
         props: {},

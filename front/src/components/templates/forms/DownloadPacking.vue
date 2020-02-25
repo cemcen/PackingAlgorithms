@@ -1,51 +1,46 @@
 <template>
-    <v-dialog eager v-model="dialog" persistent max-width="500px">
-        <v-card>
-            <v-card-title>
-                <span class="headline">Download Mesh File</span>
-            </v-card-title>
+    <v-card elevation="0">
+        <v-card-title>
+            <v-row justify="center">
+                <v-btn dark color="teal lighten-2" @keyup.enter="downloadPacking" @click.native="downloadPacking">
+                    Download
+                </v-btn>
+            </v-row>
+        </v-card-title>
 
-            <v-card-text>
-                <v-form ref="fileDownloadForm">
-                    <v-row justify="center">
-                        <v-col class="pa-0 pr-3 pl-3">
-                            <v-select v-model="selectedFileOption" :items="fileOptions" item-text="name" label="File Type"
-                                          :rules="[validation.required()]" return-object></v-select>
-                        </v-col>
-                    </v-row>
-                    <v-row justify="center">
-                        <v-col class="pa-0 pr-3 pl-3">
-                            <v-text-field v-model="filename" label="Filename"
+        <v-card-text>
+            <v-form ref="fileDownloadForm">
+                <v-row justify="center">
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-select v-model="selectedFileOption" :items="fileOptions" item-text="name" label="File Type"
+                                  :rules="[validation.required()]" return-object></v-select>
+                    </v-col>
+                </v-row>
+                <v-row justify="center">
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-text-field v-model="filename" label="Filename"
                                       :rules="[validation.required()]"></v-text-field>
-                        </v-col>
-                    </v-row>
-                    <v-row justify="center">
-                        <v-col class="pa-0 pr-3 pl-3">
-                            <v-select v-model="selectedOption" :items="fileDownloadOptions"
-                                      item-text="type" label="File Format"
-                                      :rules="[validation.required()]" return-object></v-select>
-                        </v-col>
-                    </v-row>
-                </v-form>
-            </v-card-text>
-
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="teal lighten-2" text @click.native="close">Cancel</v-btn>
-                <v-btn dark color="teal lighten-2" @keyup.enter="downloadPacking" @click.native="downloadPacking">Download</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+                    </v-col>
+                </v-row>
+                <v-row justify="center">
+                    <v-col class="pa-0 pr-3 pl-3">
+                        <v-select v-model="selectedOption" :items="fileDownloadOptions"
+                                  item-text="type" label="File Format"
+                                  :rules="[validation.required()]" return-object></v-select>
+                    </v-col>
+                </v-row>
+            </v-form>
+        </v-card-text>
+    </v-card>
 </template>
 
 <script>
-    import validation from './../../services/validation.service';
+    import validation from '../../../services/validation.service';
 
     export default {
         name: "DownloadPacking",
         data() {
             return {
-                dialog: false,
                 validation: validation,
                 file: null,
                 filename: 'packing',
@@ -65,20 +60,20 @@
             this.validation.changeLanguage('en');
         },
         computed: {
-            packing () {
+            packing() {
                 return this.$store.getters.getPacking;
             },
-            properties () {
+            properties() {
                 return this.$store.getters.getProperties;
             },
-            polygons () {
+            polygons() {
                 return this.$store.getters.getPolygons;
             },
         },
         methods: {
             downloadPacking() {
                 if (this.$refs.fileDownloadForm.validate()) {
-                    if(this.selectedFileOption.value === 0) {
+                    if (this.selectedFileOption.value === 0) {
                         if (this.selectedOption.value === 0) {
                             this.exportPackingTxt();
                         } else {
@@ -98,15 +93,12 @@
                 this.resetValidation();
                 this.filename = 'packing';
                 this.selectedOption = {type: ".txt", value: 0};
-                this.dialog = true;
             },
             close() {
                 this.resetValidation();
                 this.selectedFileOption = {name: "Packing File", value: 0};
                 this.selectedOption = {type: ".txt", value: 0};
                 this.filename = 'packing';
-                this.dialog = false;
-                this.$emit("closedDialog");
             },
             resetValidation() {
                 this.$refs.fileDownloadForm.resetValidation();
@@ -115,7 +107,7 @@
                 let file = '';
                 let points = this.packing.draw.points;
                 let polygons = this.packing.draw.polygons;
-                let triangles =  this.packing.polygons.reduce((acc, ele) => acc + ele.triangulation.length, 0);
+                let triangles = this.packing.polygons.reduce((acc, ele) => acc + ele.triangulation.length, 0);
 
                 let sortedPoints = this.sortDictionary(points);
                 let sortedPolygons = this.sortPolygons(polygons);
@@ -128,7 +120,7 @@
 
                 sortedPoints.forEach(point => {
                     let splitted = point[0].split(",");
-                    file += (Math.abs(splitted[0]) < 1e-8? 0 : splitted[0])  + ' ' + (Math.abs(splitted[1]) < 1e-8? 0: splitted[1]) + '\n';
+                    file += (Math.abs(splitted[0]) < 1e-8 ? 0 : splitted[0]) + ' ' + (Math.abs(splitted[1]) < 1e-8 ? 0 : splitted[1]) + '\n';
                 });
 
                 let counterTriangle = 1;
@@ -188,7 +180,7 @@
                 };
                 this.downloadJsonFile(exportObj);
             },
-            exportPackingTxt(){
+            exportPackingTxt() {
                 let file = '';
                 let points = {};
                 let edges = {};
@@ -214,17 +206,17 @@
                         let x2 = pntB.x;
                         let y2 = pntB.y;
 
-                        if(!([x1, y1] in points)) {
+                        if (!([x1, y1] in points)) {
                             points[[x1, y1]] = pointIndex;
                             pointIndex += 1;
                         }
 
-                        if(!([x2, y2] in points)) {
+                        if (!([x2, y2] in points)) {
                             points[[x2, y2]] = pointIndex;
                             pointIndex += 1;
                         }
 
-                        if(!([points[[x1, y1]], points[[x2, y2]]] in edges) && !([points[[x2, y2]], points[[x1, y1]]] in edges)) {
+                        if (!([points[[x1, y1]], points[[x2, y2]]] in edges) && !([points[[x2, y2]], points[[x1, y1]]] in edges)) {
                             edges[[points[[x1, y1]], points[[x2, y2]]]] = edgeIndex;
                             edgeIndex += 1;
                         }
@@ -272,17 +264,17 @@
                 let sortedEdges = this.sortDictionary(edges);
                 let sortedPolygons = this.sortPolygons(polygons);
                 let properties = this.properties;
-                if(!properties) properties = {};
+                if (!properties) properties = {};
                 let propertiesArray = Object.keys(properties);
 
                 let borderPointsWithProperties = 0;
                 Object.keys(borderPoints).forEach(bp => {
-                    if(borderPoints[bp].properties && borderPoints[bp].properties.length > 0) borderPointsWithProperties += 1
+                    if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) borderPointsWithProperties += 1
                 });
 
                 let borderSegmentsWithProperties = 0;
                 Object.keys(borderSegments).forEach(bs => {
-                    if(borderSegments[bs].properties && borderSegments[bs].properties.length > 0) borderSegmentsWithProperties += 1
+                    if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) borderSegmentsWithProperties += 1
                 });
 
                 file += Object.keys(points).length
@@ -296,7 +288,7 @@
 
                 sortedPoints.forEach(point => {
                     let splitted = point[0].split(",");
-                    file += (Math.abs(splitted[0]) < 1e-8? 0 : splitted[0])  + ' ' + (Math.abs(splitted[1]) < 1e-8? 0: splitted[1]) + '\n';
+                    file += (Math.abs(splitted[0]) < 1e-8 ? 0 : splitted[0]) + ' ' + (Math.abs(splitted[1]) < 1e-8 ? 0 : splitted[1]) + '\n';
                 });
 
                 sortedEdges.forEach(edge => {
@@ -349,7 +341,7 @@
                 });
 
                 Object.keys(borderPoints).forEach(bp => {
-                    if(borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
+                    if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
                         file += (borderPoints[bp].pointIndex + ' ');
                         if (borderPoints[bp].properties && borderPoints[bp].properties.length > 0) {
                             file += (borderPoints[bp].properties.length + ' ');
@@ -365,7 +357,7 @@
                 });
 
                 Object.keys(borderSegments).forEach(bs => {
-                    if(borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
+                    if (borderSegments[bs].properties && borderSegments[bs].properties.length > 0) {
                         file += (borderSegments[bs].segmentIndex + ' ');
 
                         file += (borderSegments[bs].polygon + ' ');

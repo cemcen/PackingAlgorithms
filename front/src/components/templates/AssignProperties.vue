@@ -1,78 +1,73 @@
 <template>
-    <v-dialog v-model="dialog" persistent max-width="500px">
-        <v-card color="#ffffff">
-            <v-card-title>
-                <span class="headline">Assign Properties</span>
-            </v-card-title>
-
-            <v-card-text>
-                <v-row justify="center">
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <v-select label="Choose which entities should have these properties"
-                                  item-text="name"
-                                  v-model="selectedOptionProperties" :items="optionProperties"
-                                  return-object>
-                        </v-select>
-                    </v-col>
-                </v-row>
-                <v-row justify="center">
-                    <v-col class="pa-0 pr-3 pl-3">
-                        <v-select label="From the selected entities choose where to assign"
-                                  item-text="name"
-                                  v-model="selectedOptionType" :items="optionType" return-object>
-                        </v-select>
-                    </v-col>
-                </v-row>
-                <v-row justify="center">
-                    <v-list style="width: 100%" two-line>
-                        <div class="text-centered font-weight-light grey--text title mb-2"
-                             v-show="properties.length === 0">
-                            No properties registered.
-                        </div>
-                        <template v-for="(key, value) in Object.entries(properties)">
-
-                            <v-list-item :key="key[1].label">
-
-                                <v-list-item-action>
-                                    <v-checkbox color="teal lighten-2"
-                                                v-model="key[1].selected"></v-checkbox>
-                                </v-list-item-action>
-
-                                <v-list-item-avatar>
-                                    <swatches v-model="key[1].color" disabled class="mr-3"
-                                              colors="material-basic"/>
-                                </v-list-item-avatar>
-
-                                <v-list-item-content>
-                                    <v-list-item-title v-html="key[1].label"></v-list-item-title>
-                                    <v-list-item-subtitle>
-                                        <span>Type of value: {{ key[1].typeOfValue }}</span> <br/>
-                                        <span>Default value: {{ key[1].default? key[1].default : 'Not Defined' }}</span>
-                                    </v-list-item-subtitle>
-                                </v-list-item-content>
-                            </v-list-item>
-                            <v-divider></v-divider>
-                        </template>
-                    </v-list>
-                </v-row>
-            </v-card-text>
-
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="teal lighten-2" text @click.native="closeDialog()">Close</v-btn>
+    <v-card color="#ffffff" class="elevation-0">
+        <v-card-title>
+            <v-row justify="center">
                 <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign Properties</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+            </v-row>
+        </v-card-title>
+
+        <v-card-text>
+            <v-row justify="center">
+                <v-col class="pa-0 pr-3 pl-3">
+                    <v-select label="Which entities should have these properties"
+                              item-text="name"
+                              v-model="selectedOptionProperties" :items="optionProperties"
+                              return-object>
+                    </v-select>
+                </v-col>
+            </v-row>
+            <v-row justify="center">
+                <v-col class="pa-0 pr-3 pl-3">
+                    <v-select label="Choose where to assign"
+                              item-text="name"
+                              v-model="selectedOptionType" :items="optionType" return-object>
+                    </v-select>
+                </v-col>
+            </v-row>
+            <v-row justify="center" style="max-height: 48vh; overflow: auto">
+                <v-list style="width: 100%" two-line>
+                    <div class="text-centered font-weight-light grey--text title mb-2"
+                         v-show="properties.length === 0">
+                        No properties registered.
+                    </div>
+                    <template v-for="(key, value) in Object.entries(properties)">
+
+                        <v-list-item :key="key[1].label">
+
+                            <v-list-item-action>
+                                <v-checkbox color="teal lighten-2"
+                                            v-model="key[1].selected"></v-checkbox>
+                            </v-list-item-action>
+
+                            <v-list-item-avatar>
+                                <swatches v-model="key[1].color" disabled class="mr-3"
+                                          colors="material-basic"/>
+                            </v-list-item-avatar>
+
+                            <v-list-item-content>
+                                <v-list-item-title v-html="key[1].label"></v-list-item-title>
+                                <v-list-item-subtitle>
+                                    <span>Type of value: {{ key[1].typeOfValue }}</span> <br/>
+                                    <span>Default value: {{ key[1].default? key[1].default : 'Not Defined' }}</span>
+                                </v-list-item-subtitle>
+                            </v-list-item-content>
+                        </v-list-item>
+                        <v-divider></v-divider>
+                    </template>
+                </v-list>
+            </v-row>
+        </v-card-text>
+    </v-card>
 </template>
 
 <script>
     import Swatches from 'vue-swatches';
     import "vue-swatches/dist/vue-swatches.min.css"
+
     export default {
         name: "AssignProperties",
         props: {
-            dialog: {
+            loading: {
                 type: Boolean,
                 defaultValue: false,
             },
@@ -117,10 +112,6 @@
             }
         },
         methods: {
-            closeDialog() {
-                this.resetSelectedProperties();
-                this.$emit('closeDialog', false);
-            },
             assignProperties() {
                 this.$emit('assignProperties', this.selectedOptionProperties, this.selectedOptionType);
                 this.resetSelectedProperties();

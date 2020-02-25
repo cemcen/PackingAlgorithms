@@ -28,9 +28,16 @@ class Triangle {
             fill: this.fill,
             stroke: this.stroke,
             strokeWidth: this.strokeWidth,
-            opacity: this.opacity
+            opacity: this.opacity,
+            onFinish : function() {
+                // remove all references from Konva
+                this.shape.destroy();
+            }
         });
         this.shape.listening(false);
+        this.shape.hitStrokeWidth(0);
+        this.shape.shadowForStrokeEnabled(false);
+        this.shape.perfectDrawEnabled(false);
 
         layer.add(this.shape);
     }
@@ -113,8 +120,9 @@ class Triangle {
         this.noFill();
     }
 
-
-
+    destroy() {
+        this.shape.destroy();
+    }
 }
 
 export default Triangle;

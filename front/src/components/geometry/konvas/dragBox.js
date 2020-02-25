@@ -33,10 +33,16 @@ class DragBox {
             stroke: '#303030',
             strokeWidth: 1,
         });
+        this.r1.hitStrokeWidth(0);
+        this.r1.shadowForStrokeEnabled(false);
+        this.r1.perfectDrawEnabled(false);
 
         // draw a rectangle to be used as the rubber area
         this.r2 = new Konva.Rect({x: 0, y: 0, width: 0, height: 0, stroke: 'red', dash: [2,2]});
         this.r2.listening(false); // stop r2 catching our mouse events.
+        this.r2.hitStrokeWidth(0);
+        this.r2.shadowForStrokeEnabled(false);
+        this.r2.perfectDrawEnabled(false);
 
         let mode = '';
         this.posStart = null;
@@ -72,7 +78,7 @@ class DragBox {
                 });
                 this.r2.visible(false);
             }
-            this.layer.draw();
+            this.layer.batchDraw();
             mode = '';
 
         });
@@ -100,7 +106,7 @@ class DragBox {
         return ({x1: r1x, y1: r1y, x2: r2x, y2: r2y}); // return the corrected rect.
     }
 
-    updateDrag(posIn, polygons, stage){
+    updateDrag(posIn){
 
         // update rubber rect position
         this.posNow = {x: posIn.x, y: posIn.y};
@@ -111,7 +117,7 @@ class DragBox {
         this.r2.height(posRect.y2 - posRect.y1);
         this.r2.visible(true);
 
-        stage.draw();
+        this.layer.batchDraw();
     }
 
     getWidth() {
@@ -148,6 +154,11 @@ class DragBox {
     moveToTop() {
         this.r1.moveToTop();
         this.r2.moveToTop();
+    }
+
+    destroy() {
+        this.r1.destroy();
+        this.r2.destroy();
     }
 
 }

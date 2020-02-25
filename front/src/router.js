@@ -1,10 +1,10 @@
 import VueRouter from 'vue-router';
 
 import Navigation from './components/Navigation.vue'
-import PolygonsTab from './components/pages/PolygonsTab.vue'
-import ProbabilityTab from './components/pages/ProbabiltyTab.vue'
-import PropertiesTab from './components/pages/PropertiesTab.vue'
-import PackingTab from './components/pages/PackingTab.vue'
+import Polygons from './components/pages/Polygons.vue'
+import Properties from './components/pages/Properties.vue'
+import Packing from './components/pages/Packing.vue'
+import Boundary from "./components/pages/Boundary.vue";
 
 const router = new VueRouter({
     mode: 'history',
@@ -15,24 +15,39 @@ const router = new VueRouter({
             component: Navigation,
             children: [
                 {
-                    path: "probability",
-                    component: ProbabilityTab
-                },
-                {
-                    path: "properties",
-                    component: PropertiesTab
+                    path: "packing",
+                    component: Packing
                 },
                 {
                     path: "polygons",
-                    component: PolygonsTab
+                    component: Polygons
                 },
                 {
-                    path: "packing",
-                    component: PackingTab
+                    path: "properties",
+                    component: Properties
                 },
+                {
+                    path: "boundary",
+                    component: Boundary
+                },
+                {
+                    path: "more-points",
+                    component: Packing
+                },
+                {
+                    path: "upload-results",
+                    component: Packing
+                },
+                { path: '*', redirect: '/packing' },
             ]
         }
     ]
+});
+
+router.afterEach((to, from, next) => {
+    if(from.fullPath !== '/') {
+        window.location.href = 'http://localhost:9000' + to.fullPath;
+    }
 });
 
 export default router;

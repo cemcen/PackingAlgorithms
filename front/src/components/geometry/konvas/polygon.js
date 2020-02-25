@@ -42,7 +42,16 @@ class Polygon {
             sceneFunc: (context, shape) => this.drawPolygon(context, shape, this.points),
             stroke: this.stroke,
             strokeWidth: 1,
+            onFinish : function() {
+                // remove all references from Konva
+                this.shape.destroy();
+            }
         });
+
+        this.shape.hitStrokeWidth(0);
+        this.shape.shadowForStrokeEnabled(false);
+        this.shape.perfectDrawEnabled(false);
+
 
         this.shape.fill(null);
         this.shape.listening(false);
@@ -237,6 +246,11 @@ class Polygon {
                 }
             }
         }
+    }
+
+    destroy(){
+        this.triangles.forEach(triangle => triangle.destroy());
+        this.shape.destroy();
     }
 }
 

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="pa-3">
         <v-dialog v-model="dialog" eager persistent max-width="500px">
             <v-card>
                 <v-card-title>
@@ -47,49 +47,47 @@
             </v-card>
         </v-dialog>
 
-        <v-list two-line>
-            <v-row class="right-layout" align="end">
-                <v-flex pt-3>
-                    <v-btn dark block bottom right color="teal lighten-2" @click="openDialog">
-                        <v-icon class="mr-1">mdi-shape-polygon-plus</v-icon>
-                        New Polygon
-                    </v-btn>
-                </v-flex>
-            </v-row>
-            <div class="text-centered font-weight-light grey--text title mb-2" v-show="polygons.length === 0">
-                No polygons registered.
-            </div>
-            <v-divider></v-divider>
-            <template v-for="(item, index) in polygons">
-
-                <v-list-item :key="item.label">
-
-                    <v-list-item-content>
-                        <v-list-item-title v-html="item.label"></v-list-item-title>
-                        <v-list-item-subtitle>
-                            <span>Number of Vertices: {{ item.numberOfVertex }}</span> <br/>
-                            <span>Percentage: {{ item.percentage }}%,</span>
-                            <span>Radius: {{ item.radius }}</span>
-                        </v-list-item-subtitle>
-                    </v-list-item-content>
-                    <v-list-item-action>
-                        <v-layout row>
-                            <v-flex>
-                                <v-btn icon @click="editItem(item)">
-                                    <v-icon color="teal lighten-2">mdi-pencil</v-icon>
-                                </v-btn>
-                            </v-flex>
-                            <v-flex>
-                                <v-btn icon @click="deleteItem(item)">
-                                    <v-icon color="red lighten-2">mdi-delete</v-icon>
-                                </v-btn>
-                            </v-flex>
-                        </v-layout>
-                    </v-list-item-action>
-                </v-list-item>
-                <v-divider></v-divider>
-            </template>
-        </v-list>
+        <v-card>
+            <v-toolbar color="grey lighten-3" light tabs class="elevation-1">
+                <v-toolbar-title>Polygons</v-toolbar-title>
+                <v-spacer/>
+                <v-btn dark color="teal lighten-2" @click="openDialog">
+                    <v-icon class="mr-1">mdi-shape-polygon-plus</v-icon>
+                    New Polygon
+                </v-btn>
+            </v-toolbar>
+            <v-card-text class="pa-0">
+                <v-data-table :headers="headers" :items="polygons" class="elevation-0"
+                              no-data-text="No polygons registered." item-key="label" hide-default-footer>
+                    <template slot="item" slot-scope="props">
+                        <tr>
+                            <td>{{ props.item["label"] }}</td>
+                            <td>{{ props.item["numberOfVertex"] }}</td>
+                            <td>{{ props.item["percentage"] }}%</td>
+                            <td>{{ props.item["radius"] }}</td>
+                            <td>
+                                <v-tooltip top>
+                                    <template v-slot:activator="{ on }">
+                                        <v-btn icon @click="editItem(props.item)">
+                                            <v-icon color="teal lighten-2">mdi-pencil</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Edit Polygon</span>
+                                </v-tooltip>
+                                <v-tooltip top>
+                                    <template v-slot:activator="{ on }">
+                                        <v-btn icon @click="deleteItem(props.item)">
+                                            <v-icon color="red lighten-2">mdi-delete</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Delete Polygon</span>
+                                </v-tooltip>
+                            </td>
+                        </tr>
+                    </template>
+                </v-data-table>
+            </v-card-text>
+        </v-card>
     </div>
 </template>
 
@@ -104,6 +102,13 @@
                 isEditing: false,
                 editedIndex: -1,
                 selectedTab: 0,
+                headers: [
+                    {text: 'Label', value: "label"},
+                    {text: 'Number of Vertices', value: "numberOfVertex"},
+                    {text: 'Percentage', value: "percentage"},
+                    {text: 'Radius', value: "radius"},
+                    {text: 'Options', value: "options", sortable: false},
+                ],
                 editedItem: {
                     label: null,
                     numberOfVertex: null,

@@ -1,8 +1,8 @@
 <template>
     <v-row style="height: 90vh">
-        <v-col sm="9" class="pl-9 pt-0" style="height: 90vh">
+        <v-col sm="8" class="pl-9 pt-0" style="height: 90vh">
             <v-card class="my-card">
-                <v-toolbar color="#eeeeee">
+                <!--<v-toolbar color="#eeeeee">
                     <v-toolbar-title>Options</v-toolbar-title>
                     <v-divider class="mx-2" inset vertical></v-divider>
                     <v-tooltip top>
@@ -61,7 +61,7 @@
                         </template>
                         <span>Download Image</span>
                     </v-tooltip>
-                    <!--<v-tooltip top>
+                    <v-tooltip top>
                         <template v-slot:activator="{ on }">
                             <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
                                    @click="openAngleDialog()">
@@ -70,113 +70,107 @@
                         </template>
                         <span>Minimum Angle</span>
                     </v-tooltip>-->
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" v-on="on" :disabled="executing"
-                                   @click="openBorderConditions()">
-                                <v-icon>mdi-selection-drag</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Boundary Conditions</span>
-                    </v-tooltip>
+                <!--<v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                        <v-btn icon text color="teal lighten-2" v-on="on" :disabled="executing"
+                               @click="openBorderConditions()">
+                            <v-icon>mdi-selection-drag</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Boundary Conditions</span>
+                </v-tooltip>
 
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
-                                   @click.native="uploadResults">
-                                <v-icon>mdi-chart-bar</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Upload Results</span>
-                    </v-tooltip>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                        <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
+                               @click.native="uploadResults">
+                            <v-icon>mdi-chart-bar</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Upload Results</span>
+                </v-tooltip>
 
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
-                                   @click.native="convertMeshToAllConvexPolygons">
-                                <v-icon>mdi-shape-polygon-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Convert All Polygons to Convex</span>
-                    </v-tooltip>
+                <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                        <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
+                               @click.native="convertMeshToAllConvexPolygons">
+                            <v-icon>mdi-shape-polygon-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Convert All Polygons to Convex</span>
+                </v-tooltip>
 
-                    <v-spacer></v-spacer>
+                <v-spacer></v-spacer>
 
-                    <v-progress-circular v-show="executing" indeterminate
-                                         color="teal lighten-2"></v-progress-circular>
+                <v-progress-circular v-show="executing" indeterminate
+                                     color="teal lighten-2"></v-progress-circular>
 
-                    <dialog-new-packing :dialog="dialog" @close="closedDialog()"
-                                        @execute="execute" @execute-multi-layer="executeMultiLayer"/>
+                <dialog-new-packing :dialog="dialog" @close="closedDialog()"
+                                    @execute="execute" @execute-multi-layer="executeMultiLayer"/>
 
-                    <assign-properties :dialog="dialog2"
-                                       @closeDialog="closedDialog"
-                                       @assignProperties="assignProperties"/>
+                <assign-properties :dialog="dialog2"
+                                   @closeDialog="closedDialog"
+                                   @assignProperties="assignProperties"/>
 
-                    <v-dialog eager v-model="dialogAngle" persistent max-width="500px">
-                        <v-card>
-                            <v-card-title>
-                                <span class="headline">Minimum Layout Angle</span>
-                            </v-card-title>
+                <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :polygon-shape="polygonsShape"
+                                     @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
+                                     @closeDialog="closedDialog()"/>
+                <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"
+                                @closedDialog="closedDialog()"/>
+                <download-packing ref="refExportPacking" @closedDialog="closedDialog()"/>
+                <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
 
-                            <v-card-text>
-                                <v-form ref="minimumAngleForm">
-                                    <v-row justify="center">
-                                        <v-col class="pa-0 pr-3 pl-3">
-                                            <v-text-field v-model="minimumAngle" label="Minimum Angle"
-                                                          :rules="[validation.required(), validation.requiredPositive()]"
-                                                          type="number" clearable required>
-                                            </v-text-field>
-                                        </v-col>
-                                    </v-row>
-                                </v-form>
-                            </v-card-text>
-
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn color="teal lighten-2" text @click.native="closedDialog()">Close
-                                </v-btn>
-                                <v-btn dark color="teal lighten-2" @keyup.enter="optimizeAngle"
-                                       @click.native="optimizeAngle">Optimize
-                                </v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-
-                    <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :polygon-shape="polygonsShape"
-                                         @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
-                                         @closeDialog="closedDialog()"/>
-                    <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"
-                                    @closedDialog="closedDialog()"/>
-                    <download-packing ref="refExportPacking" @closedDialog="closedDialog()"/>
-                    <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
-
-                </v-toolbar>
+            </v-toolbar>-->
                 <div id='myContainer' ref="polygonContainer" class="polygon">
                     <div ref="polygonDrawer"></div>
                 </div>
             </v-card>
         </v-col>
-        <v-col sm="3" class="pt-0 pr-9">
+
+        <v-col sm="4" class="pt-0 pr-9">
             <v-card class="my-card">
                 <v-tabs fixed-tabs color="teal lighten-2">
                     <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
 
-                    <v-tab id="tab-polygon" @click="selectTab(1)">
-                        <v-icon class="mr-1">mdi-shape-plus</v-icon>
-                        Polygons
-                    </v-tab>
-
-                    <v-tab id="tab-distribution" @click="selectTab(0)">
-                        <v-icon class="mr-1">mdi-clipboard-text</v-icon>
-                        Properties
+                    <v-tab v-for="(cat, index) in categories" :key="index" @click="selectTab(cat.tab, cat)">
+                        <v-icon class="mr-1">{{cat.icon}}</v-icon>
+                        <span>{{cat.name}}</span>
                     </v-tab>
                 </v-tabs>
-                <div v-show="selectedTab === 0" class="max-height-card">
-                    <properties-tab ref="propertiesTab"></properties-tab>
+                <v-row class="pa-0 ma-0" v-for="(cat, index) in categories" :key="index" v-show="selectedTab === cat.tab">
+                    <v-tabs fixed-tabs color="teal lighten-2">
+                        <v-tabs-slider color="teal lighten-2"></v-tabs-slider>
+
+                        <v-tab v-for="(cat2, index2) in cat.subcategories" :key="index2"
+                               @click="selectSubTab(cat2.tab, cat)">
+                            <v-tooltip top>
+                                <template v-slot:activator="{ on }">
+                                    <v-icon v-on="on">{{cat2.icon}}</v-icon>
+                                </template>
+                                <span>{{cat2.name}}</span>
+                            </v-tooltip>
+                        </v-tab>
+                    </v-tabs>
+                </v-row>
+
+                <div v-show="selectedSubTab === 0">
+                    <new-packing :loading="executing" @execute="execute" @execute-multi-layer="executeMultiLayer"/>
                 </div>
 
-                <div v-show="selectedTab === 1" class="max-height-card">
-                    <polygons-tab></polygons-tab>
+                <div v-show="selectedSubTab === 1">
+                    <assign-properties @assignProperties="assignProperties"/>
+                </div>
+
+                <div v-show="selectedSubTab === 2">
+                    <download-packing ref="refExportPacking"/>
+                </div>
+
+                <div v-show="selectedSubTab === 3">
+                    <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"/>
+                </div>
+
+                <div v-show="selectedSubTab === 4">
+                    <download-image-form @download="downloadImage"/>
                 </div>
             </v-card>
         </v-col>
@@ -184,32 +178,29 @@
 </template>
 
 <script>
-    import PropertiesTab from "./PropertiesTab.vue";
-    import PolygonsTab from "./PolygonsTab.vue";
+    import PropertiesTab from "./Properties.vue";
+    import PolygonsTab from "./Polygons.vue";
     import api from "../../services/api.services";
-    import * as poly2tri from 'poly2tri';
     import Swatches from 'vue-swatches';
+    import * as poly2tri from 'poly2tri';
     import validation from './../../services/validation.service';
 
     import "vue-swatches/dist/vue-swatches.min.css"
     import BoundaryConditions from "../templates/BoundaryConditions.vue";
     import AssignProperties from "../templates/AssignProperties.vue";
-    import ImportPacking from "../templates/ImportPacking.vue";
-    import DownloadPacking from "../templates/DownloadPacking.vue";
-    import DialogNewPacking from "../templates/DialogNewPacking.vue";
+    import ImportPacking from "../templates/forms/ImportPacking.vue";
+    import DownloadPacking from "../templates/forms/DownloadPacking.vue";
+    import NewPacking from "../templates/NewPacking.vue";
     import UploadResultsDialog from "../templates/UploadResultsDialog.vue";
     import Polygon from "../geometry/konvas/polygon";
     import DragBox from "../geometry/konvas/dragBox";
-
-    const routes = ["/properties", "/polygons", "/info"];
+    import DownloadImageForm from "../templates/forms/DownloadImageForm.vue";
 
     export default {
-        $_veeValidate: {
-            validator: 'new'
-        },
         components: {
+            DownloadImageForm,
             UploadResultsDialog,
-            DialogNewPacking,
+            NewPacking,
             DownloadPacking,
             ImportPacking,
             AssignProperties,
@@ -223,7 +214,8 @@
             return {
                 validation: validation,
                 openedDialog: false,
-                selectedTab: 1,
+                selectedTab: 0,
+                selectedSubTab: 0,
                 stage: null,
                 layer: null,
                 dragBox: null,
@@ -233,6 +225,51 @@
                 dialog: false,
                 dialog2: false,
                 dialogAngle: false,
+                categories: [
+                    {
+                        tab: 0,
+                        name: "Packing",
+                        icon: "mdi-shape-plus",
+                        subTabs: [0, 1],
+                        selectedSubTab: 0,
+                        subcategories: [
+                            {
+                                name: 'Create New Packing',
+                                icon: 'mdi-plus-circle',
+                                tab: 0
+                            },
+                            {
+                                name: 'Assign Properties',
+                                icon: 'mdi-palette',
+                                tab: 1
+                            },
+                        ]
+                    },
+                    {
+                        tab: 1,
+                        name: "File",
+                        icon: "mdi-clipboard-text",
+                        subTabs: [2, 3, 4],
+                        selectedSubTab: 2,
+                        subcategories: [
+                            {
+                                name: "Download Mesh File",
+                                icon: 'mdi-download',
+                                tab: 2
+                            },
+                            {
+                                name: "Upload Mesh File",
+                                icon: 'mdi-upload',
+                                tab: 3
+                            },
+                            {
+                                name: "Download Image",
+                                icon: 'mdi-file-image',
+                                tab: 4
+                            },
+                        ]
+                    },
+                ],
                 minimumAngle: 30,
                 show: false,
                 dialogInfo: false,
@@ -245,6 +282,10 @@
         created() {
             this.selectTab(this.selectedTab);
             this.validation.changeLanguage('en');
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 310)
         },
         computed: {
             getSelectedPolygons() {
@@ -261,33 +302,34 @@
             }
         },
         mounted() {
+            if (!this.stage) {
+                this.stage = new Konva.Stage({
+                    container: 'myContainer',
+                    width: 100,
+                    height: 100
+                });
 
-            this.stage = new Konva.Stage({
-                container: 'myContainer',
-                width: 100,
-                height: 100
-            });
+                this.layer = new Konva.Layer();
+                this.stage.add(this.layer);
 
-            this.loadMesh();
+                this.loadMesh();
 
-            // adapt the stage on any window resize
-            window.addEventListener('resize', () => {
-                let container = this.$refs.polygonContainer;
-
-                this.stage.height(container.clientHeight);
-                this.stage.width(container.clientWidth);
-                this.stage.draw();
-            });
-            window.dispatchEvent(new Event('resize'));
+                // adapt the stage on any window resize
+                window.addEventListener('resize', () => {
+                    let container = this.$refs.polygonContainer;
+                    if (this.$refs.polygonContainer) {
+                        this.stage.height(container.clientHeight);
+                        this.stage.width(container.clientWidth);
+                        this.layer.batchDraw();
+                    }
+                });
+            }
         },
         methods: {
             createPackingPolygons() {
                 if (this.packing && this.packing.polygons) {
-                    if(this.layer != null) {
-                        this.layer.destroyChildren();
-                    } else {
-                        this.layer = new Konva.Layer();
-                    }
+
+                    this.layer.destroyChildren();
 
                     this.polygonsShape = [];
                     this.packing.polygons.forEach(pol => {
@@ -295,12 +337,20 @@
                     });
 
                     this.dragBox = new DragBox(this.polygonsShape, this.packing.width, this.packing.height, this.stage, this.layer);
-                    this.stage.add(this.layer);
                 }
             },
-            selectTab(i) {
+            selectTab(i, tab) {
+                if (tab) {
+                    this.selectedSubTab = tab.selectedSubTab;
+                }
                 this.selectedTab = i;
-                this.$router.push(routes[i]);
+
+            },
+            selectSubTab(i, tab) {
+                if (tab) {
+                    tab.selectedSubTab = i;
+                }
+                this.selectedSubTab = i;
             },
             openNewPackingDialog() {
                 this.dialog = true;
@@ -323,58 +373,6 @@
                 this.openedDialog = true;
                 this.$refs.boundaryConditionsComponent.reDraw();
             },
-            optimizeAngle() {
-                if (this.$refs.minimumAngleForm.validate()) {
-                    let minimumRadianAngle = this.minimumAngle * Math.PI / 180;
-                    let changed = false;
-                    this.packing.polygons.map(pol => {
-                        if (pol.hole) {
-                            let deletedPoints = [];
-                            for (let i = 0; i < pol.points.length; i += 1) {
-                                let p1 = pol.points[i];
-                                let p2 = pol.points[(i + 1) % pol.points.length];
-                                let p3 = pol.points[(i + 2) % pol.points.length];
-
-                                let p21 = [p1.x - p2.x, p1.y - p2.y];
-                                let p23 = [p3.x - p2.x, p3.y - p2.y];
-
-                                let angle = Math.acos(
-                                    (p21[0] * p23[0] + p21[1] * p23[1])
-                                    /
-                                    (
-                                        Math.sqrt(p21[0] * p21[0] + p21[1] * p21[1])
-                                        * Math.sqrt(p23[0] * p23[0] + p23[1] * p23[1])
-                                    )
-                                );
-
-                                if (angle < minimumRadianAngle) {
-                                    pol.triangulation = null;
-
-                                    if (Object.keys(this.packing.rGraph[[p1.x, p1.y]]).length < Object.keys(this.packing.rGraph[[p3.x, p3.y]]).length) {
-                                        deletedPoints.push(p1);
-                                    } else {
-                                        deletedPoints.push(p3);
-                                    }
-                                    changed = true;
-                                }
-                            }
-
-                            deletedPoints.forEach(point => {
-                                this.packing.polygons.map(pol => {
-                                    pol.points = pol.points.filter(pnt => !(pnt.x === point.x && pnt.y === point.y));
-                                });
-                            })
-                        }
-                    });
-
-                    if (changed) {
-                        this.triangulateMesh();
-                    }
-
-                    this.createPackingPolygons();
-                    this.dialogAngle = false;
-                }
-            },
             loadOriginal() {
                 this.executing = true;
                 let packing = JSON.parse(JSON.stringify(this.packing.originalPacking));
@@ -382,8 +380,6 @@
                 this.triangulateMesh();
                 this.createPackingPolygons();
                 this.findBoundaryElements();
-                this.$refs.boundaryConditionsComponent.updatePacking();
-                //this.$refs.uploadResultsRef.createNewPacking();
                 this.executing = false;
             },
             loadMesh() {
@@ -414,14 +410,6 @@
                     });
                 })
             },
-            importPacking() {
-                this.$refs.refImportPacking.openDialog();
-                this.openedDialog = true;
-            },
-            exportPacking() {
-                this.$refs.refExportPacking.openDialog();
-                this.openedDialog = true;
-            },
             assignProperties(selectedOptionProperties, selectedOptionType) {
                 let polygons = this.polygonsShape;
                 polygons.forEach(polygon => {
@@ -442,7 +430,7 @@
                         }
                     }
                 });
-                this.layer.draw();
+                this.layer.batchDraw();
 
                 this.openedDialog = false;
                 this.dialog2 = false;
@@ -452,15 +440,14 @@
                 let packing = this.triangulatePacking(resp.body.mesh);
                 this.$store.commit("newPacking", packing);
                 this.findBoundaryElements();
-                this.$refs.boundaryConditionsComponent.updatePacking();
-                //this.$refs.uploadResultsRef.createNewPacking();
                 this.createPackingPolygons();
+                this.layer.batchDraw();
                 this.openedDialog = false;
             },
             findBoundaryElements() {
                 let segmentsCount = {};
                 this.packing.polygons.forEach((pol, index) => {
-                    for(let i = 0; i < pol.points.length; i++) {
+                    for (let i = 0; i < pol.points.length; i++) {
                         let pntA = pol.points[i];
                         let pntB = pol.points[(i + 1) % pol.points.length];
 
@@ -474,7 +461,7 @@
                         } else if ([x2, y2] in segmentsCount && [x1, y1] in segmentsCount[[x2, y2]]) {
                             segmentsCount[[x2, y2]][[x1, y1]].count += 1;
                         } else {
-                            if(!([x1, y1] in segmentsCount)) {
+                            if (!([x1, y1] in segmentsCount)) {
                                 segmentsCount[[x1, y1]] = {};
                             }
                             segmentsCount[[x1, y1]][[x2, y2]] = {
@@ -491,15 +478,15 @@
                 let borderPoints = [];
                 Object.keys(segmentsCount).forEach(k => {
                     Object.keys(segmentsCount[k]).forEach(k2 => {
-                        if(segmentsCount[k][k2].count === 1) {
+                        if (segmentsCount[k][k2].count === 1) {
                             borderSegments.push({
                                 pntA: segmentsCount[k][k2].pntA,
                                 pntB: segmentsCount[k][k2].pntB,
                                 polIndex: segmentsCount[k][k2].polIndex,
                             });
 
-                            if(!borderPoints.includes(segmentsCount[k][k2].pntA)) borderPoints.push(segmentsCount[k][k2].pntA);
-                            if(!borderPoints.includes(segmentsCount[k][k2].pntB)) borderPoints.push(segmentsCount[k][k2].pntB);
+                            if (!borderPoints.includes(segmentsCount[k][k2].pntA)) borderPoints.push(segmentsCount[k][k2].pntA);
+                            if (!borderPoints.includes(segmentsCount[k][k2].pntB)) borderPoints.push(segmentsCount[k][k2].pntB);
                         }
                     });
                 });
@@ -604,8 +591,6 @@
             loadTxtPacking(data) {
                 this.$store.commit("newPacking", data);
                 this.findBoundaryElements();
-                this.$refs.boundaryConditionsComponent.updatePacking();
-                //this.$refs.uploadResultsRef.createNewPacking();
                 this.createPackingPolygons();
                 this.openedDialog = false;
             },
@@ -618,9 +603,9 @@
                 e.initEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
                 a.dispatchEvent(e);
             },
-            downloadImage() {
+            downloadImage(pixelRatio) {
                 let filename = 'results.png';
-                let dataURL = this.stage.toCanvas({pixelRatio: 3});
+                let dataURL = this.stage.toCanvas({pixelRatio: pixelRatio});
                 dataURL.toBlob((blob) => {
                     this.downloadFile(blob, filename, 'png');
                 });
@@ -679,7 +664,7 @@
             loadedJSON() {
                 this.openedDialog = false;
                 this.drawPacking = true;
-            }
+            },
         },
     }
 </script>
@@ -689,7 +674,7 @@
     .polygon {
         padding: 0;
         margin: 0;
-        height: 90%;
+        height: 100%;
         min-width: 100%;
     }
 

@@ -1,75 +1,35 @@
 <template>
-    <v-dialog eager v-model="dialog" persistent style="height: 93vh !important;">
-        <v-toolbar dark color="primary">
-            <v-btn icon dark @click="closeDialog()">
-                <v-icon>mdi-close</v-icon>
-            </v-btn>
-            <v-toolbar-title>Boundary Conditions</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <!--<v-tooltip left>
-                <template v-slot:activator="{ on }">
-                    <v-btn color="white" v-on="on" icon @click.native="loadOriginal">
-                        <v-icon>mdi-backup-restore</v-icon>
-                    </v-btn>
-                </template>
-                <span>Load Original Packing</span>
-            </v-tooltip>
-            <v-tooltip left>
-                <template v-slot:activator="{ on }">
-                    <v-btn icon color="white" v-on="on" @click="addMoreBorderPoints">
-                        <v-icon>mdi-shape-square-plus</v-icon>
-                    </v-btn>
-                </template>
-                <span>Add more border nodes</span>
-            </v-tooltip>-->
-            <v-tooltip left>
-                <template v-slot:activator="{ on }">
-                    <v-btn icon color="white" v-on="on" @click="downloadImage">
-                        <v-icon>mdi-file-image</v-icon>
-                    </v-btn>
-                </template>
-                <span>Download Image</span>
-            </v-tooltip>
-        </v-toolbar>
-        <v-card>
-            <v-row no-gutters>
-                <v-col md="6">
-                    <v-flex class="d-flex justify-center pl-3">
-                        <span class="hint-style">Multiples segments and nodes on the boundary can be selected by holding down the COMMAND/CONTROL button.</span>
-                    </v-flex>
+    <v-row style="height: 90vh">
+        <v-col sm="8" class="pl-9 pt-0" style="height: 90vh">
+            <v-card class="my-card">
+                <!--<v-flex class="d-flex justify-center pl-3">
+                    <span class="hint-style">Multiples segments and nodes on the boundary can be selected by holding down the COMMAND/CONTROL button.</span>
+                </v-flex>-->
 
-                    <div id='myContainerBC' ref="pCont" class="polygon">
-                        <div id="polygonDrawerBorderConditions" ref="polygonDrawer"></div>
-                    </div>
+                <div id='myContainerBC' ref="pCont" class="polygon">
+                    <div id="polygonDrawerBorderConditions" ref="polygonDrawer"></div>
+                </div>
+            </v-card>
+        </v-col>
 
-                </v-col>
-                <v-col md="6">
-                    <boundary-properties @assign-properties="assignProperties"/>
-                </v-col>
-            </v-row>
-        </v-card>
-        <add-border-points ref="addBorderPointRef" @changedBoundary="changedBoundary" :bs="borderSegments"/>
-    </v-dialog>
+        <v-col sm="4" class="pt-0 pr-9">
+            <v-card class="my-card">
+                <boundary-properties @assign-properties="assignProperties"/>
+            </v-card>
+        </v-col>
+    </v-row>
 </template>
 
 <script>
-
-    import Segment from "../geometry/konvas/segment";
-    import BoundaryProperties from "./BoundaryProperties.vue";
-    import AddBorderPoints from "./AddBorderPointsDialog.vue";
+    import BoundaryProperties from "./../templates/BoundaryProperties.vue";
     import Polygon from "../geometry/konvas/polygon";
     import DragBox from "../geometry/konvas/dragBox";
+    import Segment from "../geometry/konvas/segment";
     import Point from "../geometry/konvas/point";
 
     export default {
-        name: "BorderConditions",
-        components: {AddBorderPoints, BoundaryProperties},
-        props: {
-            dialog: {
-                type: Boolean,
-                defaultValue: false,
-            },
-        },
+        name: "Boundary",
+        components: {BoundaryProperties},
         data() {
             return {
                 borderPoints: [],
@@ -80,6 +40,11 @@
                 dragBox: null,
                 polygonsShape: [],
             }
+        },
+        created() {
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 310)
         },
         computed: {
             properties() {
@@ -236,16 +201,15 @@
 </script>
 
 <style scoped>
-
     .polygon {
         padding: 0;
         margin: 0;
-        height: 75vh;
+        height: 100%;
         min-width: 100%;
     }
 
-    .hint-style {
-        font-size: smaller;
-        color: #666;
+    .my-card {
+        height: 90vh;
     }
+
 </style>
