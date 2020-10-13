@@ -147,7 +147,7 @@
                 this.height = 75;
                 this.randomShape = false;
                 this.regularity = 5;
-                this.approach = 1;
+                this.approach = 0;
             },
             closeDialog() {
                 this.resetValidation();

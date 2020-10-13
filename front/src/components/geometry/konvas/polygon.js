@@ -41,7 +41,7 @@ class Polygon {
         this.shape = new Konva.Shape({
             sceneFunc: (context, shape) => this.drawPolygon(context, shape, this.points),
             stroke: this.stroke,
-            strokeWidth: 1,
+            strokeWidth: 3,
             onFinish : function() {
                 // remove all references from Konva
                 this.shape.destroy();

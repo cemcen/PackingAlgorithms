@@ -33,6 +33,7 @@ class MeshController @Inject()(components: ControllerComponents)
           // If defined we only get the dimensions.
           width = mesh.width.get
           height = mesh.height.get
+          println(mesh.approachAlgorithm.get)
           setPackingAlgorithm(mesh.approachAlgorithm.get, 0)
           polygonMesh = Packing2D.createMesh(mesh.polygons, width, height, mesh.randomShape.get, mesh.regularity.get)
 

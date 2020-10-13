@@ -37,7 +37,7 @@ class Point(var x: Double = 0, var y: Double = 0, var z: Double = 0) {
     Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2)
   }
 
-  override def toString: String = "( " + x + "," + y + ")"
+  override def toString: String = "(" + x + ";" + y + ")"
 
   def canEqual(a: Any): Boolean = a.isInstanceOf[Point]
 
