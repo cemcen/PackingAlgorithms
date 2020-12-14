@@ -2,125 +2,6 @@
     <v-row style="height: 90vh">
         <v-col sm="8" class="pl-9 pt-0" style="height: 90vh">
             <v-card class="my-card">
-                <!--<v-toolbar color="#eeeeee">
-                    <v-toolbar-title>Options</v-toolbar-title>
-                    <v-divider class="mx-2" inset vertical></v-divider>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn color="teal lighten-2" text :disabled="executing" @click="openNewPackingDialog()"
-                                   icon
-                                   v-on="on">
-                                <v-icon>mdi-plus-circle</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Create New Packing</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
-                                   @click.native="loadOriginal">
-                                <v-icon>mdi-backup-restore</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Load Original Packing</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
-                                   @click="openAssignProp">
-                                <v-icon>mdi-palette</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Assign Properties</span>
-                    </v-tooltip>
-
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
-                                   @click="exportPacking">
-                                <v-icon>mdi-download</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Export Mesh File</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
-                                   @click="importPacking">
-                                <v-icon>mdi-upload</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Upload Mesh</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
-                                   @click="downloadImage">
-                                <v-icon>mdi-file-image</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Download Image</span>
-                    </v-tooltip>
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn icon text color="teal lighten-2" :disabled="executing" v-on="on"
-                                   @click="openAngleDialog()">
-                                <v-icon>mdi-angle-acute</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Minimum Angle</span>
-                    </v-tooltip>-->
-                <!--<v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                        <v-btn icon text color="teal lighten-2" v-on="on" :disabled="executing"
-                               @click="openBorderConditions()">
-                            <v-icon>mdi-selection-drag</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Boundary Conditions</span>
-                </v-tooltip>
-
-                <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                        <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
-                               @click.native="uploadResults">
-                            <v-icon>mdi-chart-bar</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Upload Results</span>
-                </v-tooltip>
-
-                <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                        <v-btn color="teal lighten-2" v-on="on" :disabled="executing" icon text
-                               @click.native="convertMeshToAllConvexPolygons">
-                            <v-icon>mdi-shape-polygon-plus</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Convert All Polygons to Convex</span>
-                </v-tooltip>
-
-                <v-spacer></v-spacer>
-
-                <v-progress-circular v-show="executing" indeterminate
-                                     color="teal lighten-2"></v-progress-circular>
-
-                <dialog-new-packing :dialog="dialog" @close="closedDialog()"
-                                    @execute="execute" @execute-multi-layer="executeMultiLayer"/>
-
-                <assign-properties :dialog="dialog2"
-                                   @closeDialog="closedDialog"
-                                   @assignProperties="assignProperties"/>
-
-                <boundary-conditions ref="boundaryConditionsComponent" :dialog="dialogBoundaryConditions" :polygon-shape="polygonsShape"
-                                     @changedBoundary="changedBoundary" @loadOriginal="loadOriginal"
-                                     @closeDialog="closedDialog()"/>
-                <import-packing ref="refImportPacking" @loadtxtpacking="loadTxtPacking" @loadJSON="loadedJSON"
-                                @closedDialog="closedDialog()"/>
-                <download-packing ref="refExportPacking" @closedDialog="closedDialog()"/>
-                <upload-results-dialog ref="uploadResultsRef" @closedDialog="closedDialog()"/>
-
-            </v-toolbar>-->
                 <div id='myContainer' ref="polygonContainer" class="polygon">
                     <div ref="polygonDrawer"></div>
                 </div>
@@ -592,6 +473,7 @@
                 this.$store.commit("newPacking", data);
                 this.findBoundaryElements();
                 this.createPackingPolygons();
+                this.layer.batchDraw();
                 this.openedDialog = false;
             },
             downloadFile(blob, filename, type) {

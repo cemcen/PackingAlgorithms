@@ -57,6 +57,7 @@
 <script>
     import validation from '../../../services/validation.service';
     import Delaunator from 'delaunator';
+    import * as poly2tri from "poly2tri";
 
     String.prototype.hashCode = function () {
         let hash = 0, i, chr;
@@ -134,6 +135,7 @@
                                     }
 
                                     if (this.parameters[3]) {
+
                                         numberOfPolygons = parseInt(firstLine[i]);
                                         i += 1;
                                         if (firstLine.length > i) {
@@ -185,7 +187,7 @@
                                                 let numberOfProperties2 = ((vertices + 3) < polygonLine.length) ? parseInt(polygonLine[vertices + 3]) : 0;
 
                                                 Array(vertices).fill(undefined).map((_, i) => {
-                                                    pointsArray.push(points[polygonLine[i + 1]]);
+                                                    pointsArray.push(points[(parseInt(polygonLine[i + 1]) + 1) + ""]);
                                                 });
 
                                                 Array(numberOfProperties2).fill(undefined).map((_, i) => {
@@ -203,10 +205,11 @@
                                                     points: pointsArray,
                                                     indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
                                                     area: ((vertices + 1) < polygonLine.length) ? parseFloat(polygonLine[vertices + 1]) : 0,
-                                                    hole: ((vertices + 1) < polygonLine.length) ? parseInt(polygonLine[vertices + 2]) === 1 : true,
+                                                    hole: false,
                                                     properties: propertiesArray,
                                                     triangulation: []
                                                 });
+
                                             } else if (index <= numberOfPoints + numberOfEdges + numberOfProperties + numberOfPolygons + numberOfHoles) {
                                                 let polygonLine = line.split(" ");
                                                 let vertices = parseInt(polygonLine[0]);
@@ -245,6 +248,10 @@
                                     let maxX = 0;
                                     let maxY = 0;
                                     polygons.forEach(pol => {
+                                        pol.points = pol.points.filter(function (el) {
+                                            return el != null;
+                                        });
+                                        console.log(pol.points);
                                         pol.points.forEach(pnt => {
                                             if (!pnt.visited) {
                                                 pnt.oldX = pnt.x;
@@ -256,35 +263,41 @@
                                                 if (pnt.y > maxY) maxY = pnt.y;
                                             }
                                         });
-                                        let triangulation = [];
-                                        let contour = [];
-                                        pol.points.forEach(pnt => {
-                                            contour.push([pnt.x, pnt.y])
-                                        });
-                                        const delaunay = Delaunator.from(contour);
-                                        for (let i = 0; i < delaunay.triangles.length; i += 3) {
-                                            let pointsT = [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
-                                            let triangle = [];
-                                            pointsT.forEach(pnt => {
-                                                triangle.push({x: pnt[0], y: pnt[1]});
+
+                                        if(pol.hole) {
+                                            pol.triangulation = [];
+                                            let contour = [];
+                                            pol.points.forEach(pnt => {
+                                                contour.push(new poly2tri.Point(pnt.x, pnt.y))
                                             });
-                                            triangulation.push(triangle);
+                                            let swctx = new poly2tri.SweepContext(contour);
+                                            swctx.triangulate();
+                                            let triangles = swctx.getTriangles();
+                                            triangles.forEach(function (t) {
+                                                let triangle = [];
+                                                t.getPoints().forEach(function (p) {
+                                                    triangle.push({x: p.x, y: p.y});
+                                                });
+
+                                                pol.triangulation.push(triangle);
+                                            });
+                                        } else {
+                                            let triangulation = [];
+                                            let contour = [];
+                                            pol.points.forEach(pnt => {
+                                                contour.push([pnt.x, pnt.y])
+                                            });
+                                            const delaunay = Delaunator.from(contour);
+                                            for (let i = 0; i < delaunay.triangles.length; i += 3) {
+                                                let pointsT = [contour[delaunay.triangles[i]], contour[delaunay.triangles[i + 1]], contour[delaunay.triangles[i + 2]]];
+                                                let triangle = [];
+                                                pointsT.forEach(pnt => {
+                                                    triangle.push({x: pnt[0], y: pnt[1]});
+                                                });
+                                                triangulation.push(triangle);
+                                            }
+                                            pol.triangulation = triangulation;
                                         }
-                                        // pol.points.forEach(pnt => {
-                                        //     contour.push(new poly2tri.Point(pnt.x, pnt.y))
-                                        // });
-                                        // let swctx = new poly2tri.SweepContext(contour);
-                                        // swctx.triangulate();
-                                        // let triangles = swctx.getTriangles();
-                                        // triangles.forEach(function (t) {
-                                        //     let triangle = [];
-                                        //     t.getPoints().forEach(function (p) {
-                                        //         triangle.push({x: p.x, y: p.y});
-                                        //
-                                        //     });
-                                        //     triangulation.push(triangle);
-                                        // });
-                                        pol.triangulation = triangulation;
                                     });
 
                                     let height = maxY;
