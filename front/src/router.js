@@ -46,7 +46,7 @@ const router = new VueRouter({
 
 router.afterEach((to, from, next) => {
     if(from.fullPath !== '/') {
-        window.location.href = 'http://localhost:9000' + to.fullPath;
+        window.location.href = 'https://meshing.dcc.uchile.cl/' + to.fullPath;
     }
 });
 
