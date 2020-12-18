@@ -109,7 +109,6 @@ class Polygon {
     mouseClick(mouse) {
         if(this.pointInsidePolygon(this.points, mouse)) {
             this.selected = true;
-            console.log(this.triangles);
             this.trianglesFillSelected();
         } else {
             this.selected = false;

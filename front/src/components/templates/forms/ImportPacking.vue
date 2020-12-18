@@ -96,6 +96,52 @@
         },
         methods: {
             loadPacking() {
+
+                function calculateAllCrossProduct(points) {
+                    let lastSign = null;
+
+                    for (let i = 2; i < points.length; i++) {
+                        //calculate crossproduct from 3 consecutive points
+                        const crossproduct = calculateCrossProduct(points[i - 2], points[i - 1], points[i]);
+                        const currentSign = Math.sign(crossproduct);
+                        if (lastSign == null) {
+                            //last sign init
+                            lastSign = currentSign;
+                        }
+
+                        const checkResult = checkCrossProductSign(lastSign, currentSign);
+                        if (checkResult === false) {
+                            //different sign in cross products,no need to check the remaining points --> concave polygon --> return function
+                            return false;
+                        }
+                        lastSign = currentSign;
+                    }
+
+                    //first point must check between second and last point, this is the last 3 points that can break convexity
+                    const crossproductFirstPoint = calculateCrossProduct(points[points.length - 2], points[0], points[1]);
+
+                    return checkCrossProductSign(lastSign, Math.sign(crossproductFirstPoint));
+                }
+
+                function checkCrossProductSign(lastSign, newSign) {
+                    return lastSign === newSign;
+
+                }
+
+                function calculateCrossProduct(p1, p2, p3) {
+
+                    let dx1 = p2.x - p1.x;
+                    let dy1 = p2.y - p1.y;
+                    let dx2 = p3.x - p2.x;
+                    let dy2 = p3.y - p2.y;
+
+                    return dx1 * dy2 - dy1 * dx2;
+                }
+
+                function isPolygonConvex(points) {
+                    return calculateAllCrossProduct(points);
+                }
+
                 if ((this.selectedFileType.value === 0 && this.$refs.fileImportForm.validate()) || (this.selectedFileType.value === 1 && this.$refs.triangulationFileImportForm.validate())) {
                     this.isLoading = true;
                     if (this.file.type === 'application/json') {
@@ -187,7 +233,7 @@
                                                 let numberOfProperties2 = ((vertices + 3) < polygonLine.length) ? parseInt(polygonLine[vertices + 3]) : 0;
 
                                                 Array(vertices).fill(undefined).map((_, i) => {
-                                                    pointsArray.push(points[(parseInt(polygonLine[i + 1]) + 1) + ""]);
+                                                    pointsArray.push(points[polygonLine[i + 1]]);
                                                 });
 
                                                 Array(numberOfProperties2).fill(undefined).map((_, i) => {
@@ -251,7 +297,7 @@
                                         pol.points = pol.points.filter(function (el) {
                                             return el != null;
                                         });
-                                        console.log(pol.points);
+                                        // console.log(pol.points);
                                         pol.points.forEach(pnt => {
                                             if (!pnt.visited) {
                                                 pnt.oldX = pnt.x;
@@ -264,7 +310,9 @@
                                             }
                                         });
 
-                                        if(pol.hole) {
+                                        const isConvex = isPolygonConvex(pol.points);
+
+                                        if(!isConvex) {
                                             pol.triangulation = [];
                                             let contour = [];
                                             pol.points.forEach(pnt => {
