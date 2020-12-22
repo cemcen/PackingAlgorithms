@@ -5,6 +5,7 @@ import Polygons from './components/pages/Polygons.vue'
 import Properties from './components/pages/Properties.vue'
 import Packing from './components/pages/Packing.vue'
 import Boundary from "./components/pages/Boundary.vue";
+import MorePoints from "./components/pages/MorePoints.vue";
 
 const router = new VueRouter({
     mode: 'history',
@@ -32,7 +33,7 @@ const router = new VueRouter({
                 },
                 {
                     path: "more-points",
-                    component: Packing
+                    component: MorePoints
                 },
                 {
                     path: "upload-results",
@@ -44,10 +45,5 @@ const router = new VueRouter({
     ]
 });
 
-router.afterEach((to, from, next) => {
-    if(from.fullPath !== '/') {
-        window.location.href = 'https://meshing.dcc.uchile.cl/' + to.fullPath;
-    }
-});
 
 export default router;

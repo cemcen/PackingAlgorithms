@@ -56,6 +56,13 @@ class Segment {
                 && Math.abs(pnt[1] - this.yTransform(this.line[3])) < 5);
     }
 
+    containsWithoutTransform(pnt) {
+        return (Math.abs(pnt[0] - this.line[0]) < 5
+            && Math.abs(pnt[1] - this.line[1]) < 5)
+            ||  (Math.abs(pnt[0] - this.line[2]) < 5
+                && Math.abs(pnt[1] - this.line[3]) < 5);
+    }
+
 
     dragBoxIntersect(rect, e) {
         if(!(e.ctrlKey || (navigator.appVersion.indexOf("Mac")!==-1 && e.metaKey))) {
