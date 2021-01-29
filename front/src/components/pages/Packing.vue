@@ -1,5 +1,5 @@
 <template>
-    <v-row style="height: 90vh">
+    <v-row style="height: 90vh; margin: 0">
         <v-col sm="8" class="pl-9 pt-0" style="height: 90vh">
             <v-card class="my-card">
                 <div id='myContainer' ref="polygonContainer" class="polygon">
@@ -77,6 +77,8 @@
     import DragBox from "../geometry/konvas/dragBox";
     import DownloadImageForm from "../templates/forms/DownloadImageForm.vue";
 
+    import { mdiShapePlus, mdiPlusCircle, mdiPalette, mdiClipboardText, mdiDownload, mdiUpload, mdiFileImage} from '@mdi/js';
+
     export default {
         components: {
             DownloadImageForm,
@@ -110,18 +112,18 @@
                     {
                         tab: 0,
                         name: "Packing",
-                        icon: "mdi-shape-plus",
+                        icon: mdiShapePlus,
                         subTabs: [0, 1],
                         selectedSubTab: 0,
                         subcategories: [
                             {
                                 name: 'Create New Packing',
-                                icon: 'mdi-plus-circle',
+                                icon: mdiPlusCircle,
                                 tab: 0
                             },
                             {
                                 name: 'Assign Properties',
-                                icon: 'mdi-palette',
+                                icon: mdiPalette,
                                 tab: 1
                             },
                         ]
@@ -129,23 +131,23 @@
                     {
                         tab: 1,
                         name: "File",
-                        icon: "mdi-clipboard-text",
+                        icon: mdiClipboardText,
                         subTabs: [2, 3, 4],
                         selectedSubTab: 2,
                         subcategories: [
                             {
                                 name: "Download Mesh File",
-                                icon: 'mdi-download',
+                                icon: mdiDownload,
                                 tab: 2
                             },
                             {
                                 name: "Upload Mesh File",
-                                icon: 'mdi-upload',
+                                icon: mdiUpload,
                                 tab: 3
                             },
                             {
                                 name: "Download Image",
-                                icon: 'mdi-file-image',
+                                icon: mdiFileImage,
                                 tab: 4
                             },
                         ]

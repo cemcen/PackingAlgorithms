@@ -6,10 +6,10 @@ import VueKonva from 'vue-konva';
 import colors from 'vuetify/es5/util/colors';
 import store from './store';
 import VuetifyToast from 'vuetify-toast-snackbar';
-
 import router from './router';
 import VeeValidate from 'vee-validate';
 import App from './components/App.vue';
+import 'vuetify/dist/vuetify.min.css'
 
 Vue.use(VeeValidate);
 Vue.use(VueResource);
@@ -27,7 +27,7 @@ Vue.use(VuetifyToast, {
 
 let vuetify = new Vuetify({
     icons: {
-        iconfont: 'mdi',
+        iconfont: 'mdiSvg',
     },
     theme: {
         themes: {

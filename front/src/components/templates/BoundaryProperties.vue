@@ -4,7 +4,7 @@
             <!--<span class="headline">Assign Properties</span>-->
             <v-spacer></v-spacer>
             <v-btn dark color="primary" @click.native="openDialog()" >
-                <v-icon class="mr-1">mdi-plus</v-icon>
+                <v-icon class="mr-1">{{icons['mdi-plus']}}</v-icon>
                 New Property
             </v-btn>
         </v-card-title>
@@ -63,7 +63,7 @@
         <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn dark color="teal lighten-2" @click.native="assignProperties">
-                <v-icon class="mr-1">mdi-palette</v-icon>
+                <v-icon class="mr-1">{{icons['mdi-palette']}}</v-icon>
                 Assign Properties
             </v-btn>
         </v-card-actions>
@@ -74,6 +74,9 @@
     import Swatches from 'vue-swatches';
     import "vue-swatches/dist/vue-swatches.min.css"
     import PropertiesForm from "./forms/PropertiesForm.vue";
+
+    import { mdiPalette, mdiPlus } from '@mdi/js';
+
     export default {
         name: "BorderProperties",
         props: {},
@@ -83,6 +86,10 @@
         },
         data() {
             return {
+                icons: {
+                  "mdi-plus": mdiPlus,
+                  "mdi-palette": mdiPalette,
+                },
                 isEditing: false,
                 selectedOptionProperties: {name: "Entire Boundary", value: 0},
                 selectedOptionType: {name: "All Entities", value: 0 },

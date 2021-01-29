@@ -1,14 +1,12 @@
 <template>
     <v-card elevation="0">
-        <v-card-title>
-            <v-row justify="center">
+
+        <v-card-text>
+            <v-row justify="center" class="pt-4 pb-5">
                 <v-btn dark color="teal lighten-2" :loading="isLoading" @click.native="loadPacking">
                     Load
                 </v-btn>
             </v-row>
-        </v-card-title>
-
-        <v-card-text>
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="Choose type of file you want to import"

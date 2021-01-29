@@ -71,12 +71,12 @@
                         </v-row>
                         <v-row justify="center">
                             <v-btn color="teal lighten-2" class="mr-2" dark @click="addLayer">
-                                <v-icon>mdi-plus</v-icon>
+                                <v-icon>{{icons['mdi-plus']}}</v-icon>
                             </v-btn>
                             <v-btn :disabled="layers.length === 1" :dark="layers.length !== 1"
                                    color="teal lighten-2"
                                    @click="deleteLayer">
-                                <v-icon>mdi-minus</v-icon>
+                                <v-icon>{{icons['mdi-minus']}}</v-icon>
                             </v-btn>
                         </v-row>
                     </v-form>
@@ -88,6 +88,7 @@
 
 <script>
     import validation from './../../services/validation.service';
+    import {mdiPlus, mdiMinus} from '@mdi/js';
 
     export default {
         name: "NewPacking",
@@ -99,6 +100,10 @@
         },
         data() {
             return {
+                icons: {
+                    "mdi-plus": mdiPlus,
+                    "mdi-minus": mdiMinus,
+                },
                 validation: validation,
                 piledOption: ["Single", "Multiple"],
                 tab: 0,

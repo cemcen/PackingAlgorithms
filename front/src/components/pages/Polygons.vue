@@ -52,7 +52,7 @@
                 <v-toolbar-title>Polygons</v-toolbar-title>
                 <v-spacer/>
                 <v-btn dark color="teal lighten-2" @click="openDialog">
-                    <v-icon class="mr-1">mdi-shape-polygon-plus</v-icon>
+                    <v-icon class="mr-1">{{icons['mdi-shape-polygon-plus']}}</v-icon>
                     New Polygon
                 </v-btn>
             </v-toolbar>
@@ -69,7 +69,7 @@
                                 <v-tooltip top>
                                     <template v-slot:activator="{ on }">
                                         <v-btn icon @click="editItem(props.item)">
-                                            <v-icon color="teal lighten-2">mdi-pencil</v-icon>
+                                            <v-icon color="teal lighten-2">{{icons['mdi-pencil']}}</v-icon>
                                         </v-btn>
                                     </template>
                                     <span>Edit Polygon</span>
@@ -77,7 +77,7 @@
                                 <v-tooltip top>
                                     <template v-slot:activator="{ on }">
                                         <v-btn icon @click="deleteItem(props.item)">
-                                            <v-icon color="red lighten-2">mdi-delete</v-icon>
+                                            <v-icon color="red lighten-2">{{icons['mdi-delete']}}</v-icon>
                                         </v-btn>
                                     </template>
                                     <span>Delete Polygon</span>
@@ -93,10 +93,16 @@
 
 <script>
     import validation from './../../services/validation.service';
+    import {mdiShapePolygonPlus, mdiPencil, mdiDelete} from '@mdi/js';
 
     export default {
         data() {
             return {
+                icons: {
+                    "mdi-shape-polygon-plus": mdiShapePolygonPlus,
+                    "mdi-pencil": mdiPencil,
+                    "mdi-delete": mdiDelete,
+                },
                 validation: validation,
                 dialog: false,
                 isEditing: false,

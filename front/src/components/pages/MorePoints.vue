@@ -1,5 +1,5 @@
 <template>
-    <v-row style="height: 90vh">
+    <v-row style="height: 90vh; margin: 0">
         <v-col sm="8" class="pl-9 pt-0" style="height: 90vh">
             <v-card class="my-card">
                 <!--<v-flex class="d-flex justify-center pl-3">

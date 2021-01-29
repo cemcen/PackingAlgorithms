@@ -18,7 +18,7 @@
                             <td>
                                 <v-chip :color="props.item['color']">
                                     <v-avatar >
-                                        <v-icon color="transparent">mdi-palette</v-icon>
+                                        <v-icon color="transparent">{{icons['mdi-palette']}}</v-icon>
                                     </v-avatar>
                                 </v-chip>
                             </td>
@@ -28,7 +28,7 @@
                                 <v-tooltip top>
                                     <template v-slot:activator="{ on }">
                                         <v-btn icon @click="editItem(props.item['key'])">
-                                            <v-icon color="teal lighten-2">mdi-pencil</v-icon>
+                                            <v-icon color="teal lighten-2">{{icons['mdi-pencil']}}</v-icon>
                                         </v-btn>
                                     </template>
                                     <span>Edit Polygon</span>
@@ -36,7 +36,7 @@
                                 <v-tooltip top>
                                     <template v-slot:activator="{ on }">
                                         <v-btn icon @click="deleteItem(props.item['key'])">
-                                            <v-icon color="red lighten-2">mdi-delete</v-icon>
+                                            <v-icon color="red lighten-2">{{icons['mdi-delete']}}</v-icon>
                                         </v-btn>
                                     </template>
                                     <span>Delete Polygon</span>
@@ -53,7 +53,8 @@
 
 <script>
     import {Validator} from 'vee-validate';
-    import Swatches from 'vue-swatches'
+    import Swatches from 'vue-swatches';
+    import {mdiPalette, mdiPencil, mdiDelete} from '@mdi/js';
 
     // Import the styles too, globally
     import "vue-swatches/dist/vue-swatches.min.css"
@@ -74,6 +75,11 @@
         },
         data() {
             return {
+                icons: {
+                    "mdi-palette": mdiPalette,
+                    "mdi-pencil": mdiPencil,
+                    "mdi-delete": mdiDelete,
+                },
                 isEditing: false,
                 headers: [
                     {text: 'Label', value: "label"},

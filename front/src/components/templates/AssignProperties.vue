@@ -1,12 +1,10 @@
 <template>
     <v-card color="#ffffff" class="elevation-0">
-        <v-card-title>
-            <v-row justify="center">
-                <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign Properties</v-btn>
-            </v-row>
-        </v-card-title>
 
         <v-card-text>
+            <v-row justify="center" class="pt-4 pb-5">
+                <v-btn dark color="teal lighten-2" @click.native="assignProperties">Assign Properties</v-btn>
+            </v-row>
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
                     <v-select label="Which entities should have these properties"
