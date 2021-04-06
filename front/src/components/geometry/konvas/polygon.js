@@ -59,6 +59,10 @@ class Polygon {
         layer.add(this.shape);
     }
 
+    getIndex() {
+        return this.indexPol;
+    }
+
     getWidth() {
         return this.stage.width() - Constant.WIDTH_OFFSET;
     }

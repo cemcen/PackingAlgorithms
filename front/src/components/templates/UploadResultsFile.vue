@@ -4,14 +4,14 @@
             <span class="headline">Upload results file</span>
             <v-spacer/>
             <v-btn dark color="primary" @click.native="uploadResultsFile()" @keyup.enter="uploadResultsFile">
-                <v-icon class="mr-1">mdi-file-chart</v-icon>
+                <v-icon class="mr-1">{{icons['mdi-file-chart']}}</v-icon>
                 Upload File
             </v-btn>
         </v-card-title>
         <v-form ref="resultsFileForm" class="pl-4 pr-4">
             <v-row justify="center">
                 <v-col class="pa-0 pr-3 pl-3">
-                    <v-file-input v-model="file" accept=".txt" prepend-icon="mdi-file-chart"
+                    <v-file-input v-model="file" accept=".txt"
                                   :rules="[validation.required()]" show-size
                                   label="Upload results file"></v-file-input>
                 </v-col>
@@ -50,11 +50,16 @@
 
 <script>
     import validation from './../../services/validation.service';
+    import {mdiFileImage, mdiFileChart} from "@mdi/js";
 
     export default {
         name: "UploadResultsFile",
         data() {
             return {
+                icons: {
+                    "mdi-file-image": mdiFileImage,
+                    "mdi-file-chart": mdiFileChart,
+                },
                 validation: validation,
                 file: null,
                 results: [],
@@ -228,8 +233,17 @@
                         let min = item.minValue;
                         let max = item.maxValue;
                         let value = ((pol.value - min) / (max - min)) * (maxHue - minHue) + minHue;
-                        let hsl = parseInt(Math.round((value - minHue)/(maxHue - minHue)*number));
-                        this.polygons.find(polShape => polShape.getIndex() === (pol.index)).color = colors[hsl];
+                        let hsl = parseInt(Math.round((value - minHue) / (maxHue - minHue)* number));
+                        let cPolygon =  this.polygons.find(polShape => polShape.indexPol === (pol.index));
+
+
+                        if(Number.isNaN(hsl)) hsl = 0;
+
+
+
+                        cPolygon.points.forEach(pnt => {
+                            pnt.color = this.HSVtoRGB(colors[hsl] /360, 1,    1);
+                        });
                     });
 
                 }

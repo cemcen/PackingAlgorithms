@@ -6,6 +6,7 @@ import Properties from './components/pages/Properties.vue'
 import Packing from './components/pages/Packing.vue'
 import Boundary from "./components/pages/Boundary.vue";
 import MorePoints from "./components/pages/MorePoints.vue";
+import Results from "./components/pages/Results.vue";
 
 const router = new VueRouter({
     mode: 'history',
@@ -37,7 +38,7 @@ const router = new VueRouter({
                 },
                 {
                     path: "upload-results",
-                    component: Packing
+                    component: Results
                 },
                 { path: '*', redirect: '/packing' },
             ]
