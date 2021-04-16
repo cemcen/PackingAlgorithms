@@ -46,5 +46,13 @@ const router = new VueRouter({
     ]
 });
 
+router.afterEach((to, from, next) => {
+    console.log(to);
+    console.log(from);
+    if(to.fullPath === '/upload-results' && !['/upload-results', '/'].includes(from.fullPath)) {
+        window.location.href = window.location.origin + to.fullPath;
+    }
+});
+
 
 export default router;

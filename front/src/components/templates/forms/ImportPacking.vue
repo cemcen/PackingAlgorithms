@@ -42,7 +42,7 @@
                 </v-row>
                 <v-row justify="center">
                     <v-col class="pa-0 pr-3 pl-3">
-                        <v-file-input v-model="file" accept=".txt,.json" prepend-icon="mdi-file-code"
+                        <v-file-input v-model="file" accept=".txt,.json"
                                       :rules="[validation.required()]" show-size
                                       label="Upload mesh file"></v-file-input>
                     </v-col>

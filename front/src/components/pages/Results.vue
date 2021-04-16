@@ -43,7 +43,9 @@
                 configStage: {},
                 renderer: new THREE.WebGLRenderer({preserveDrawingBuffer: true }),
                 scene: new THREE.Scene(),
-                camera: null
+                camera: null,
+                height: null,
+                width: null,
             }
         },
         computed: {
@@ -100,7 +102,10 @@
                     1000
                 );
 
-                this.renderer.setSize(parent.clientWidth, parent.clientHeight);
+
+                if(!this.height) this.height = parent.clientHeight;
+                if(!this.width) this.width = parent.clientWidth;
+                this.renderer.setSize(this.width, this.height);
                 el.appendChild(this.renderer.domElement);
 
 
