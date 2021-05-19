@@ -48,9 +48,9 @@
                     {type: ".txt", value: 0},
                     {type: ".json", value: 1}
                 ],
-                selectedFileOption: {name: "Packing File", value: 0},
+                selectedFileOption: {name: "Polygon File", value: 0},
                 fileOptions: [
-                    {name: "Packing File", value: 0},
+                    {name: "Polygon File", value: 0},
                     {name: "Triangulation File", value: 1}
                 ],
                 selectedOption: {type: ".txt", value: 0},
@@ -96,7 +96,7 @@
             },
             close() {
                 this.resetValidation();
-                this.selectedFileOption = {name: "Packing File", value: 0};
+                this.selectedFileOption = {name: "Polygon File", value: 0};
                 this.selectedOption = {type: ".txt", value: 0};
                 this.filename = 'packing';
             },

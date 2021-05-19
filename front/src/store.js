@@ -87,10 +87,9 @@ const store = new Vuex.Store({
                 Vue.set(state.packing, "polygons", polygons);
             }
         },
-        assignProperties: (state, changes) => {
-            if(changes) {
-                Vue.set(state.packing, "draw", changes.draw);
-                Vue.set(state.packing, "polygons", changes.polygons);
+        assignProperties: (state, packing) => {
+            if(packing) {
+                Vue.set(state.packing, packing);
             }
         },
         updateBorderConditions: (state, borderConditions) => {

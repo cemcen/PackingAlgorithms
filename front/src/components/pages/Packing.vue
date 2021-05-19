@@ -310,9 +310,13 @@
                             });
 
                             polygon.assignProperties(assignProperties, this.properties);
+                            if( this.packing.polygons[polygon.getIndex() - 1]) {
+                                this.packing.polygons[polygon.getIndex() - 1].properties = assignProperties.filter(prop => Object.keys(this.properties).includes(prop.key));
+                            }
                         }
                     }
                 });
+                this.$store.commit("assignProperties", this.packing);
                 this.layer.batchDraw();
 
                 this.openedDialog = false;

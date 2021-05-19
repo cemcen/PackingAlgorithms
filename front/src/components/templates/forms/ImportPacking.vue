@@ -75,10 +75,10 @@
                 dialog: false,
                 parameters: [true, true, true, true],
                 validation: validation,
-                selectedFileType: {value: 0, name: 'Packing File'},
+                selectedFileType: {value: 0, name: 'Polygon File'},
                 isLoading: false,
                 fileTypes: [
-                    {value: 0, name: 'Packing File'},
+                    {value: 0, name: 'Polygon File'},
                     {value: 1, name: 'Triangulation File'}
                 ],
                 file: null
@@ -139,6 +139,23 @@
                 function isPolygonConvex(points) {
                     return calculateAllCrossProduct(points);
                 }
+
+
+                function calculateArea(points) {
+                    let area = 0;
+
+                    for (let i = 0; i < points.length; i++) {
+                        const x1 = points[i].x;
+                        const y1 = points[i].y;
+                        const x2 = points[(i + 1) % points.length].x;
+                        const y2 = points[(i + 1) % points.length].y;
+
+                        area += x1 * y2 - x2 * y1
+                    }
+
+                    return Math.abs(area) / 2;
+                }
+
 
                 if ((this.selectedFileType.value === 0 && this.$refs.fileImportForm.validate()) || (this.selectedFileType.value === 1 && this.$refs.triangulationFileImportForm.validate())) {
                     this.isLoading = true;
@@ -248,7 +265,7 @@
                                                     radius: null,
                                                     points: pointsArray,
                                                     indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
-                                                    area: ((vertices + 1) < polygonLine.length) ? parseFloat(polygonLine[vertices + 1]) : 0,
+                                                    area: (((vertices + 1) < polygonLine.length) && !isNaN(parseFloat(polygonLine[vertices + 1]))) ? parseFloat(polygonLine[vertices + 1]) : calculateArea(pointsArray),
                                                     hole: false,
                                                     properties: propertiesArray,
                                                     triangulation: []
@@ -273,13 +290,12 @@
                                                     });
                                                 });
 
-
                                                 polygons.push({
                                                     label: "",
                                                     radius: null,
                                                     points: pointsArray,
                                                     indexPol: index - (numberOfPoints + numberOfEdges + numberOfProperties),
-                                                    area: ((vertices + 1) < polygonLine.length) ? parseFloat(polygonLine[vertices + 1]) : 0,
+                                                    area: (((vertices + 1) < polygonLine.length) && !isNaN(parseFloat(polygonLine[vertices + 1]))) ? parseFloat(polygonLine[vertices + 1]) : calculateArea(pointsArray),
                                                     hole: true,
                                                     properties: propertiesArray,
                                                     triangulation: []
@@ -310,23 +326,28 @@
 
                                         const isConvex = isPolygonConvex(pol.points);
 
+
                                         if(!isConvex) {
                                             pol.triangulation = [];
                                             let contour = [];
                                             pol.points.forEach(pnt => {
                                                 contour.push(new poly2tri.Point(pnt.x, pnt.y))
                                             });
-                                            let swctx = new poly2tri.SweepContext(contour);
-                                            swctx.triangulate();
-                                            let triangles = swctx.getTriangles();
-                                            triangles.forEach(function (t) {
-                                                let triangle = [];
-                                                t.getPoints().forEach(function (p) {
-                                                    triangle.push({x: p.x, y: p.y});
-                                                });
+                                            try {
+                                                let swctx = new poly2tri.SweepContext(contour);
+                                                swctx.triangulate();
+                                                let triangles = swctx.getTriangles();
+                                                triangles.forEach(function (t) {
+                                                    let triangle = [];
+                                                    t.getPoints().forEach(function (p) {
+                                                        triangle.push({x: p.x, y: p.y});
+                                                    });
 
-                                                pol.triangulation.push(triangle);
-                                            });
+                                                    pol.triangulation.push(triangle);
+                                                });
+                                            } catch (e) {
+                                                console.log(e)
+                                            }
                                         } else {
                                             let triangulation = [];
                                             let contour = [];

@@ -17,6 +17,28 @@
                 </v-col>
             </v-row>
         </v-form>
+        <v-form ref="reloadMeshColorMap" class="pl-4 pr-4">
+            <v-row justify="center">
+                <v-col>
+                <v-select v-model="selectedLut"
+                          :items="lutOptions"
+                          label="Select Color Map"></v-select>
+                </v-col>
+                <v-col>
+                    <v-text-field
+                            v-model="numberOfColors"
+                            type="number"
+                            label="Number of Colors">
+                    </v-text-field>
+                </v-col>
+                <v-col>
+                    <v-btn block dark color="primary" @click.native="reDrawWithOptions">
+                        <v-icon class="mr-1">{{icons['mdi-gradient']}}</v-icon>
+                        Reload options
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </v-form>
         <v-card-text>
             <v-row justify="center">
                 <v-list style="width: 100%; display: contents;" two-line>
@@ -50,7 +72,7 @@
 
 <script>
     import validation from './../../services/validation.service';
-    import {mdiFileImage, mdiFileChart} from "@mdi/js";
+    import {mdiFileImage, mdiFileChart, mdiGradient} from "@mdi/js";
 
     export default {
         name: "UploadResultsFile",
@@ -59,10 +81,14 @@
                 icons: {
                     "mdi-file-image": mdiFileImage,
                     "mdi-file-chart": mdiFileChart,
+                    "mdi-gradient": mdiGradient,
                 },
                 validation: validation,
                 file: null,
                 results: [],
+                selectedLut: 'rainbow',
+                lutOptions: [ 'rainbow', 'cooltowarm', 'blackbody', 'grayscale' ],
+                numberOfColors: 128,
             }
         },
         props: {
@@ -81,6 +107,9 @@
                 this.results = [];
                 this.file = null;
                 this.$refs.resultsFileForm.resetValidation();
+            },
+            reDrawWithOptions(){
+              this.$emit('reDraw', {colorMap: this.selectedLut, numberOfColors: this.numberOfColors});
             },
             uploadResultsFile() {
                 if(this.$refs.resultsFileForm.validate()) {
@@ -220,11 +249,16 @@
                         let min = item.minValue;
                         let max = item.maxValue;
                         vert.color = ((vert.value - min) / (max - min)) * (maxHue - minHue) + minHue;
+                        vert.min = item.minValue;
+                        vert.max = item.maxValue;
                     });
 
                     this.polygons.forEach(pol => {
                         pol.points.forEach(pnt => {
                             pnt.color = this.HSVtoRGB(item.vertices[pnt.index - 1].color/360, 1,    1);
+                            pnt.value = item.vertices[pnt.index - 1].value;
+                            pnt.max = item.vertices[pnt.index - 1].max;
+                            pnt.min = item.vertices[pnt.index - 1].min;
                         });
                     });
 
@@ -239,16 +273,17 @@
 
                         if(Number.isNaN(hsl)) hsl = 0;
 
-
-
                         cPolygon.points.forEach(pnt => {
                             pnt.color = this.HSVtoRGB(colors[hsl] /360, 1,    1);
+                            pnt.value = pol.value;
+                            pnt.max = item.maxValue;
+                            pnt.min = item.minValue;
                         });
                     });
 
                 }
 
-                this.$emit("reDraw");
+                this.$emit("reDraw", {colorMap: this.selectedLut, numberOfColors: this.numberOfColors});
 
             },
             HSVtoRGB(h, s, v) {
